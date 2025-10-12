@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **PumpBNB** - A BNB Chain-based meme coin launchpad inspired by Pump.fun on Solana. The platform enables instant token creation and trading through automated bonding curves, with automatic graduation to PancakeSwap at $100K market cap.
 
-**Key Value Proposition**: 95%+ cost reduction compared to Solana-based alternatives while maintaining comparable functionality.
+**Key Value Proposition**: Cost-effective alternative to Solana-based platforms while maintaining comparable functionality.
 
 ## Project Status
 
@@ -23,19 +23,19 @@ Currently in **Specification & Research Phase**. The codebase contains:
 
 **TokenFactory.sol**
 - Deploys new BEP-20 tokens using factory pattern
-- Target gas cost: ~3,200,000 gas ($0.041)
+- Target gas cost: ~3,200,000 gas (cost-effective)
 - Features: Anti-bot protection, standardized metadata
 
 **BondingCurve.sol**
 - Automated market maker for price discovery
 - Linear bonding curve formula: `price = initialPrice + (tokensIssued * priceIncrement)`
-- Trading gas cost: ~180,000 gas per trade ($0.002-0.003)
-- 1% platform fee on all trades
+- Trading gas cost: ~180,000 gas per trade (low cost)
+- 0.15% platform fee on all trades
 
 **GraduationManager.sol**
 - Automatic migration to PancakeSwap at $100K market cap
 - Handles liquidity extraction and DEX pair creation
-- Target gas cost: ~2,811,000 gas ($0.037)
+- Target gas cost: ~2,811,000 gas (affordable)
 
 **AsterIntegration.sol** (Phase 3)
 - Integration with Aster Protocol for 100x leverage trading
@@ -86,10 +86,10 @@ Currently in **Specification & Research Phase**. The codebase contains:
 ## Key Technical Constraints
 
 ### Cost Requirements
-- Token creation must cost < $0.10 (vs $3.50-$8.00 on Solana)
-- Trading fees must be < $0.01 per transaction
-- Graduation to PancakeSwap must be < $0.10
-- Platform fee: 1% of transaction value
+- Token creation: Cost-effective compared to Solana platforms
+- Trading fees: Low per transaction
+- Graduation to PancakeSwap: Affordable migration cost
+- Platform fee: 0.15% of transaction value
 
 ### Bonding Curve Parameters
 - Initial Price: $0.000001 per token
@@ -108,16 +108,16 @@ Currently in **Specification & Research Phase**. The codebase contains:
 ## Economic Model
 
 ### Revenue Streams
-- Trading fees: 1.0% per bonding curve transaction (80% of revenue)
-- Token creation: $0.10 per deployment (5% of revenue)
-- Graduation fees: $0.10 per DEX migration (3% of revenue)
+- Trading fees: 0.15% per bonding curve transaction (80% of revenue)
+- Token creation: Small fee per deployment (5% of revenue)
+- Graduation fees: Small fee per DEX migration (3% of revenue)
 - Premium subscriptions: $10-100/month (7% of revenue)
 - API access: Usage-based tiers (3% of revenue)
 - Aster revenue share: 20% of generated fees (2% of revenue)
 
 ### Break-Even Requirements
 - Monthly operating costs: $50,000
-- Required monthly volume: $5,000,000 (at 1% fee)
+- Required monthly volume: Target volume based on 0.15% fee
 - Target timeline: Month 3-4
 
 ## Development Standards
@@ -150,7 +150,7 @@ Currently in **Specification & Research Phase**. The codebase contains:
 1. **Network**: BNB Smart Chain (EVM) vs Solana (different programming model)
 2. **DEX Integration**: PancakeSwap vs Pump Swap (requires different APIs)
 3. **Leverage**: Aster Protocol integration (100x) vs standard pools
-4. **Cost Structure**: 95%+ cheaper, different economic incentives
+4. **Cost Structure**: More cost-effective, different economic incentives
 5. **Speed**: 3-second confirmation vs 400ms (but more reliable during congestion)
 
 ## Risk Areas

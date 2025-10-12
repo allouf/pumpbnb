@@ -11,15 +11,15 @@
 
 ### 1.1 Executive Summary
 
-PumpBNB is a next-generation meme coin launchpad built on BNB Chain that enables instant token creation and trading through an automated bonding curve mechanism. Inspired by Pump.fun's success on Solana, our platform delivers 95%+ cost savings while maintaining comparable functionality and superior user experience during network congestion.
+PumpBNB is a meme coin launchpad built on BNB Chain that enables instant token creation and trading through an automated bonding curve mechanism. Inspired by Pump.fun's success on Solana, our platform delivers cost-effective alternatives while maintaining comparable functionality and superior user experience during network congestion.
 
 ### 1.2 Mission Statement
 
-To democratize meme coin creation and trading by providing the most cost-effective, user-friendly, and secure platform for launching and discovering new tokens on BNB Chain.
+To democratize meme coin creation and trading by providing a cost-effective, user-friendly, and secure platform for launching and discovering new tokens on BNB Chain.
 
 ### 1.3 Key Value Propositions
 
-- **95%+ Cost Reduction**: Token creation for $0.041 vs $3.50-8.00 on Solana
+- **Cost-Effective Creation**: Lower token creation costs compared to Solana platforms
 - **Instant Trading**: Immediate liquidity through bonding curve mechanism  
 - **Automatic Graduation**: Seamless migration to PancakeSwap at $100K market cap
 - **100x Leverage Trading**: Integration with Aster Protocol for advanced trading
@@ -45,7 +45,7 @@ To democratize meme coin creation and trading by providing the most cost-effecti
 - Monthly Volume: $1.5B
 - Monthly Revenue: $15M
 - User Base: 500K+ monthly active users
-- Key Weakness: High transaction costs ($0.10-$4.00 per trade)
+- Key Weakness: Higher transaction costs compared to BNB Chain
 
 **Secondary Competitors**: 
 - DxSale (BSC): 2% fees, manual processes
@@ -53,8 +53,8 @@ To democratize meme coin creation and trading by providing the most cost-effecti
 - Traditional DEXs: No bonding curve mechanism
 
 **Competitive Advantages**:
-1. 95%+ cost reduction vs Solana competitors
-2. 50% lower fees vs BSC competitors  
+1. Significant cost reduction vs Solana competitors
+2. Lower fees vs existing BSC competitors  
 3. Automated vs manual graduation processes
 4. First major bonding curve platform on BSC
 
@@ -102,18 +102,18 @@ To democratize meme coin creation and trading by providing the most cost-effecti
 
 **TokenFactory.sol**
 - Purpose: Deploy new meme tokens using factory pattern
-- Gas Cost: ~3,200,000 gas ($0.041)
+- Gas Cost: ~3,200,000 gas (cost-effective)
 - Features: Standardized BEP-20 with metadata, anti-bot protection
 
 **BondingCurve.sol**  
 - Purpose: Automated market maker for token price discovery
-- Gas Cost: 180,000 gas per trade ($0.002-0.003)
+- Gas Cost: 180,000 gas per trade (low cost)
 - Formula: Linear bonding curve with configurable parameters
 - Features: Buy/sell functionality, fee collection, graduation trigger
 
 **GraduationManager.sol**
 - Purpose: Automatic migration to PancakeSwap
-- Gas Cost: 2,811,000 gas ($0.037)
+- Gas Cost: 2,811,000 gas (affordable)
 - Features: Liquidity migration, LP token distribution, price continuity
 
 **PlatformTreasury.sol**
@@ -142,9 +142,9 @@ totalCost = initialPrice * amount + (priceIncrement * amount² / 2)
 - Graduation Threshold: $100,000 market cap (80,000,000 BNB)
 
 **Fee Structure:**
-- Platform Fee: 1% of transaction value
+- Platform Fee: 0.15% of transaction value
 - Creator Allocation: 20% of tokens (locked during bonding curve)
-- Graduation Fee: $0.10 (platform absorbs gas costs)
+- Graduation Fee: Small fee (platform absorbs gas costs)
 
 ### 3.4 Infrastructure Requirements
 

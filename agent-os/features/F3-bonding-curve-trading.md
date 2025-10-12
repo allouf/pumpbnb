@@ -16,7 +16,7 @@ Automated market maker (AMM) using a linear bonding curve for token price discov
 - **Instant Liquidity**: Trade immediately after token creation
 - **Fair Pricing**: Transparent mathematical formula, no manipulation
 - **No Slippage Surprises**: Price impact calculated before trade
-- **Low Fees**: 1% platform fee + ~$0.002 gas cost
+- **Low Fees**: 0.15% platform fee + low gas cost
 - **Automated Market Making**: No need for liquidity providers
 
 ---
@@ -109,13 +109,13 @@ contract BondingCurve {
 | **Bonding Curve Supply** | 800,000,000 tokens | 80% available for trading |
 | **Creator Allocation** | 200,000,000 tokens | 20% locked until graduation |
 | **Graduation Threshold** | $100,000 market cap | ~80M BNB raised |
-| **Platform Fee** | 1.0% of transaction value | Revenue model |
+| **Platform Fee** | 0.15% of transaction value | Revenue model |
 
 ### Fee Structure
 
 ```solidity
-// 1% platform fee on all trades
-uint256 public constant PLATFORM_FEE_BPS = 100; // 100 basis points = 1%
+// 0.15% platform fee on all trades
+uint256 public constant PLATFORM_FEE_BPS = 15; // 15 basis points = 0.15%
 
 function _calculateFee(uint256 amount) internal pure returns (uint256) {
     return (amount * PLATFORM_FEE_BPS) / 10000;
@@ -145,8 +145,8 @@ Step 2: Review Transaction Preview
    - You receive: ~450,000 DOGK
    - Current price: $0.000001234
    - Price impact: 0.5%
-   - Platform fee (1%): 0.005 BNB
-   - Total cost: 0.505 BNB
+   - Platform fee (0.15%): 0.00075 BNB
+   - Total cost: 0.50075 BNB
    ↓
 Step 3: Set Slippage Tolerance (optional)
    - Default: 1%
@@ -178,7 +178,7 @@ Step 2: Review Return Amount
    - You receive: ~0.48 BNB
    - Current price: $0.000001234
    - Price impact: -0.5%
-   - Platform fee (1%): 0.0048 BNB
+   - Platform fee (0.15%): 0.00072 BNB
    ↓
 Step 3: Confirm in Wallet
    - Approve token spend (if first time)
@@ -208,9 +208,9 @@ Step 4: Success!
 │                                          │
 │  Current Price:    $0.000001234          │
 │  Price Impact:     +0.5% ↗               │
-│  Platform Fee:     0.005 BNB (1%)        │
+│  Platform Fee:     0.00075 BNB (0.15%)   │
 │  ─────────────────────────────────────  │
-│  Total Cost:       0.505 BNB             │
+│  Total Cost:       0.50075 BNB           │
 │                                          │
 │  Slippage:         [1%▼] Auto            │
 │                                          │

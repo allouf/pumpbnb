@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**Bringing Pump.fun's revolutionary fair-launch model to BNB Chain**
+**A cost-effective alternative to Solana-based meme coin platforms**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![BNB Chain](https://img.shields.io/badge/chain-BNB-yellow.svg)](https://www.bnbchain.org/)
@@ -16,7 +16,7 @@
 
 ## 🎯 Overview
 
-PumpBNB is a next-generation meme coin launchpad built on BNB Chain that enables **instant token creation and trading** through automated bonding curves, with **automatic PancakeSwap graduation** at $100K market cap and integrated **100x leverage trading**.
+PumpBNB is a meme coin launchpad built on BNB Chain that enables **instant token creation and trading** through automated bonding curves, with **automatic PancakeSwap graduation** at $100K market cap and integrated **100x leverage trading**.
 
 ### Key Features
 
@@ -26,6 +26,7 @@ PumpBNB is a next-generation meme coin launchpad built on BNB Chain that enables
 ✅ **100x Leverage Trading** - Professional derivatives via Aster Protocol (Phase 3)
 ✅ **Mobile-First** - Native iOS and Android apps (Phase 3)
 ✅ **Fair Launch Only** - No presales, no early access, equal opportunity for all
+✅ **Cost-Effective** - Lower transaction costs compared to Solana platforms
 
 ---
 
@@ -118,7 +119,7 @@ PancakeSwap V2        → Decentralized liquidity
 
 ### Token Creator Journey
 ```
-1. Connect Wallet → 2. Fill Token Form → 3. Pay $0.10 → 4. Token Deployed → 5. Trading Begins
+1. Connect Wallet → 2. Fill Token Form → 3. Pay Fee → 4. Token Deployed → 5. Trading Begins
 ```
 **Time**: < 5 minutes from idea to tradeable token
 
@@ -200,13 +201,13 @@ npm run dev
 ## 📊 Business Model
 
 ### Revenue Streams
-- **Trading Fees**: 1% per transaction (80% of revenue)
-- **Token Creation**: $0.10 per token (5% of revenue)
+- **Trading Fees**: 0.15% per transaction (80% of revenue)
+- **Token Creation**: Small fee per token (5% of revenue)
 - **Premium Subscriptions**: $10-100/month (7% of revenue)
 - **API Access**: Usage-based tiers (3% of revenue)
 - **Aster Revenue Share**: 20% of leverage fees (5% of revenue)
 
-**Break-Even**: Month 3-4 at $5M monthly volume
+**Break-Even**: Projected for Month 3-4 based on volume targets
 
 ---
 
