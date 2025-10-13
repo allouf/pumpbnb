@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**PumpBNB** - A BNB Chain-based meme coin launchpad inspired by Pump.fun on Solana. The platform enables instant token creation and trading through automated bonding curves, with automatic graduation to PancakeSwap at $100K market cap.
+**PumpBNB** - A BNB Chain-based meme coin launchpad inspired by Pump.fun on Solana. The platform enables instant token creation and trading through automated bonding curves, with automatic graduation to PancakeSwap at $50K market cap.
 
 **Key Value Proposition**: Cost-effective alternative to Solana-based platforms while maintaining comparable functionality.
 
@@ -28,12 +28,13 @@ Currently in **Specification & Research Phase**. The codebase contains:
 
 **BondingCurve.sol**
 - Automated market maker for price discovery
-- Linear bonding curve formula: `price = initialPrice + (tokensIssued * priceIncrement)`
+- Constant product bonding curve formula (Uniswap V2 style): `x * y = k` where x=BNB reserves, y=token reserves
+- Uses virtual reserves (0.3 BNB + 200M tokens) for instant liquidity
 - Trading gas cost: ~180,000 gas per trade (low cost)
-- 0.15% platform fee on all trades
+- 1.5% platform fee on all trades
 
 **GraduationManager.sol**
-- Automatic migration to PancakeSwap at $100K market cap
+- Automatic migration to PancakeSwap at $50K market cap
 - Handles liquidity extraction and DEX pair creation
 - Target gas cost: ~2,811,000 gas (affordable)
 
@@ -89,14 +90,15 @@ Currently in **Specification & Research Phase**. The codebase contains:
 - Token creation: Cost-effective compared to Solana platforms
 - Trading fees: Low per transaction
 - Graduation to PancakeSwap: Affordable migration cost
-- Platform fee: 0.15% of transaction value
+- Platform fee: 1.5% of transaction value
 
 ### Bonding Curve Parameters
-- Initial Price: $0.000001 per token
-- Price Increment: $0.000000001 per token issued
+- Formula: Constant product (x*y=k) - Uniswap V2 style
+- Virtual Reserves: 0.3 BNB + 200,000,000 tokens for initial liquidity depth
 - Maximum Supply: 1,000,000,000 tokens
-- Graduation Threshold: $100,000 market cap (80,000,000 BNB)
+- Graduation Threshold: $50,000 market cap (≈40 BNB)
 - Creator Allocation: 20% of tokens (locked during bonding curve phase)
+- Trading Fee: 1.5% on all buy/sell transactions
 
 ### Security Requirements
 - Minimum 2 independent smart contract audits before mainnet
@@ -108,7 +110,7 @@ Currently in **Specification & Research Phase**. The codebase contains:
 ## Economic Model
 
 ### Revenue Streams
-- Trading fees: 0.15% per bonding curve transaction (80% of revenue)
+- Trading fees: 1.5% per bonding curve transaction (80% of revenue)
 - Token creation: Small fee per deployment (5% of revenue)
 - Graduation fees: Small fee per DEX migration (3% of revenue)
 - Premium subscriptions: $10-100/month (7% of revenue)
@@ -117,7 +119,7 @@ Currently in **Specification & Research Phase**. The codebase contains:
 
 ### Break-Even Requirements
 - Monthly operating costs: $50,000
-- Required monthly volume: Target volume based on 0.15% fee
+- Required monthly volume: Target volume based on 1.5% fee
 - Target timeline: Month 3-4
 
 ## Development Standards
@@ -194,7 +196,7 @@ Aster is a perpetual DEX with 100x leverage - significantly more advanced than s
 
 1. Set up Hardhat project structure with TypeScript
 2. Implement TokenFactory.sol with BEP-20 standard
-3. Develop BondingCurve.sol with linear pricing formula
+3. Develop BondingCurve.sol with constant product formula (x*y=k)
 4. Create comprehensive test suite for core contracts
 5. Set up Next.js project with Wagmi/Viem integration
 6. Build token creation form with IPFS metadata upload
