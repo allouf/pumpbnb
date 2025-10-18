@@ -65,32 +65,35 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
 
   return (
     <div className={`h-full bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 relative ${isCollapsed ? 'w-16' : 'w-64'}`}>
-      {/* Collapse Toggle Button */}
-      {onToggleCollapse && (
-        <button
-          onClick={onToggleCollapse}
-          className="absolute top-4 -right-3 w-6 h-6 bg-background-card border border-border rounded-full flex items-center justify-center hover:bg-background-sidebar transition-colors z-10"
-        >
-          {isCollapsed ? (
-            <ChevronRightIcon className="w-4 h-4 text-text-secondary" />
-          ) : (
-            <ChevronLeftIcon className="w-4 h-4 text-text-secondary" />
-          )}
-        </button>
-      )}
-      
-      {/* Logo Section */}
+      {/* Logo Section with Collapse Button */}
       <div className="p-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary-green rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-black font-bold text-lg">P</span>
-          </div>
-          {!isCollapsed && (
-            <span className="text-xl font-bold text-text-primary whitespace-nowrap overflow-hidden">
-              Pump.bnb
-            </span>
+        <div className="flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="w-8 h-8 bg-primary-green rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-black font-bold text-lg">A</span>
+            </div>
+            {!isCollapsed && (
+              <span className="text-xl font-bold text-text-primary whitespace-nowrap overflow-hidden">
+                AsterFun
+              </span>
+            )}
+          </Link>
+
+          {/* Collapse Toggle Button - Now on the left */}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="w-7 h-7 rounded-lg bg-background-card border border-border flex items-center justify-center hover:bg-background-light transition-colors flex-shrink-0"
+              title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isCollapsed ? (
+                <ChevronRightIcon className="w-4 h-4 text-text-secondary" />
+              ) : (
+                <ChevronLeftIcon className="w-4 h-4 text-text-secondary" />
+              )}
+            </button>
           )}
-        </Link>
+        </div>
       </div>
 
       {/* Navigation */}

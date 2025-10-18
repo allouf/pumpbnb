@@ -2,34 +2,84 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { mockTokens } from '@/lib/mock-data/tokens';
 import { TokenInfo } from '@/components/token/TokenInfo';
 import { PriceChart } from '@/components/trading/PriceChart';
 import { TradingPanel } from '@/components/trading/TradingPanel';
 import { CommentsSection } from '@/components/token/CommentsSection';
 import { Button } from '@/components/ui/Button';
-import { 
-  ArrowLeftIcon, 
+import {
+  ArrowLeftIcon,
   ShareIcon,
   StarIcon,
-  ExclamationTriangleIcon 
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import apiClient from '@/lib/api/client';
+import { Token } from '@/lib/mock-data/tokens';
 
 export default function TokenDetailPage() {
   const params = useParams();
   const address = params.address as string;
-  
-  // Find token by address
-  const token = mockTokens.find(t => t.address === address);
-  
+
+  const [token, setToken] = useState<Token | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [showFeaturedClips, setShowFeaturedClips] = useState(true);
+
+  // Fetch token by address
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.get(`/tokens`);
+        const tokens = response.data || [];
+        // Find token by contract address
+        const foundToken = tokens.find((t: any) =>
+          t.contractAddress === address || t.id === address
+        );
+
+        if (foundToken) {
+          // Map API response to Token interface
+          setToken({
+            address: foundToken.contractAddress || foundToken.id,
+            name: foundToken.name,
+            symbol: foundToken.symbol,
+            description: foundToken.description,
+            image: foundToken.imageUrl || '/api/placeholder/400/400',
+            creator: foundToken.creatorId,
+            createdAt: foundToken.createdAt,
+            marketCap: foundToken.marketCap,
+            price: foundToken.price,
+            priceChange24h: foundToken.priceChange24h,
+            volume24h: foundToken.volume24h,
+            holders: foundToken.holders,
+            graduationProgress: foundToken.graduationProgress,
+            isGraduated: foundToken.isGraduated,
+            socialLinks: {
+              website: foundToken.websiteUrl,
+              twitter: foundToken.twitterUrl,
+              telegram: foundToken.telegramUrl,
+            },
+          });
+        } else {
+          setError('Token not found');
+        }
+      } catch (err) {
+        console.error('Error fetching token:', err);
+        setError('Failed to load token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchToken();
+  }, [address]);
 
   // Mock real-time price updates
   useEffect(() => {
     if (!token) return;
-    
+
     const interval = setInterval(() => {
       // Small random price movements for demo
       const change = (Math.random() - 0.5) * 0.02; // ±1% change
@@ -39,12 +89,21 @@ export default function TokenDetailPage() {
     return () => clearInterval(interval);
   }, [token]);
 
-  if (!token) {
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-green mx-auto mb-4"></div>
+        <p className="text-text-secondary">Loading token...</p>
+      </div>
+    );
+  }
+
+  if (error || !token) {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-text-primary mb-4">Token Not Found</h1>
         <p className="text-text-secondary mb-6">
-          The token you're looking for doesn't exist or has been removed.
+          {error || "The token you're looking for doesn't exist or has been removed."}
         </p>
         <Link href="/">
           <Button>Back to Home</Button>
@@ -56,8 +115,8 @@ export default function TokenDetailPage() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `${token.name} (${token.symbol}) on PumpBNB`,
-        text: `Check out ${token.name} on PumpBNB - ${token.description}`,
+        title: `${token.name} (${token.symbol}) on AsterFun`,
+        text: `Check out ${token.name} on AsterFun - ${token.description}`,
         url: window.location.href,
       });
     } else {

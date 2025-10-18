@@ -18,9 +18,9 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-background-dark">
       <div className="flex">
         {/* Sidebar - Has its own space, not fixed */}
-        <div className={`hidden md:block ${sidebarWidth} flex-shrink-0 transition-all duration-300`}>
-          <div className="h-screen sticky top-0">
-            <Sidebar 
+        <div className={`hidden md:block ${sidebarWidth} flex-shrink-0 transition-all duration-300 overflow-visible`}>
+          <div className="h-screen sticky top-0 overflow-visible">
+            <Sidebar
               isCollapsed={isSidebarCollapsed}
               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             />

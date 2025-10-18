@@ -81,12 +81,12 @@ export default function TestApiPage() {
             {tokens && tokens.length > 0 ? (
               <div className="max-h-60 overflow-y-auto">
                 <h3 className="font-medium mb-2">Sample tokens:</h3>
-                {tokens.slice(0, 5).map((token) => (
-                  <div key={token.address} className="text-sm bg-background-dark p-2 rounded mb-2">
+                {tokens.slice(0, 5).map((token, index) => (
+                  <div key={token.address || `token-${index}`} className="text-sm bg-background-dark p-2 rounded mb-2">
                     <p><strong>Name:</strong> {token.name} ({token.symbol})</p>
                     <p><strong>Price:</strong> ${token.price}</p>
                     <p><strong>Market Cap:</strong> ${token.marketCap?.toLocaleString()}</p>
-                    <p><strong>Address:</strong> {token.address}</p>
+                    <p><strong>Address:</strong> {token.address || 'N/A'}</p>
                   </div>
                 ))}
               </div>

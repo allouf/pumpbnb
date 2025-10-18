@@ -32,9 +32,9 @@ export function Header() {
           </Button>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-primary-green rounded-md flex items-center justify-center text-black font-bold text-sm">
-              P
+              A
             </div>
-            <span className="text-lg font-bold text-text-primary">Pump.bnb</span>
+            <span className="text-lg font-bold text-text-primary">AsterFun</span>
           </div>
         </div>
         

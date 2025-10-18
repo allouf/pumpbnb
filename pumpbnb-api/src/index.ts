@@ -70,6 +70,52 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root API endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to PumpBNB API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      tokens: '/api/tokens',
+      users: '/api/users',
+      comments: '/api/comments',
+      trading: '/api/trading',
+    },
+    documentation: 'See API_REFERENCE.md for detailed documentation',
+  });
+});
+
+// API index endpoint
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'PumpBNB API v1.0.0',
+    status: 'operational',
+    endpoints: {
+      health: '/api/health',
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        wallet: 'POST /api/auth/wallet',
+        profile: 'GET /api/auth/profile',
+      },
+      tokens: {
+        list: 'GET /api/tokens',
+        trending: 'GET /api/tokens/trending',
+        details: 'GET /api/tokens/:id',
+        create: 'POST /api/tokens',
+        update: 'PUT /api/tokens/:id',
+      },
+      users: 'GET /api/users',
+      comments: 'GET /api/comments',
+      trading: 'GET /api/trading',
+    },
+  });
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);

@@ -11,10 +11,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PumpBNB - BNB Chain Meme Coin Launchpad",
+  title: "AsterFun - BNB Chain Meme Coin Launchpad",
   description: "Create and trade meme coins on BNB Chain. Fair launch, instant liquidity, auto-graduation to PancakeSwap.",
   keywords: ["BNB Chain", "meme coin", "crypto", "DeFi", "token launch", "PancakeSwap"],
-  authors: [{ name: "PumpBNB Team" }],
+  authors: [{ name: "AsterFun Team" }],
 };
 
 export const viewport = {

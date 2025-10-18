@@ -235,7 +235,7 @@ export const useAuthState = () => {
     
     const mockWalletAddress = '0x742d35Cc6638C0532C7af3e8a8D0b39B8b1d3e30';
     const mockSignature = 'mock_signature';
-    const mockMessage = 'Login to PumpBNB';
+    const mockMessage = 'Login to AsterFun';
     
     await walletConnect(mockWalletAddress, mockSignature, mockMessage);
   };
