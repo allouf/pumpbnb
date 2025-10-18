@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { TokenCard } from '@/components/token/TokenCard';
+import { useTokens } from '@/hooks/useTokens';
 import { getTokensByCategory } from '@/lib/mock-data/tokens';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -12,55 +13,31 @@ import {
   FunnelIcon
 } from '@heroicons/react/24/outline';
 
-// Mock trending data
-const trendingTokens = [
-  {
-    id: 1,
-    name: 'The Lion (LION)',
-    description: 'The Lion Does Not Concern Himself with New All-Time Highs',
-    marketCap: '$4.2M',
-    replies: 417,
-    image: '/api/placeholder/100/100'
-  },
-  {
-    id: 2,
-    name: 'All Roads Lead To Rome (Rome)',
-    description: 'If You See This, Your Time is Coming',
-    marketCap: '$1.6M',
-    replies: 222,
-    image: '/api/placeholder/100/100'
-  },
-  {
-    id: 3,
-    name: 'Cap (CAP)',
-    description: 'X Users Bet Against Each Other on Anything with CAP',
-    marketCap: '$2.0M',
-    replies: 389,
-    image: '/api/placeholder/100/100'
-  },
-  {
-    id: 4,
-    name: 'Telepath8 (P8BTC)',
-    description: 'Neuralink Patient Launches Streamer Coin Via Telepathy',
-    marketCap: '$321.9K',
-    replies: 349,
-    image: '/api/placeholder/100/100'
-  },
-  {
-    id: 5,
-    name: 'Arcade (ARC)',
-    description: 'Arcade Livestream: Top Players Win',
-    marketCap: '$156.3K',
-    replies: 89,
-    image: '/api/placeholder/100/100'
-  }
-];
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'featured' | 'nsfw' | 'animations'>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Get trending tokens (separate hook instance)
+  const trendingHook = useTokens({
+    sortBy: 'priceChange24h',
+    order: 'desc',
+    limit: 10
+  });
+  const { tokens: trendingTokens, isLoading: trendingLoading } = trendingHook;
+  
+  // Get regular tokens (separate hook instance)
+  const tokensHook = useTokens({
+    sortBy: 'marketCap',
+    order: 'desc',
+    limit: 50
+  });
+  const { tokens: allTokens = [], isLoading: tokensLoading } = tokensHook;
+  
+  // Fallback to mock data if API tokens not available
   const tokenCategories = getTokensByCategory();
-  const allTokens = [...tokenCategories.newlyCreated, ...tokenCategories.aboutToGraduate, ...tokenCategories.graduated];
+  const fallbackTokens = [...tokenCategories.newlyCreated, ...tokenCategories.aboutToGraduate, ...tokenCategories.graduated];
+  const displayTokens = allTokens.length > 0 ? allTokens : fallbackTokens;
 
   return (
     <div className="space-y-6 min-h-screen">
@@ -80,19 +57,36 @@ export default function Home() {
         
         {/* Horizontal Scroll Container */}
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-          {trendingTokens.map((token) => (
-            <div key={token.id} className="min-w-[300px] bg-background-card rounded-lg border border-border p-4 hover:border-primary-green/50 transition-colors cursor-pointer">
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 bg-background-sidebar rounded-lg flex-shrink-0"></div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-text-primary text-sm mb-1">{token.name}</div>
-                  <div className="text-xs text-text-secondary mb-2">market cap: {token.marketCap}</div>
-                  <div className="text-xs text-text-secondary mb-2">replies {token.replies}</div>
-                  <div className="text-xs text-text-primary line-clamp-2">{token.description}</div>
+          {trendingLoading ? (
+            // Loading skeleton
+            Array(5).fill(null).map((_, index) => (
+              <div key={index} className="min-w-[300px] bg-background-card rounded-lg border border-border p-4 animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 bg-background-sidebar rounded-lg flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="h-4 bg-background-sidebar rounded mb-2"></div>
+                    <div className="h-3 bg-background-sidebar rounded w-2/3 mb-2"></div>
+                    <div className="h-3 bg-background-sidebar rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-background-sidebar rounded"></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            (trendingTokens || []).map((token) => (
+              <div key={token.contractAddress || token.id} className="min-w-[300px] bg-background-card rounded-lg border border-border p-4 hover:border-primary-green/50 transition-colors cursor-pointer">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 bg-background-sidebar rounded-lg flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-text-primary text-sm mb-1">{token.name} ({token.symbol})</div>
+                    <div className="text-xs text-text-secondary mb-2">market cap: ${token.marketCap?.toLocaleString()}</div>
+                    <div className="text-xs text-text-secondary mb-2">price: ${token.price?.toFixed(6)}</div>
+                    <div className="text-xs text-text-primary line-clamp-2">{token.description}</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -184,9 +178,25 @@ export default function Home() {
           ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
           : 'grid-cols-1'
       }`}>
-        {allTokens.map((token) => (
-          <TokenCard key={token.address} token={token} compact={viewMode === 'list'} />
-        ))}
+        {tokensLoading ? (
+          // Loading skeleton for token grid
+          Array(8).fill(null).map((_, index) => (
+            <div key={index} className="bg-background-card rounded-lg border border-border p-4 animate-pulse">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-background-sidebar rounded-lg flex-shrink-0"></div>
+                <div className="flex-1 min-w-0">
+                  <div className="h-4 bg-background-sidebar rounded mb-2"></div>
+                  <div className="h-3 bg-background-sidebar rounded w-2/3 mb-2"></div>
+                  <div className="h-3 bg-background-sidebar rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          displayTokens.map((token) => (
+            <TokenCard key={token.contractAddress || token.address || token.id} token={token} compact={viewMode === 'list'} />
+          ))
+        )}
       </div>
     </div>
   );

@@ -9,14 +9,14 @@ interface TokenCardProps {
 }
 
 export function TokenCard({ token, compact = false }: TokenCardProps) {
-  const progressPercentage = Math.min(token.graduationProgress, 100);
-  const isNearGraduation = token.graduationProgress >= 80;
-  const priceChangeColor = token.priceChange24h >= 0 ? 'text-primary-green' : 'text-primary-red';
+  const progressPercentage = Math.min(token.graduationProgress || 0, 100);
+  const isNearGraduation = (token.graduationProgress || 0) >= 80;
+  const priceChangeColor = (token.priceChange24h || 0) >= 0 ? 'text-primary-green' : 'text-primary-red';
 
   return (
     <div className="bg-background-card border border-border rounded-lg p-3 sm:p-4 hover:border-border-light transition-all duration-200 group">
       {/* Token Header */}
-      <Link href={`/token/${token.address}`} className="block">
+      <Link href={`/token/${token.contractAddress || token.address || token.id}`} className="block">
         <div className="flex items-start gap-3 mb-3">
           {/* Token Image */}
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-green to-accent-blue flex items-center justify-center text-black font-bold text-lg flex-shrink-0">
@@ -39,20 +39,20 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
                   {formatMarketCap(token.marketCap)}
                 </p>
                 <p className={`text-xs font-medium ${priceChangeColor}`}>
-                  {token.priceChange24h >= 0 ? '+' : ''}{token.priceChange24h.toFixed(1)}%
+                  {(token.priceChange24h || 0) >= 0 ? '+' : ''}{(token.priceChange24h || 0).toFixed(1)}%
                 </p>
               </div>
             </div>
             
             {/* Time and Transaction Info */}
             <div className="flex items-center gap-2 mt-1 text-xs text-text-muted">
-              <span>{formatTimeAgo(token.createdAt)}</span>
+              <span>{formatTimeAgo(token.createdAt || new Date().toISOString())}</span>
               <span>•</span>
-              <span>TX {token.holders}</span>
-              {token.volume24h > 0 && (
+              <span>TX {token.holders || 0}</span>
+              {(token.volume24h || 0) > 0 && (
                 <>
                   <span>•</span>
-                  <span>Vol {formatMarketCap(token.volume24h)}</span>
+                  <span>Vol {formatMarketCap(token.volume24h || 0)}</span>
                 </>
               )}
             </div>
@@ -66,7 +66,7 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
       </Link>
 
       {/* Progress Bar (for non-graduated tokens) */}
-      {!token.isGraduated && (
+      {!(token.isGraduated || false) && (
         <div className="mb-3">
           <div className="flex justify-between items-center mb-1">
             <span className="text-xs text-text-muted">
@@ -90,7 +90,7 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
       )}
 
       {/* Graduated Badge */}
-      {token.isGraduated && (
+      {(token.isGraduated || false) && (
         <div className="mb-3">
           <div className="inline-flex items-center px-2 py-1 rounded-full bg-primary-green/20 border border-primary-green/30">
             <div className="w-2 h-2 bg-primary-green rounded-full mr-2"></div>
@@ -111,9 +111,9 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
         
         {/* Additional info */}
         <div className="flex items-center gap-1 text-xs text-text-muted">
-          {token.socialLinks.website && (
+          {(token.websiteUrl || token.socialLinks?.website) && (
             <a 
-              href={token.socialLinks.website} 
+              href={token.websiteUrl || token.socialLinks?.website} 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-text-primary transition-colors"
@@ -122,9 +122,9 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
               🌐
             </a>
           )}
-          {token.socialLinks.twitter && (
+          {(token.twitterUrl || token.socialLinks?.twitter) && (
             <a 
-              href={token.socialLinks.twitter} 
+              href={token.twitterUrl || token.socialLinks?.twitter} 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-text-primary transition-colors"
@@ -133,9 +133,9 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
               🐦
             </a>
           )}
-          {token.socialLinks.telegram && (
+          {(token.telegramUrl || token.socialLinks?.telegram) && (
             <a 
-              href={token.socialLinks.telegram} 
+              href={token.telegramUrl || token.socialLinks?.telegram} 
               target="_blank" 
               rel="noopener noreferrer"
               className="hover:text-text-primary transition-colors"

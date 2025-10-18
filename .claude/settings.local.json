@@ -15,7 +15,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(test:*)",
-      "Bash(del NUL)"
+      "Bash(del NUL)",
+      "WebFetch(domain:bscscan.com)",
+      "Bash(if not exist contracts mkdir contracts)"
     ],
     "deny": [],
     "ask": []

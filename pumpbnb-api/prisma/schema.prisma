@@ -1,0 +1,216 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profiles
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  username  String?  @unique
+  walletAddress String? @unique
+  passwordHash String?
+  
+  // Profile information
+  displayName String?
+  bio         String?
+  avatar      String?
+  
+  // Social links
+  twitterHandle String?
+  discordHandle String?
+  telegramHandle String?
+  
+  // Stats
+  totalTrades Int @default(0)
+  totalVolume Float @default(0)
+  winRate     Float @default(0)
+  reputation  Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  tokens    Token[]
+  comments  Comment[]
+  trades    Trade[]
+  likes     CommentLike[]
+  watchlist TokenWatchlist[]
+  
+  @@map("users")
+}
+
+// Token model for meme coins
+model Token {
+  id          String @id @default(cuid())
+  name        String
+  symbol      String
+  description String
+  
+  // Contract information
+  contractAddress String? @unique
+  chainId         Int @default(56) // BSC mainnet
+  
+  // Token metadata
+  imageUrl    String?
+  websiteUrl  String?
+  twitterUrl  String?
+  telegramUrl String?
+  discordUrl  String?
+  
+  // Financial data
+  marketCap          Float @default(0)
+  price              Float @default(0)
+  priceChange24h     Float @default(0)
+  volume24h          Float @default(0)
+  holders            Int @default(0)
+  totalSupply        String @default("1000000000") // 1B tokens
+  
+  // Bonding curve progress (0-100)
+  graduationProgress Float @default(0)
+  isGraduated        Boolean @default(false)
+  graduatedAt        DateTime?
+  
+  // Status
+  isActive    Boolean @default(true)
+  isFeatured  Boolean @default(false)
+  isNsfw      Boolean @default(false)
+  
+  // Creator
+  creatorId String
+  creator   User   @relation(fields: [creatorId], references: [id])
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  comments   Comment[]
+  trades     Trade[]
+  watchlists TokenWatchlist[]
+  priceHistory PriceHistory[]
+  
+  @@map("tokens")
+}
+
+// Comments and social interactions
+model Comment {
+  id      String @id @default(cuid())
+  content String
+  
+  // Relations
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  tokenId String
+  token   Token  @relation(fields: [tokenId], references: [id])
+  
+  // Parent comment for threading
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+  
+  // Engagement
+  likes   CommentLike[]
+  likesCount Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("comments")
+}
+
+// Comment likes
+model CommentLike {
+  id        String @id @default(cuid())
+  userId    String
+  commentId String
+  
+  user    User    @relation(fields: [userId], references: [id])
+  comment Comment @relation(fields: [commentId], references: [id])
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, commentId])
+  @@map("comment_likes")
+}
+
+// Trading transactions
+model Trade {
+  id     String @id @default(cuid())
+  type   TradeType // BUY or SELL
+  amount Float
+  price  Float
+  total  Float
+  
+  // Relations
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  tokenId String
+  token   Token  @relation(fields: [tokenId], references: [id])
+  
+  // Blockchain data
+  txHash      String? @unique
+  blockNumber Int?
+  gasUsed     String?
+  gasFee      String?
+  
+  // Status
+  status TradeStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("trades")
+}
+
+// User watchlists
+model TokenWatchlist {
+  id      String @id @default(cuid())
+  userId  String
+  tokenId String
+  
+  user  User  @relation(fields: [userId], references: [id])
+  token Token @relation(fields: [tokenId], references: [id])
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, tokenId])
+  @@map("token_watchlists")
+}
+
+// Price history for charts
+model PriceHistory {
+  id      String @id @default(cuid())
+  tokenId String
+  token   Token  @relation(fields: [tokenId], references: [id])
+  
+  price     Float
+  marketCap Float
+  volume    Float
+  timestamp DateTime @default(now())
+  
+  @@map("price_history")
+}
+
+// Enums
+enum TradeType {
+  BUY
+  SELL
+}
+
+enum TradeStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

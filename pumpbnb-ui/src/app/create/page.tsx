@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Button } from '@/components/ui/Button';
+import { useCreateToken } from '@/hooks/useTokens';
 import { 
   PhotoIcon,
   LinkIcon,
@@ -32,6 +34,8 @@ const schema = yup.object().shape({
 type FormData = yup.InferType<typeof schema>;
 
 export default function CreateTokenPage() {
+  const router = useRouter();
+  const { createToken, isLoading: creating } = useCreateToken();
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -92,13 +96,27 @@ export default function CreateTokenPage() {
       return;
     }
 
-    // Mock token creation process
-    console.log('Creating token:', data);
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    alert(`Token "${data.name}" ($${data.ticker}) created successfully!`);
+    try {
+      const tokenData = {
+        name: data.name,
+        symbol: data.ticker,
+        description: data.description || '',
+        imageUrl: uploadedImage,
+        websiteUrl: data.website,
+        twitterUrl: data.twitter,
+        telegramUrl: data.telegram,
+        totalSupply: '1000000000' // 1B tokens
+      };
+
+      const result = await createToken(tokenData);
+      if (result) {
+        alert(`Token "${data.name}" ($${data.ticker}) created successfully!`);
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Failed to create token:', error);
+      alert('Failed to create token. Please try again.');
+    }
   };
 
   return (

@@ -3,14 +3,22 @@
 import React, { useState } from 'react';
 import { MagnifyingGlassIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const { user, isAuthenticated, walletAddress, loginWithWallet, logout, isLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleWalletConnect = () => {
-    // Mock wallet connection
-    setIsWalletConnected(!isWalletConnected);
+  const handleWalletConnect = async () => {
+    if (isAuthenticated) {
+      logout();
+    } else {
+      try {
+        await loginWithWallet();
+      } catch (error) {
+        console.error('Wallet connection failed:', error);
+      }
+    }
   };
 
   return (
@@ -63,28 +71,28 @@ export function Header() {
 
           {/* Wallet Connection Button */}
           <Button
-            variant={isWalletConnected ? 'secondary' : 'primary'}
+            variant={isAuthenticated ? 'secondary' : 'primary'}
             onClick={handleWalletConnect}
             className="min-w-[140px]"
+            disabled={isLoading}
           >
-            {isWalletConnected ? (
+            {isLoading ? (
+              'Connecting...'
+            ) : isAuthenticated ? (
               <>
                 <div className="w-2 h-2 bg-primary-green rounded-full mr-2"></div>
-                0x1234...5678
+                {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Connected'}
               </>
             ) : (
               'Connect Wallet'
             )}
           </Button>
 
-          {/* Log In Button (when wallet is connected) */}
-          {isWalletConnected && (
-            <Button
-              variant="outline"
-              size="sm"
-            >
-              Log in
-            </Button>
+          {/* User Profile (when authenticated) */}
+          {isAuthenticated && user && (
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <span>Welcome, {user.username || 'User'}</span>
+            </div>
           )}
         </div>
       </div>
