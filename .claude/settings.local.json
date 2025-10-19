@@ -17,7 +17,8 @@
       "Bash(test:*)",
       "Bash(del NUL)",
       "WebFetch(domain:bscscan.com)",
-      "Bash(if not exist contracts mkdir contracts)"
+      "Bash(if not exist contracts mkdir contracts)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Token, formatMarketCap, formatPrice } from '@/lib/mock-data/tokens';
-import { 
-  Cog6ToothIcon, 
-  InformationCircleIcon,
+import {
   ArrowUpIcon,
-  ArrowDownIcon 
+  ArrowDownIcon
 } from '@heroicons/react/24/outline';
+import { TradingModal } from './TradingModal';
+import { useMockWallet } from '@/hooks/useMockWallet';
 
 interface TradingPanelProps {
   token: Token;
@@ -21,12 +21,11 @@ interface TopHolder {
 }
 
 export function TradingPanel({ token }: TradingPanelProps) {
-  const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy');
-  const [bnbAmount, setBnbAmount] = useState('');
-  const [tokenAmount, setTokenAmount] = useState('');
-  const [slippage, setSlippage] = useState(1.0);
-  const [showSlippageSettings, setShowSlippageSettings] = useState(false);
-  const [isTrading, setIsTrading] = useState(false);
+  const [showTradingModal, setShowTradingModal] = useState(false);
+  const [modalTab, setModalTab] = useState<'buy' | 'sell'>('buy');
+
+  const { asterBalance, getTokenBalance } = useMockWallet();
+  const tokenBalance = getTokenBalance(token.address);
 
   // Mock top holders data
   const topHolders: TopHolder[] = [
@@ -37,171 +36,56 @@ export function TradingPanel({ token }: TradingPanelProps) {
     { address: '0x5555...aaaa', percentage: 4.33, amount: '4.3M' },
   ];
 
-  // Calculate token amount based on BNB input
-  useEffect(() => {
-    if (bnbAmount && !isNaN(parseFloat(bnbAmount))) {
-      const tokens = parseFloat(bnbAmount) / token.price;
-      setTokenAmount(tokens.toLocaleString('en-US', { maximumFractionDigits: 0 }));
-    } else {
-      setTokenAmount('');
-    }
-  }, [bnbAmount, token.price]);
-
-  const handleTrade = async () => {
-    if (!bnbAmount || parseFloat(bnbAmount) <= 0) return;
-
-    setIsTrading(true);
-    
-    // Mock trading delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock success
-    alert(`${activeTab === 'buy' ? 'Bought' : 'Sold'} ${tokenAmount} ${token.symbol} for ${bnbAmount} BNB`);
-    
-    setBnbAmount('');
-    setTokenAmount('');
-    setIsTrading(false);
+  const handleOpenModal = (tab: 'buy' | 'sell') => {
+    setModalTab(tab);
+    setShowTradingModal(true);
   };
 
   const progressPercentage = Math.min(token.graduationProgress, 100);
 
   return (
-    <div className="w-full xl:w-80 bg-background-card border border-border rounded-lg p-4 space-y-4">
-      
-      {/* Buy/Sell Toggle */}
-      <div className="flex bg-background-dark rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('buy')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all duration-200 ${
-            activeTab === 'buy'
-              ? 'bg-primary-green text-black'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Buy
-        </button>
-        <button
-          onClick={() => setActiveTab('sell')}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-all duration-200 ${
-            activeTab === 'sell'
-              ? 'bg-primary-red text-white'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          Sell
-        </button>
-      </div>
+    <>
+      <div className="w-full xl:w-80 bg-background-card border border-border rounded-lg p-4 space-y-4">
 
-      {/* Switch to GASMODE toggle */}
-      <div className="flex items-center justify-between p-3 bg-background-dark rounded-lg">
-        <span className="text-sm text-text-primary">Switch to GASMODE</span>
-        <button className="w-5 h-5 border border-border rounded bg-background-card"></button>
-      </div>
-
-      {/* Amount Input */}
-      <div className="space-y-2">
-        <div className="relative">
-          <input
-            type="number"
-            value={bnbAmount}
-            onChange={(e) => setBnbAmount(e.target.value)}
-            placeholder="0.00"
-            className="w-full bg-background-dark border border-border rounded-lg p-3 text-xl font-semibold text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary-green focus:border-transparent"
-          />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-            <span className="text-text-secondary text-sm">BNB</span>
-            <div className="w-6 h-6 bg-accent-yellow rounded-full flex items-center justify-center text-black text-xs font-bold">
-              B
+        {/* ASTER Balance Display */}
+        <div className="bg-background-dark border border-border rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-secondary">Your ASTER Balance</span>
+            <div className="flex items-center gap-1">
+              <div className="w-5 h-5 bg-gradient-to-br from-primary-green to-accent-blue rounded-full"></div>
+              <span className="text-sm font-semibold text-text-primary">
+                {asterBalance.toFixed(2)} ASTER
+              </span>
             </div>
           </div>
+          {tokenBalance > 0 && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="text-sm text-text-secondary">Your {token.symbol}</span>
+              <span className="text-sm font-semibold text-text-primary">
+                {tokenBalance.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
-        
-        {/* Quick Amount Buttons */}
-        <div className="flex gap-2">
-          {['0.1', '0.5', '1', '5'].map((amount) => (
-            <button
-              key={amount}
-              onClick={() => setBnbAmount(amount)}
-              className="flex-1 py-1 px-2 text-xs bg-background-dark border border-border rounded text-text-secondary hover:text-text-primary hover:border-border-light transition-colors"
-            >
-              {amount}
-            </button>
-          ))}
+
+        {/* Trading Buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            fullWidth
+            onClick={() => handleOpenModal('buy')}
+            className="bg-primary-green hover:bg-green-400 text-black font-semibold"
+          >
+            Buy with ASTER
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => handleOpenModal('sell')}
+            className="bg-primary-red hover:bg-red-400 text-white font-semibold"
+            disabled={tokenBalance === 0}
+          >
+            Sell for ASTER
+          </Button>
         </div>
-      </div>
-
-      {/* You get */}
-      <div className="space-y-2">
-        <label className="block text-sm text-text-secondary">You get</label>
-        <div className="relative">
-          <input
-            type="text"
-            value={tokenAmount}
-            readOnly
-            placeholder="0"
-            className="w-full bg-background-dark border border-border rounded-lg p-3 text-xl font-semibold text-text-primary placeholder-text-muted cursor-not-allowed"
-          />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <span className="text-text-secondary text-sm">{token.symbol}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Slippage Settings */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-text-secondary">Slippage</span>
-        <button
-          onClick={() => setShowSlippageSettings(!showSlippageSettings)}
-          className="flex items-center gap-1 text-sm text-text-primary hover:text-primary-green transition-colors"
-        >
-          <span>{slippage}%</span>
-          <Cog6ToothIcon className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Slippage Settings Panel */}
-      {showSlippageSettings && (
-        <div className="bg-background-dark border border-border rounded-lg p-3 space-y-2">
-          <div className="flex gap-2">
-            {[0.5, 1.0, 2.0, 5.0].map((value) => (
-              <button
-                key={value}
-                onClick={() => setSlippage(value)}
-                className={`flex-1 py-1 px-2 text-xs rounded transition-colors ${
-                  slippage === value
-                    ? 'bg-primary-green text-black'
-                    : 'bg-background-card border border-border text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                {value}%
-              </button>
-            ))}
-          </div>
-          <input
-            type="number"
-            value={slippage}
-            onChange={(e) => setSlippage(parseFloat(e.target.value) || 1.0)}
-            min="0.1"
-            max="50"
-            step="0.1"
-            className="w-full bg-background-card border border-border rounded p-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-primary-green"
-            placeholder="Custom %"
-          />
-        </div>
-      )}
-
-      {/* Trade Button */}
-      <Button
-        fullWidth
-        size="lg"
-        variant={activeTab === 'buy' ? 'primary' : 'danger'}
-        loading={isTrading}
-        disabled={!bnbAmount || parseFloat(bnbAmount) <= 0}
-        onClick={handleTrade}
-      >
-        {activeTab === 'buy' ? `Buy ${token.symbol}` : `Sell ${token.symbol}`}
-        {bnbAmount && ` (${bnbAmount} BNB)`}
-      </Button>
 
       {/* Bonding Curve Progress */}
       {!token.isGraduated && (
@@ -219,11 +103,11 @@ export function TradingPanel({ token }: TradingPanelProps) {
             />
           </div>
           <div className="flex justify-between text-xs text-text-muted">
-            <span>Current: ${formatMarketCap(token.marketCap)}</span>
-            <span>Goal: $100K</span>
+            <span>Current: {progressPercentage.toFixed(0)} ASTER</span>
+            <span>Goal: 100 ASTER</span>
           </div>
           <p className="text-xs text-text-muted">
-            Coin has graduated!
+            When bonding curve accumulates 100 ASTER, token graduates to PancakeSwap (Token/WBNB pair)
           </p>
         </div>
       )}
@@ -283,6 +167,15 @@ export function TradingPanel({ token }: TradingPanelProps) {
           Market Cap: {formatMarketCap(token.marketCap)} • Volume: {formatMarketCap(token.volume24h)}
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Trading Modal */}
+      <TradingModal
+        token={token}
+        isOpen={showTradingModal}
+        onClose={() => setShowTradingModal(false)}
+        defaultTab={modalTab}
+      />
+    </>
   );
 }
