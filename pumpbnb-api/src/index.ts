@@ -25,6 +25,8 @@ app.use(helmet());
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:3000',
   'http://localhost:3001',
+  'https://pumpbnb.netlify.app',
+  'https://pumpbnb.onrender.com',
   process.env.FRONTEND_URL_PRODUCTION,
 ].filter(Boolean); // Remove undefined values
 
