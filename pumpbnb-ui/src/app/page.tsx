@@ -41,6 +41,22 @@ export default function Home() {
   const fallbackTokens = [...tokenCategories.newlyCreated, ...tokenCategories.aboutToGraduate, ...tokenCategories.graduated];
   const displayTokens = allTokens.length > 0 ? allTokens : fallbackTokens;
 
+  // Filter tokens based on active tab
+  const filteredTokens = displayTokens.filter(token => {
+    if (activeTab === 'featured') {
+      return token.featured || token.graduationProgress >= 75 || token.isGraduated;
+    } else if (activeTab === 'nsfw') {
+      // For demo: show tokens with NSFW-like names or random selection
+      return token.symbol.includes('PEPE') || token.symbol.includes('WOJAK') || Math.random() > 0.7;
+    } else if (activeTab === 'animations') {
+      // For demo: show tokens that could have animations
+      return token.description?.toLowerCase().includes('art') ||
+             token.description?.toLowerCase().includes('meme') ||
+             Math.random() > 0.6;
+    }
+    return true;
+  });
+
   // Carousel scroll functions
   const scrollTrending = (direction: 'left' | 'right') => {
     if (trendingScrollRef.current) {
@@ -128,12 +144,12 @@ export default function Home() {
       </div>
 
       {/* Controls Section */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         {/* Filter Tabs */}
-        <div className="flex items-center gap-2">
-          <button 
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
             onClick={() => setActiveTab('featured')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === 'featured' 
                 ? 'bg-primary-green text-black' 
                 : 'bg-background-card text-text-secondary hover:text-text-primary'
