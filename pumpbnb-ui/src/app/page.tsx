@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import Link from 'next/link';
 import { TokenCard } from '@/components/token/TokenCard';
 import { useTokens } from '@/hooks/useTokens';
 import { getTokensByCategory } from '@/lib/mock-data/tokens';
 import { Button } from '@/components/ui/Button';
-import { 
+import {
   Squares2X2Icon,
   ListBulletIcon,
   ChevronLeftIcon,
@@ -17,6 +18,7 @@ import {
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'featured' | 'nsfw' | 'animations'>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const trendingScrollRef = useRef<HTMLDivElement>(null);
   
   // Get trending tokens (separate hook instance)
   const trendingHook = useTokens({
@@ -39,6 +41,21 @@ export default function Home() {
   const fallbackTokens = [...tokenCategories.newlyCreated, ...tokenCategories.aboutToGraduate, ...tokenCategories.graduated];
   const displayTokens = allTokens.length > 0 ? allTokens : fallbackTokens;
 
+  // Carousel scroll functions
+  const scrollTrending = (direction: 'left' | 'right') => {
+    if (trendingScrollRef.current) {
+      const scrollAmount = 320; // Card width + gap
+      const newScrollPosition = direction === 'left'
+        ? trendingScrollRef.current.scrollLeft - scrollAmount
+        : trendingScrollRef.current.scrollLeft + scrollAmount;
+
+      trendingScrollRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 min-h-screen">
       {/* Now Trending Section */}
@@ -46,17 +63,25 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-text-primary">Now trending</h2>
           <div className="flex items-center gap-2">
-            <button className="p-1 hover:bg-background-card rounded">
-              <ChevronLeftIcon className="w-5 h-5 text-text-secondary" />
+            <button
+              onClick={() => scrollTrending('left')}
+              className="p-1 hover:bg-background-card rounded transition-colors"
+              aria-label="Scroll left"
+            >
+              <ChevronLeftIcon className="w-5 h-5 text-text-secondary hover:text-text-primary" />
             </button>
-            <button className="p-1 hover:bg-background-card rounded">
-              <ChevronRightIcon className="w-5 h-5 text-text-secondary" />
+            <button
+              onClick={() => scrollTrending('right')}
+              className="p-1 hover:bg-background-card rounded transition-colors"
+              aria-label="Scroll right"
+            >
+              <ChevronRightIcon className="w-5 h-5 text-text-secondary hover:text-text-primary" />
             </button>
           </div>
         </div>
-        
+
         {/* Horizontal Scroll Container */}
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        <div ref={trendingScrollRef} className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {trendingLoading ? (
             // Loading skeleton
             Array(5).fill(null).map((_, index) => (
@@ -74,17 +99,29 @@ export default function Home() {
             ))
           ) : (
             (trendingTokens || []).map((token) => (
-              <div key={token.contractAddress || token.id} className="min-w-[300px] bg-background-card rounded-lg border border-border p-4 hover:border-primary-green/50 transition-colors cursor-pointer">
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 bg-background-sidebar rounded-lg flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-text-primary text-sm mb-1">{token.name} ({token.symbol})</div>
-                    <div className="text-xs text-text-secondary mb-2">market cap: ${token.marketCap?.toLocaleString()}</div>
-                    <div className="text-xs text-text-secondary mb-2">price: ${token.price?.toFixed(6)}</div>
-                    <div className="text-xs text-text-primary line-clamp-2">{token.description}</div>
+              <Link
+                key={token.contractAddress || token.id}
+                href={`/token/${token.contractAddress || token.address}`}
+                className="min-w-[300px] block"
+              >
+                <div className="bg-background-card rounded-lg border border-border p-4 hover:border-primary-green/50 transition-colors cursor-pointer h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-accent-purple to-accent-blue rounded-lg flex-shrink-0 flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">{token.symbol?.charAt(0) || 'T'}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-text-primary text-sm mb-1 truncate">{token.name} ({token.symbol})</div>
+                      <div className="text-xs text-text-secondary mb-1">
+                        market cap: <span className="text-primary-green">${token.marketCap?.toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-text-secondary mb-2">
+                        price: <span className="text-text-primary">${token.price?.toFixed(6)}</span>
+                      </div>
+                      <div className="text-xs text-text-muted line-clamp-2">{token.description || 'No description available'}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           )}
         </div>
