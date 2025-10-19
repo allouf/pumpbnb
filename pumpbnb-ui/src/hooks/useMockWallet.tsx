@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { addAsterToToken, removeAsterFromToken } from '@/lib/mock-data/tokenGraduationTracker';
 
 export interface WalletBalance {
   asterBalance: number;
@@ -164,6 +165,10 @@ export function useMockWallet() {
 
     setBalance(newBalance);
 
+    // Update token graduation progress (add ASTER to bonding curve)
+    const newProgress = addAsterToToken(tokenAddress, asterAmount);
+    console.log(`Token ${tokenSymbol}: Added ${asterAmount} ASTER, new progress: ${newProgress.toFixed(2)} ASTER`);
+
     // Mark transaction as confirmed
     tx.status = 'confirmed';
     const updatedTxs = newTransactions.map(t => t.hash === tx.hash ? tx : t);
@@ -230,6 +235,10 @@ export function useMockWallet() {
     };
 
     setBalance(newBalance);
+
+    // Update token graduation progress (remove ASTER from bonding curve)
+    const newProgress = removeAsterFromToken(tokenAddress, asterBeforeFee);
+    console.log(`Token ${tokenSymbol}: Removed ${asterBeforeFee} ASTER, new progress: ${newProgress.toFixed(2)} ASTER`);
 
     // Mark transaction as confirmed
     tx.status = 'confirmed';

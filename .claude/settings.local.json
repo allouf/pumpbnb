@@ -18,7 +18,11 @@
       "Bash(del NUL)",
       "WebFetch(domain:bscscan.com)",
       "Bash(if not exist contracts mkdir contracts)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "Bash(dir /s /b)",
+      "Bash(findstr /i \"week guide plan roadmap development\")",
+      "Bash(findstr /v node_modules)",
+      "Bash(if not exist \"pumpbnb-ui\\src\\app\\pumpswap\" mkdir \"pumpbnb-ui\\src\\app\\pumpswap\")"
     ],
     "deny": [],
     "ask": []

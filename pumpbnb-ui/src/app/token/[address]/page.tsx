@@ -7,6 +7,11 @@ import { PriceChart } from '@/components/trading/PriceChart';
 import { TradingPanel } from '@/components/trading/TradingPanel';
 import { CommentsSection } from '@/components/token/CommentsSection';
 import { Button } from '@/components/ui/Button';
+import { GraduationAnimation } from '@/components/token/GraduationAnimation';
+import { GraduatedBadge } from '@/components/token/GraduatedBadge';
+import { GraduationProgress } from '@/components/token/GraduationProgress';
+import { GraduationResult } from '@/lib/mock-data/mockGraduation';
+import { getTokenGraduationProgress, getTokenAsterAccumulated } from '@/lib/mock-data/tokenGraduationTracker';
 import {
   ArrowLeftIcon,
   ShareIcon,
@@ -26,6 +31,9 @@ export default function TokenDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [showFeaturedClips, setShowFeaturedClips] = useState(true);
+  const [showGraduationModal, setShowGraduationModal] = useState(false);
+  const [hasGraduated, setHasGraduated] = useState(false);
+  const [graduationProgress, setGraduationProgress] = useState(0);
 
   // Fetch token by address
   useEffect(() => {
@@ -92,15 +100,20 @@ export default function TokenDetailPage() {
     fetchToken();
   }, [address]);
 
-  // Mock real-time price updates
+  // Update graduation progress dynamically
   useEffect(() => {
     if (!token) return;
 
-    const interval = setInterval(() => {
-      // Small random price movements for demo
-      const change = (Math.random() - 0.5) * 0.02; // ±1% change
-      // In a real app, this would come from WebSocket or polling
-    }, 5000);
+    const updateProgress = () => {
+      const currentProgress = getTokenAsterAccumulated(token.address);
+      setGraduationProgress(currentProgress);
+    };
+
+    // Initial update
+    updateProgress();
+
+    // Poll for updates every 2 seconds
+    const interval = setInterval(updateProgress, 2000);
 
     return () => clearInterval(interval);
   }, [token]);
@@ -138,6 +151,15 @@ export default function TokenDetailPage() {
     } else {
       navigator.clipboard.writeText(window.location.href);
       // Add toast notification here
+    }
+  };
+
+  const handleGraduationComplete = (result: GraduationResult) => {
+    if (result.success) {
+      // Update token state to graduated
+      setToken(prev => prev ? { ...prev, isGraduated: true, graduationProgress: 100 } : null);
+      setHasGraduated(true);
+      setShowGraduationModal(false);
     }
   };
 
@@ -190,9 +212,27 @@ export default function TokenDetailPage() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr_300px] gap-4 lg:gap-6">
         
-        {/* Left Sidebar - Token Info */}
-        <div className="order-2 xl:order-1">
+        {/* Left Sidebar - Token Info & Graduation */}
+        <div className="order-2 xl:order-1 space-y-4">
           <TokenInfo token={token} />
+
+          {/* Graduation Progress or Graduated Badge */}
+          {token.isGraduated || hasGraduated || graduationProgress >= 100 ? (
+            <GraduatedBadge
+              tokenAddress={token.address}
+              tokenSymbol={token.symbol}
+              graduationDate={token.createdAt}
+            />
+          ) : (
+            <GraduationProgress
+              tokenAddress={token.address}
+              tokenName={token.name}
+              tokenSymbol={token.symbol}
+              graduationProgress={graduationProgress}
+              isGraduated={token.isGraduated || hasGraduated || graduationProgress >= 100}
+              onGraduate={() => setShowGraduationModal(true)}
+            />
+          )}
         </div>
 
         {/* Center - Chart and Comments */}
@@ -269,28 +309,35 @@ export default function TokenDetailPage() {
         </div>
       </div>
 
-      {/* Graduation Progress (Mobile) */}
-      {!token.isGraduated && (
-        <div className="xl:hidden bg-background-card border border-border rounded-lg p-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-text-primary">Bonding Curve Progress</span>
-              <span className="text-sm text-primary-green font-semibold">
-                {token.graduationProgress.toFixed(1)}%
-              </span>
-            </div>
-            <div className="w-full bg-background-dark rounded-full h-2">
-              <div 
-                className="h-2 rounded-full bg-gradient-to-r from-primary-green to-accent-yellow transition-all duration-300"
-                style={{ width: `${Math.min(token.graduationProgress, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-text-muted">
-              <span>Current: {token.graduationProgress.toFixed(0)} ASTER</span>
-              <span>Goal: 100 ASTER</span>
-            </div>
-          </div>
-        </div>
+      {/* Graduation Progress or Badge (Mobile) */}
+      <div className="xl:hidden">
+        {token.isGraduated || hasGraduated || graduationProgress >= 100 ? (
+          <GraduatedBadge
+            tokenAddress={token.address}
+            tokenSymbol={token.symbol}
+            graduationDate={token.createdAt}
+          />
+        ) : (
+          <GraduationProgress
+            tokenAddress={token.address}
+            tokenName={token.name}
+            tokenSymbol={token.symbol}
+            graduationProgress={graduationProgress}
+            isGraduated={token.isGraduated || hasGraduated || graduationProgress >= 100}
+            onGraduate={() => setShowGraduationModal(true)}
+          />
+        )}
+      </div>
+
+      {/* Graduation Animation Modal */}
+      {showGraduationModal && (
+        <GraduationAnimation
+          tokenAddress={token.address}
+          tokenName={token.name}
+          tokenSymbol={token.symbol}
+          onComplete={handleGraduationComplete}
+          onClose={() => setShowGraduationModal(false)}
+        />
       )}
     </div>
   );

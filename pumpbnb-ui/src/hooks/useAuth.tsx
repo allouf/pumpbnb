@@ -102,14 +102,15 @@ export const useAuthState = () => {
 
   const login = async (email: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
       const response = await apiClient.login({ email, password });
-      
-      if (response.success && response.data) {
-        apiClient.setToken(response.data.token);
+
+      // Backend returns { success, user, token } at top level
+      if (response.success && (response as any).token) {
+        apiClient.setToken((response as any).token);
         setState({
-          user: response.data.user,
+          user: (response as any).user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
@@ -129,14 +130,15 @@ export const useAuthState = () => {
 
   const register = async (email: string, password: string, displayName?: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
       const response = await apiClient.register({ email, password, displayName });
-      
-      if (response.success && response.data) {
-        apiClient.setToken(response.data.token);
+
+      // Backend returns { success, user, token } at top level
+      if (response.success && (response as any).token) {
+        apiClient.setToken((response as any).token);
         setState({
-          user: response.data.user,
+          user: (response as any).user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
@@ -163,11 +165,12 @@ export const useAuthState = () => {
         signature,
         message,
       });
-      
-      if (response.success && response.data) {
-        apiClient.setToken(response.data.token);
+
+      // Backend returns { success, user, token } at top level
+      if (response.success && (response as any).token) {
+        apiClient.setToken((response as any).token);
         setState({
-          user: response.data.user,
+          user: (response as any).user,
           isAuthenticated: true,
           isLoading: false,
           error: null,

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Token, formatMarketCap, formatPrice } from '@/lib/mock-data/tokens';
+import { getTokenAsterAccumulated } from '@/lib/mock-data/tokenGraduationTracker';
 import {
   ArrowUpIcon,
   ArrowDownIcon
@@ -23,9 +24,22 @@ interface TopHolder {
 export function TradingPanel({ token }: TradingPanelProps) {
   const [showTradingModal, setShowTradingModal] = useState(false);
   const [modalTab, setModalTab] = useState<'buy' | 'sell'>('buy');
+  const [dynamicProgress, setDynamicProgress] = useState(0);
 
   const { asterBalance, getTokenBalance } = useMockWallet();
   const tokenBalance = getTokenBalance(token.address);
+
+  // Update graduation progress dynamically
+  useEffect(() => {
+    const updateProgress = () => {
+      const asterAccumulated = getTokenAsterAccumulated(token.address);
+      setDynamicProgress(asterAccumulated);
+    };
+
+    updateProgress();
+    const interval = setInterval(updateProgress, 2000);
+    return () => clearInterval(interval);
+  }, [token.address]);
 
   // Mock top holders data
   const topHolders: TopHolder[] = [
@@ -41,7 +55,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
     setShowTradingModal(true);
   };
 
-  const progressPercentage = Math.min(token.graduationProgress, 100);
+  const progressPercentage = Math.min((dynamicProgress / 100) * 100, 100);
 
   return (
     <>
@@ -103,7 +117,7 @@ export function TradingPanel({ token }: TradingPanelProps) {
             />
           </div>
           <div className="flex justify-between text-xs text-text-muted">
-            <span>Current: {progressPercentage.toFixed(0)} ASTER</span>
+            <span>Current: {dynamicProgress.toFixed(1)} ASTER</span>
             <span>Goal: 100 ASTER</span>
           </div>
           <p className="text-xs text-text-muted">
