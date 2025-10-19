@@ -51,11 +51,12 @@ This document provides essential context for:
 
 ### Core Value Propositions
 1. **Cost-Effective Token Creation**: Lower costs compared to Solana-based platforms
-2. **Instant Trading**: Immediate liquidity through automated bonding curves
-3. **Auto-Graduation**: Seamless PancakeSwap migration at $100K market cap
-4. **100x Leverage Trading**: Aster Protocol integration for advanced trading
-5. **Fair Launch Model**: No presales, equal opportunity access for all users
-6. **Network Reliability**: Better performance during congestion vs Solana
+2. **ASTER-Powered Trading**: Trade new tokens with ASTER during bonding curve phase
+3. **Auto-Graduation**: Seamless migration from ASTER to WBNB at 100 ASTER threshold
+4. **Dual Trading Phases**: ASTER-based early trading → WBNB-based DEX trading
+5. **1001x Leverage Integration**: Graduated tokens tradable on Aster Protocol
+6. **Fair Launch Model**: No presales, equal opportunity access for all users
+7. **Ecosystem Integration**: Deep integration with Aster Protocol and ASTER token utility
 
 ### Target Market
 - **Primary**: Cost-conscious meme coin traders and creators seeking alternatives to Solana
@@ -122,16 +123,21 @@ This document provides essential context for:
 - **Node Infrastructure**: Primary + backup RPC endpoints
 
 **Smart Contract Architecture:**
-```solidity
+```
 TokenFactory.sol      → Deploys BEP-20 tokens (~3.2M gas)
     ↓
 MemeToken.sol         → Standardized token contract
     ↓
-BondingCurve.sol      → Automated market maker (~180K gas per trade)
+BondingCurve.sol      → ASTER-based AMM (~180K gas per trade)
+   │                    Trading: Token/ASTER pairs
+   │                    Graduation: 100 ASTER threshold
     ↓
-GraduationManager.sol → PancakeSwap integration (~2.8M gas)
+GraduationManager.sol → ASTER→WBNB migration (~3M gas)
+   │                    1. Extract 100 ASTER
+   │                    2. Swap ASTER→WBNB
+   │                    3. Create Token/WBNB pair
     ↓
-PancakeSwap V2        → Decentralized liquidity
+PancakeSwap V2        → WBNB-based liquidity
 ```
 
 **Frontend Stack:**
@@ -159,25 +165,31 @@ totalCost = initialPrice * amount + (priceIncrement * amount² / 2)
 ```
 
 **Key Parameters:**
-- Initial Price: $0.000001 per token
-- Price Increment: $0.000000001 per token issued
+- Base Trading Pair: **ASTER token** (bonding curve phase)
+- Post-Graduation Pair: **WBNB** (PancakeSwap phase)
+- ASTER Contract: 0x000Ae314E2A2172a039B26378814C252734f556A (BNB Chain)
 - Maximum Supply: 1,000,000,000 tokens
-- Graduation Threshold: $100,000 market cap
-- Platform Fee: 0.15% of transaction value
-- Creator Allocation: 20% (locked during bonding curve phase)
+- Graduation Threshold: **100 ASTER** accumulated in bonding curve reserves
+- Platform Fee: 1.5% of transaction value (collected in ASTER)
+- Creator Allocation: 20% (locked during bonding curve, unlocked after graduation)
 
 ### Integration Points
 
 **PancakeSwap Integration:**
-- Automated liquidity migration at graduation
-- LP token distribution to community
-- Price continuity maintenance
+- Automated migration at 100 ASTER threshold
+- ASTER→WBNB swap via PancakeSwap
+- Token/WBNB pair creation
+- LP tokens burned for permanent liquidity
+- Price continuity maintained during migration
 
-**Aster Protocol Integration (Phase 3):**
-- 100x leverage trading capabilities
-- Advanced order types (limit, stop-loss, take-profit)
-- Professional derivatives trading interface
-- Revenue sharing: 20% of generated fees
+**Aster Protocol Integration:**
+- **Phase 1**: ASTER-based bonding curve trading (native integration)
+- **Phase 3**: 1001x leverage trading on Aster Protocol
+  - Simple Mode: One-click trading with MEV protection
+  - Pro Mode: Advanced tools (hidden orders, order book depth)
+  - ASTER token utilities: Governance, fee discounts, staking
+  - Revenue sharing: 20% of generated fees
+  - Multi-chain support: BNB Chain, Ethereum, Arbitrum, Solana
 
 ---
 

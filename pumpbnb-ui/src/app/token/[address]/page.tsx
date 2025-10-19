@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import apiClient from '@/lib/api/client';
-import { Token } from '@/lib/mock-data/tokens';
+import { Token, mockTokens } from '@/lib/mock-data/tokens';
 
 export default function TokenDetailPage() {
   const params = useParams();
@@ -32,36 +32,52 @@ export default function TokenDetailPage() {
     const fetchToken = async () => {
       try {
         setIsLoading(true);
-        const response = await apiClient.get(`/tokens`);
-        const tokens = response.data || [];
-        // Find token by contract address
-        const foundToken = tokens.find((t: any) =>
-          t.contractAddress === address || t.id === address
+
+        // Try API first
+        let foundToken = null;
+        try {
+          const response = await apiClient.get(`/tokens`);
+          const tokens = response.data || [];
+          foundToken = tokens.find((t: any) =>
+            t.contractAddress === address || t.id === address
+          );
+
+          if (foundToken) {
+            // Map API response to Token interface
+            setToken({
+              address: foundToken.contractAddress || foundToken.id,
+              name: foundToken.name,
+              symbol: foundToken.symbol,
+              description: foundToken.description,
+              image: foundToken.imageUrl || '/api/placeholder/400/400',
+              creator: foundToken.creatorId,
+              createdAt: foundToken.createdAt,
+              marketCap: foundToken.marketCap,
+              price: foundToken.price,
+              priceChange24h: foundToken.priceChange24h,
+              volume24h: foundToken.volume24h,
+              holders: foundToken.holders,
+              graduationProgress: foundToken.graduationProgress,
+              isGraduated: foundToken.isGraduated,
+              socialLinks: {
+                website: foundToken.websiteUrl,
+                twitter: foundToken.twitterUrl,
+                telegram: foundToken.telegramUrl,
+              },
+            });
+            return;
+          }
+        } catch (apiError) {
+          console.warn('API fetch failed, falling back to mock data:', apiError);
+        }
+
+        // Fallback to mock data if API fails or token not found
+        const mockToken = mockTokens.find(t =>
+          t.address.toLowerCase() === address.toLowerCase()
         );
 
-        if (foundToken) {
-          // Map API response to Token interface
-          setToken({
-            address: foundToken.contractAddress || foundToken.id,
-            name: foundToken.name,
-            symbol: foundToken.symbol,
-            description: foundToken.description,
-            image: foundToken.imageUrl || '/api/placeholder/400/400',
-            creator: foundToken.creatorId,
-            createdAt: foundToken.createdAt,
-            marketCap: foundToken.marketCap,
-            price: foundToken.price,
-            priceChange24h: foundToken.priceChange24h,
-            volume24h: foundToken.volume24h,
-            holders: foundToken.holders,
-            graduationProgress: foundToken.graduationProgress,
-            isGraduated: foundToken.isGraduated,
-            socialLinks: {
-              website: foundToken.websiteUrl,
-              twitter: foundToken.twitterUrl,
-              telegram: foundToken.telegramUrl,
-            },
-          });
+        if (mockToken) {
+          setToken(mockToken);
         } else {
           setError('Token not found');
         }
@@ -270,8 +286,8 @@ export default function TokenDetailPage() {
               />
             </div>
             <div className="flex justify-between text-xs text-text-muted">
-              <span>Current: ${(token.marketCap / 1000).toFixed(1)}K</span>
-              <span>Goal: $100K</span>
+              <span>Current: {token.graduationProgress.toFixed(0)} ASTER</span>
+              <span>Goal: 100 ASTER</span>
             </div>
           </div>
         </div>

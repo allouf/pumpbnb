@@ -5,7 +5,13 @@
 
 ## Executive Summary
 
-Token graduation from bonding curve to PancakeSwap requires a one-time cost of approximately $0.10-0.25, making it extremely affordable compared to Solana alternatives. The process can be fully automated and gas-optimized.
+Token graduation from ASTER-based bonding curve to WBNB-based PancakeSwap requires a one-time cost of approximately $0.10-0.25, making it extremely affordable compared to Solana alternatives. The process includes ASTER→WBNB conversion and can be fully automated and gas-optimized.
+
+**NEW ARCHITECTURE UPDATE (October 2025):**
+- Bonding curve uses **ASTER token** as base trading pair (not BNB)
+- Graduation threshold: **100 ASTER** accumulated in reserves
+- Migration process: ASTER→WBNB swap + Token/WBNB pair creation on PancakeSwap
+- Post-graduation: Standard WBNB/Token trading on PancakeSwap DEX
 
 ## Graduation Threshold Analysis
 
@@ -13,11 +19,12 @@ Token graduation from bonding curve to PancakeSwap requires a one-time cost of a
 
 | Threshold | BNB Value | USD Value | Rationale |
 |-----------|-----------|-----------|-----------|
-| Conservative | 72 BNB | $90,000 | Match Pump.fun model |
-| Standard | 80 BNB | $100,000 | Round number psychology |
-| Aggressive | 40 BNB | $50,000 | Faster graduation |
+| Ultra-Low | 0.5 BNB | ~$350 | Extremely fast graduation, testing |
+| Low | 1 BNB | ~$700 | Fast graduation, lower barrier |
+| Conservative | 5 BNB | ~$3,500 | Moderate liquidity requirement |
+| Standard | 10 BNB | ~$7,000 | Good liquidity depth |
 
-**Recommended Threshold**: 80 BNB ($100,000) for psychological appeal and sufficient liquidity.
+**NEW Recommended Threshold**: **1 BNB** (~$700) for fast graduation and lower barrier to entry, making the platform more accessible to new token creators while maintaining sufficient liquidity for initial DEX trading.
 
 ## PancakeSwap V2 Integration Costs
 
@@ -65,24 +72,52 @@ function createPair(address tokenA, address tokenB) external returns (address pa
 | LP token mint | 85,000 | $0.0011 | Create LP tokens |
 | **Total** | **234,000** | **$0.003** | **Complete liquidity addition** |
 
-### 3. Bonding Curve to DEX Migration
+### 3. Bonding Curve to DEX Migration (ASTER→WBNB Architecture)
 
-**Migration Process Gas Analysis:**
+**NEW Migration Process Gas Analysis:**
 
-#### Phase 1: Reserve Extraction
+#### Phase 1: ASTER Reserve Extraction
 ```solidity
 function migrateToDeX() external onlyGraduated {
-    // Extract reserves from bonding curve
+    // Extract ASTER reserves from bonding curve
+    IERC20 aster = IERC20(0x000Ae314E2A2172a039B26378814C252734f556A);
     uint256 tokenReserve = totalSupply() - soldTokens;  // 5,000 gas
-    uint256 bnbReserve = address(this).balance;         // 5,000 gas
-    
+    uint256 asterReserve = aster.balanceOf(address(this)); // 5,000 gas (should be ~100 ASTER)
+
+    require(asterReserve >= 100 ether, "Not enough ASTER"); // 3,000 gas
+
     // Calculate optimal amounts for DEX
-    (uint256 tokenAmount, uint256 bnbAmount) = 
-        calculateOptimalAmounts(tokenReserve, bnbReserve); // 25,000 gas
+    (uint256 tokenAmount, uint256 asterAmount) =
+        calculateOptimalAmounts(tokenReserve, asterReserve); // 25,000 gas
 }
 ```
 
-**Phase 1 Total**: 35,000 gas ($0.00045)
+**Phase 1 Total**: 38,000 gas ($0.00049)
+
+#### Phase 1.5: ASTER→WBNB Swap (NEW STEP)
+```solidity
+function swapAsterToWbnb(uint256 asterAmount) internal returns (uint256 wbnbAmount) {
+    // Approve PancakeSwap Router to spend ASTER
+    IERC20(aster).approve(PANCAKE_ROUTER, asterAmount); // 45,000 gas
+
+    // Swap ASTER for WBNB via PancakeSwap
+    address[] memory path = new address[](2);
+    path[0] = aster;  // ASTER
+    path[1] = wbnb;   // WBNB
+
+    uint256[] memory amounts = IPancakeRouter(PANCAKE_ROUTER).swapExactTokensForTokens(
+        asterAmount,
+        0, // Accept any amount of WBNB (can add slippage protection)
+        path,
+        address(this),
+        block.timestamp + 300
+    ); // 150,000 gas (standard DEX swap)
+
+    return amounts[1]; // WBNB received
+}
+```
+
+**Phase 1.5 Total**: 195,000 gas ($0.0025)
 
 #### Phase 2: DEX Pool Setup
 ```solidity
@@ -125,15 +160,21 @@ function distributeLPTokens() internal {
 - **LP Burn**: 42,000 gas ($0.00054)
 - **LP Distribution**: 100,000-500,000 gas ($0.0013-0.006)
 
-### Total Migration Cost Summary
+### Total Migration Cost Summary (ASTER→WBNB Architecture)
 
 | Component | Gas Cost | USD Cost | Notes |
 |-----------|----------|----------|-------|
-| Reserve extraction | 35,000 | $0.00045 | Bonding curve cleanup |
-| Pool creation | 2,500,000 | $0.032 | One-time setup |
-| Liquidity addition | 234,000 | $0.003 | Initial liquidity |
-| LP token burn | 42,000 | $0.00054 | Permanent liquidity |
-| **Total** | **2,811,000** | **$0.036** | **Complete graduation** |
+| ASTER reserve extraction | 38,000 | $0.00049 | Extract 100 ASTER from bonding curve |
+| ASTER→WBNB swap | 195,000 | $0.0025 | PancakeSwap swap operation |
+| Pool creation (Token/WBNB) | 2,500,000 | $0.032 | One-time setup |
+| Liquidity addition (WBNB) | 234,000 | $0.003 | Add WBNB + tokens |
+| LP token burn | 42,000 | $0.00054 | Permanent liquidity lock |
+| **Total** | **3,009,000** | **$0.039** | **Complete ASTER→WBNB graduation** |
+
+**Cost Comparison:**
+- Previous (BNB-based): $0.036
+- New (ASTER-based with swap): $0.039
+- **Additional Cost**: $0.003 (for ASTER→WBNB conversion)
 
 ## PancakeSwap V3 Integration (Alternative)
 
@@ -174,20 +215,22 @@ function approveRouter() external onlyOwner {
 
 ### 2. Batch Operation Optimization
 
-**Single Transaction Graduation:**
+**Single Transaction Graduation (ASTER→WBNB):**
 ```solidity
 function graduateToken(address tokenAddress) external {
-    require(getMarketCap(tokenAddress) >= GRADUATION_THRESHOLD, "Not ready");
-    
+    IERC20 aster = IERC20(0x000Ae314E2A2172a039B26378814C252734f556A);
+    require(getAsterReserve(tokenAddress) >= 100 ether, "Not ready"); // 100 ASTER threshold
+
     // All operations in single transaction:
-    // 1. Extract bonding curve liquidity    - 35,000 gas
-    // 2. Create pair (if needed)            - 2,500,000 gas
-    // 3. Add liquidity to DEX               - 234,000 gas
-    // 4. Manage LP tokens                   - 42,000 gas
-    // 5. Update token status                - 20,000 gas
-    // 6. Emit graduation event              - 8,000 gas
-    
-    // Total: ~2,839,000 gas = $0.037
+    // 1. Extract ASTER from bonding curve      - 38,000 gas
+    // 2. Swap ASTER→WBNB on PancakeSwap        - 195,000 gas (NEW)
+    // 3. Create Token/WBNB pair (if needed)    - 2,500,000 gas
+    // 4. Add WBNB liquidity to DEX             - 234,000 gas
+    // 5. Manage LP tokens                      - 42,000 gas
+    // 6. Update token status                   - 20,000 gas
+    // 7. Emit graduation event                 - 8,000 gas
+
+    // Total: ~3,037,000 gas = $0.039
 }
 ```
 
@@ -364,11 +407,11 @@ struct PackedGraduation {
 
 ```solidity
 function checkGraduationEligibility(address token) public view returns (bool) {
-    uint256 marketCap = getMarketCap(token);
+    uint256 bnbReserve = getBnbReserve(token);
     uint256 volume24h = get24hVolume(token);
     uint256 holderCount = getHolderCount(token);
-    
-    return marketCap >= GRADUATION_THRESHOLD &&
+
+    return bnbReserve >= 1 ether && // 1 BNB graduation threshold
            volume24h >= MIN_VOLUME &&
            holderCount >= MIN_HOLDERS;
 }

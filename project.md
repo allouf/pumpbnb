@@ -20,11 +20,12 @@ To democratize meme coin creation and trading by providing a cost-effective, use
 ### 1.3 Key Value Propositions
 
 - **Cost-Effective Creation**: Lower token creation costs compared to Solana platforms
-- **Instant Trading**: Immediate liquidity through bonding curve mechanism  
-- **Automatic Graduation**: Seamless migration to PancakeSwap at $100K market cap
-- **100x Leverage Trading**: Integration with Aster Protocol for advanced trading
+- **ASTER-Powered Trading**: Trade new tokens with ASTER during bonding curve phase
+- **Automatic Graduation**: Seamless migration to PancakeSwap at 100 ASTER threshold
+- **Dual Trading Phases**: ASTER-based early trading → WBNB-based DEX trading
+- **1001x Leverage Integration**: Graduated tokens tradable on Aster Protocol with extreme leverage
 - **No Presales**: Fair launch mechanism with equal opportunity access
-- **Community-Driven**: Transparent, decentralized token discovery
+- **Ecosystem Integration**: Deep integration with Aster Protocol and ASTER token utility
 
 ---
 
@@ -105,16 +106,23 @@ To democratize meme coin creation and trading by providing a cost-effective, use
 - Gas Cost: ~3,200,000 gas (cost-effective)
 - Features: Standardized BEP-20 with metadata, anti-bot protection
 
-**BondingCurve.sol**  
-- Purpose: Automated market maker for token price discovery
+**BondingCurve.sol**
+- Purpose: Automated market maker using ASTER as base trading pair
 - Gas Cost: 180,000 gas per trade (low cost)
-- Formula: Linear bonding curve with configurable parameters
-- Features: Buy/sell functionality, fee collection, graduation trigger
+- Formula: Constant product (x*y=k) where x=ASTER reserves, y=token reserves
+- Trading: Users buy/sell tokens with ASTER (not BNB)
+- Features: ASTER-based trading, fee collection in ASTER, 100 ASTER graduation trigger
+- ASTER Contract: 0x000Ae314E2A2172a039B26378814C252734f556A
 
 **GraduationManager.sol**
-- Purpose: Automatic migration to PancakeSwap
-- Gas Cost: 2,811,000 gas (affordable)
-- Features: Liquidity migration, LP token distribution, price continuity
+- Purpose: Automatic migration from ASTER-based bonding curve to WBNB-based PancakeSwap
+- Gas Cost: ~3,000,000 gas (includes ASTER→WBNB swap)
+- Features:
+  - Extract 100 ASTER from bonding curve reserves
+  - Swap ASTER to WBNB via PancakeSwap
+  - Create Token/WBNB pair on PancakeSwap
+  - Add liquidity with WBNB + remaining tokens
+  - Burn LP tokens for permanent liquidity lock
 
 **PlatformTreasury.sol**
 - Purpose: Fee collection and management
@@ -136,15 +144,19 @@ totalCost = initialPrice * amount + (priceIncrement * amount² / 2)
 ```
 
 **Parameters:**
-- Initial Price: $0.000001 per token
-- Price Increment: $0.000000001 per token issued
+- Base Trading Pair: **ASTER token** (during bonding curve phase)
+- Post-Graduation Pair: **WBNB** (on PancakeSwap)
+- Initial Price: Determined by ASTER/token ratio
 - Maximum Supply: 1,000,000,000 tokens
-- Graduation Threshold: $100,000 market cap (80,000,000 BNB)
+- Graduation Threshold: **100 ASTER** accumulated in bonding curve reserves
 
 **Fee Structure:**
-- Platform Fee: 0.15% of transaction value
+- Platform Fee: 1.5% of transaction value (collected in ASTER)
 - Creator Allocation: 20% of tokens (locked during bonding curve)
-- Graduation Fee: Small fee (platform absorbs gas costs)
+- Graduation Process:
+  - Platform swaps 100 ASTER → WBNB
+  - Creates Token/WBNB pair on PancakeSwap
+  - Platform absorbs gas costs (~$0.04)
 
 ### 3.4 Infrastructure Requirements
 
@@ -217,27 +229,33 @@ totalCost = initialPrice * amount + (priceIncrement * amount² / 2)
 - Automatic token verification
 - Anti-bot protection mechanisms
 
-#### 4.1.2 Bonding Curve Trading
+#### 4.1.2 Bonding Curve Trading (ASTER-Based)
 
 **Buy Process:**
-1. User selects token and amount
-2. Calculate price impact and fees
-3. Execute trade through bonding curve
-4. Update token supply and price
-5. Transfer tokens to user wallet
+1. User connects wallet and holds ASTER tokens
+2. Approve ASTER spending for bonding curve contract
+3. Select token and amount to buy
+4. Calculate price impact and fees (in ASTER)
+5. Execute trade: ASTER → New Token
+6. Platform collects 1.5% fee in ASTER
+7. Transfer tokens to user wallet
 
 **Sell Process:**
-1. User selects tokens to sell
-2. Calculate proceeds and fees
-3. Burn tokens and reduce supply
-4. Transfer BNB to user wallet
-5. Update bonding curve state
+1. User holds tokens from bonding curve
+2. Approve token spending for bonding curve contract
+3. Select amount to sell
+4. Calculate proceeds and fees (in ASTER)
+5. Burn tokens and reduce supply
+6. Platform collects 1.5% fee in ASTER
+7. Transfer ASTER proceeds to user wallet
 
 **Features:**
-- Real-time price updates
+- ASTER-based trading (users need ASTER to participate)
+- Real-time price updates (ASTER/Token ratio)
 - Slippage protection
 - MEV resistance mechanisms
-- Fee breakdown transparency
+- Fee breakdown transparency (all fees in ASTER)
+- Integration with Aster Protocol ecosystem
 
 #### 4.1.3 Token Discovery
 
@@ -260,22 +278,26 @@ totalCost = initialPrice * amount + (priceIncrement * amount² / 2)
 - Creator information
 - Community discussion
 
-#### 4.1.4 PancakeSwap Graduation
+#### 4.1.4 PancakeSwap Graduation (ASTER → WBNB Migration)
 
 **Automatic Process:**
-1. Monitor token market cap
-2. Trigger graduation at $100K threshold
-3. Extract bonding curve liquidity
-4. Create PancakeSwap pair
-5. Add liquidity to DEX
-6. Distribute LP tokens
-7. Update token status
+1. Monitor bonding curve ASTER reserves
+2. Trigger graduation at **100 ASTER** threshold
+3. Extract 100 ASTER + remaining tokens from bonding curve
+4. Swap 100 ASTER → WBNB via PancakeSwap
+5. Create Token/WBNB pair on PancakeSwap
+6. Add liquidity to DEX with WBNB + tokens
+7. Burn LP tokens (permanent liquidity lock)
+8. Update token status to "Graduated"
+9. Unlock creator's 20% token allocation
 
 **User Benefits:**
-- Zero cost graduation
-- Seamless price transition
+- Zero cost graduation (platform absorbs gas)
+- Seamless transition from ASTER to WBNB trading
 - Improved liquidity depth
-- Access to DEX ecosystem
+- Access to full DEX ecosystem
+- Can now trade with WBNB (more liquid than ASTER)
+- Token eligible for Aster Protocol leverage trading (1001x)
 
 ### 4.2 Phase 2: Advanced Features (Months 4-6)
 

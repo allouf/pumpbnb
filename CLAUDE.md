@@ -19,6 +19,31 @@ Currently in **Specification & Research Phase**. The codebase contains:
 
 ## Core Technical Architecture
 
+### Trading Flow Architecture
+
+**Phase 1: Bonding Curve Trading (Pre-Graduation)**
+- Base Pair: Token/ASTER (users trade with ASTER tokens)
+- ASTER Contract: 0x000Ae314E2A2172a039B26378814C252734f556A (BNB Chain)
+- Users need ASTER to buy tokens during bonding curve phase
+- Platform collects fees in ASTER
+- Graduation trigger: 100 ASTER accumulated in reserves
+
+**Phase 2: PancakeSwap Trading (Post-Graduation)**
+- Base Pair: Token/WBNB (standard DEX trading)
+- Migration process:
+  1. Extract 100 ASTER from bonding curve
+  2. Swap ASTER → WBNB via PancakeSwap
+  3. Create Token/WBNB pair on PancakeSwap
+  4. Add liquidity with converted WBNB + remaining tokens
+  5. Burn LP tokens (permanent liquidity lock)
+
+**Why ASTER for Bonding Curve?**
+- Integrates with Aster Protocol ecosystem
+- Creates demand for ASTER token
+- Users can later use graduated tokens for 1001x leverage trading on Aster
+- Platform revenue collected in ASTER (can be staked for APY)
+- Differentiates from BNB/SOL-based competitors
+
 ### Smart Contract Design (Planned)
 
 **TokenFactory.sol**
@@ -27,16 +52,18 @@ Currently in **Specification & Research Phase**. The codebase contains:
 - Features: Anti-bot protection, standardized metadata
 
 **BondingCurve.sol**
-- Automated market maker for price discovery
-- Constant product bonding curve formula (Uniswap V2 style): `x * y = k` where x=BNB reserves, y=token reserves
-- Uses virtual reserves (0.3 BNB + 200M tokens) for instant liquidity
+- Automated market maker for price discovery using ASTER token as base pair
+- Constant product bonding curve formula (Uniswap V2 style): `x * y = k` where x=ASTER reserves, y=token reserves
+- Uses virtual reserves (initial ASTER + 200M tokens) for instant liquidity
+- Trading: Users buy/sell tokens with ASTER (not BNB)
 - Trading gas cost: ~180,000 gas per trade (low cost)
-- 1.5% platform fee on all trades
+- 1.5% platform fee on all trades (collected in ASTER)
 
 **GraduationManager.sol**
-- Automatic migration to PancakeSwap at $50K market cap
-- Handles liquidity extraction and DEX pair creation
-- Target gas cost: ~2,811,000 gas (affordable)
+- Automatic migration to PancakeSwap at 100 ASTER threshold
+- Converts ASTER reserves to WBNB for PancakeSwap pairing
+- Creates Token/WBNB pair on PancakeSwap (standard DEX trading)
+- Target gas cost: ~3,000,000 gas (includes ASTER->WBNB swap)
 
 **AsterIntegration.sol** (Phase 3)
 - Integration with Aster Protocol for 100x leverage trading
@@ -94,11 +121,13 @@ Currently in **Specification & Research Phase**. The codebase contains:
 
 ### Bonding Curve Parameters
 - Formula: Constant product (x*y=k) - Uniswap V2 style
-- Virtual Reserves: 0.3 BNB + 200,000,000 tokens for initial liquidity depth
+- Base Trading Pair: **ASTER token** (not BNB)
+- Virtual Reserves: Initial ASTER + 200,000,000 tokens for instant liquidity
 - Maximum Supply: 1,000,000,000 tokens
-- Graduation Threshold: $50,000 market cap (≈40 BNB)
+- Graduation Threshold: **100 ASTER** accumulated in bonding curve reserves
+- Post-Graduation Pair: **Token/WBNB** on PancakeSwap (ASTER converted to WBNB)
 - Creator Allocation: 20% of tokens (locked during bonding curve phase)
-- Trading Fee: 1.5% on all buy/sell transactions
+- Trading Fee: 1.5% on all buy/sell transactions (collected in ASTER)
 
 ### Security Requirements
 - Minimum 2 independent smart contract audits before mainnet
