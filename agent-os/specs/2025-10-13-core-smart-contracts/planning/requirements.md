@@ -1,7 +1,7 @@
 # Spec Requirements: Core Smart Contracts
 
 ## Initial Description
-Core Smart Contracts (TokenFactory and BondingCurve) - The foundational smart contract infrastructure for PumpBNB, a BNB Chain-based meme coin launchpad. This includes deploying new BEP-20 tokens using factory pattern and implementing an automated market maker for price discovery based on Pump.fun's architecture.
+Core Smart Contracts (TokenFactory and BondingCurve) - The foundational smart contract infrastructure for PumpBNB (branded as "Aster Fun"), a BNB Chain-based meme coin launchpad. This includes deploying new BEP-20 tokens using factory pattern and implementing an automated market maker for price discovery using ASTER tokens as the base trading pair, based on Pump.fun's architecture adapted for the Aster Protocol ecosystem.
 
 ## Reference Implementation: Pump.fun Architecture
 
@@ -10,9 +10,9 @@ Based on analysis of Pump.fun's implementation on Solana, the following componen
 
 1. **Bonding Curve Formula**: Uniswap V2 constant product formula (x*y=k) with virtual and real reserves
 2. **Token Creation**: Permissionless creation with custom metadata (name, symbol, URI)
-3. **Trading Mechanism**: Buy/sell through bonding curve with 1.5% fee (150 basis points)
-4. **Graduation System**: Automatic migration when bonding curve completes (zero real reserves)
-5. **Fee Distribution**: Dynamic tiers based on market cap milestones
+3. **Trading Mechanism**: Buy/sell through bonding curve using ASTER tokens with 1% fee (100 basis points: 30bps to creator, 70bps to protocol)
+4. **Graduation System**: Automatic migration to PancakeSwap when 100 ASTER accumulated in real reserves, with ASTER→WBNB conversion for Token/WBNB pairing
+5. **Fee Distribution**: Fixed split during bonding curve (0.3% creator, 0.7% protocol); post-graduation (0.15% creator, 0.15% protocol)
 6. **State Management**: Global config, per-token bonding curve accounts, volume tracking
 
 ## Contract Architecture
@@ -28,34 +28,37 @@ Based on analysis of Pump.fun's implementation on Solana, the following componen
   - Mapping of token addresses to bonding curves
   - Token creation counter
   - Platform fee recipient address
-  - Minimum creation fee (anti-spam)
+  - Note: Token creation is FREE (no creation fee, only gas costs)
 
 **2. BondingCurve.sol**
-- Purpose: Implement constant product AMM for price discovery
+- Purpose: Implement constant product AMM for price discovery using ASTER as base trading pair
 - Key Functions:
-  - `initialize(address token, address creator, uint256 virtualBNBReserve, uint256 virtualTokenReserve)`
-  - `buy(uint256 minTokensOut)` - Purchase tokens with BNB
-  - `sell(uint256 tokenAmount, uint256 minBNBOut)` - Sell tokens for BNB
-  - `getPrice()` - Calculate current token price
-  - `getBuyAmount(uint256 bnbIn)` - Calculate tokens received for BNB
-  - `getSellAmount(uint256 tokensIn)` - Calculate BNB received for tokens
+  - `initialize(address token, address creator, uint256 virtualAsterReserve, uint256 virtualTokenReserve)`
+  - `buyWithAster(uint256 asterIn, uint256 minTokensOut)` - Purchase tokens with ASTER
+  - `sellForAster(uint256 tokenAmount, uint256 minAsterOut)` - Sell tokens for ASTER
+  - `getPrice()` - Calculate current token price in ASTER
+  - `getBuyAmount(uint256 asterIn)` - Calculate tokens received for ASTER
+  - `getSellAmount(uint256 tokensIn)` - Calculate ASTER received for tokens
 - State Variables:
-  - Virtual BNB reserve (initial liquidity simulation)
+  - ASTER token address: 0x000Ae314E2A2172a039B26378814C252734f556A
+  - Virtual ASTER reserve (initial liquidity simulation)
   - Virtual token reserve (initial supply simulation)
-  - Real BNB reserve (actual BNB in contract)
+  - Real ASTER reserve (actual ASTER in contract)
   - Real token reserve (actual tokens in contract)
   - Total tokens sold
   - Trading volume
   - Creator address
-  - Graduation threshold
+  - Fee recipient addresses (creator and protocol)
+  - Graduation threshold: 100 ASTER (100e18)
 
 **3. GraduationManager.sol**
-- Purpose: Handle migration to PancakeSwap when graduation conditions met
+- Purpose: Handle migration to PancakeSwap when 100 ASTER threshold reached, including ASTER→WBNB conversion
 - Key Functions:
-  - `checkGraduationEligibility(address bondingCurve)` - Verify graduation conditions
-  - `migrate(address bondingCurve)` - Execute migration to PancakeSwap
-  - `createPancakePair()` - Create liquidity pool on PancakeSwap
-  - `lockLiquidity()` - Lock LP tokens for specified period
+  - `checkGraduationEligibility(address bondingCurve)` - Verify 100 ASTER threshold reached
+  - `executeGraduation(address bondingCurve)` - Execute full migration process
+  - `swapAsterToWBNB(uint256 asterAmount)` - Convert ASTER to WBNB via PancakeSwap
+  - `createPancakePair()` - Create Token/WBNB liquidity pool on PancakeSwap
+  - `lockLiquidity()` - Burn LP tokens permanently (address(0))
 
 **4. PlatformConfig.sol**
 - Purpose: Centralized configuration and fee management
@@ -65,9 +68,12 @@ Based on analysis of Pump.fun's implementation on Solana, the following componen
   - `setCreationFee(uint256)` - Update token creation fee
   - `pause()` / `unpause()` - Emergency controls
 - State Variables:
-  - Platform fee percentage (100 basis points = 1%)
-  - Creation fee amount
-  - Fee recipient address
+  - Bonding curve trading fee: 100 basis points (1%) split as 30bps creator, 70bps protocol
+  - Post-graduation trading fee: 30 basis points (0.3%) split as 15bps creator, 15bps protocol
+  - Creator fee recipient address
+  - Protocol fee recipient address
+  - ASTER token address
+  - Graduation threshold: 100 ASTER (100e18)
   - Emergency pause state
 
 ## Token Creation Process
@@ -98,25 +104,25 @@ Unlike the initial linear formula assumption, we follow Pump.fun's approach usin
 Price Discovery Formula: (x + dx) * (y - dy) = x * y = k
 
 Where:
-- x = BNB reserves (virtual + real)
+- x = ASTER reserves (virtual + real)
 - y = Token reserves (virtual + real)
 - k = constant product
-- dx = BNB input
+- dx = ASTER input
 - dy = Token output
 ```
 
 ### Virtual Reserves Initialization
-- Virtual BNB Reserve: 0.3 BNB (provides initial liquidity depth)
+- Virtual ASTER Reserve: Equivalent to 0.3 BNB in ASTER tokens (provides initial liquidity depth)
 - Virtual Token Reserve: 200,000,000 tokens (20% of supply)
 - Purpose: Prevent extreme price volatility at launch
-- Graduation occurs when real reserves reach target thresholds
+- Graduation occurs when real ASTER reserves reach 100 ASTER threshold
 
 ### Price Calculation
 ```solidity
 function getPrice() returns (uint256) {
-    uint256 bnbReserve = virtualBNBReserve + realBNBReserve;
+    uint256 asterReserve = virtualAsterReserve + realAsterReserve;
     uint256 tokenReserve = virtualTokenReserve + realTokenReserve;
-    return (bnbReserve * 1e18) / tokenReserve;
+    return (asterReserve * 1e18) / tokenReserve; // Price in ASTER per token
 }
 ```
 
@@ -124,96 +130,115 @@ function getPrice() returns (uint256) {
 
 ### Buy Function Specification
 ```solidity
-function buy(uint256 minTokensOut) external payable {
-    require(msg.value > 0, "Must send BNB");
+function buyWithAster(uint256 asterIn, uint256 minTokensOut) external {
+    require(asterIn > 0, "Must send ASTER");
     require(!graduated, "Bonding curve completed");
 
-    uint256 fee = (msg.value * tradingFee) / 10000;
-    uint256 bnbAfterFee = msg.value - fee;
+    // Calculate fees: 1% total (0.3% creator, 0.7% protocol)
+    uint256 creatorFee = (asterIn * 30) / 10000; // 0.3%
+    uint256 protocolFee = (asterIn * 70) / 10000; // 0.7%
+    uint256 asterAfterFee = asterIn - creatorFee - protocolFee;
 
-    uint256 tokensOut = calculateBuyAmount(bnbAfterFee);
+    uint256 tokensOut = calculateBuyAmount(asterAfterFee);
     require(tokensOut >= minTokensOut, "Slippage exceeded");
 
+    // Transfer ASTER from buyer
+    asterToken.transferFrom(msg.sender, address(this), asterIn);
+
     // Update reserves
-    realBNBReserve += bnbAfterFee;
+    realAsterReserve += asterAfterFee;
     realTokenReserve -= tokensOut;
 
     // Transfer tokens to buyer
     token.transfer(msg.sender, tokensOut);
 
-    // Check graduation conditions
-    if (checkGraduation()) {
+    // Transfer fees
+    asterToken.transfer(creator, creatorFee);
+    asterToken.transfer(protocolFeeRecipient, protocolFee);
+
+    // Check graduation (100 ASTER threshold)
+    if (realAsterReserve >= 100e18) {
         triggerGraduation();
     }
 
-    emit Buy(msg.sender, msg.value, tokensOut);
+    emit Buy(msg.sender, asterIn, tokensOut, creatorFee, protocolFee);
 }
 ```
 
 ### Sell Function Specification
 ```solidity
-function sell(uint256 tokenAmount, uint256 minBNBOut) external {
+function sellForAster(uint256 tokenAmount, uint256 minAsterOut) external {
     require(tokenAmount > 0, "Must sell tokens");
     require(!graduated, "Bonding curve completed");
 
-    uint256 bnbOut = calculateSellAmount(tokenAmount);
-    uint256 fee = (bnbOut * tradingFee) / 10000;
-    uint256 bnbAfterFee = bnbOut - fee;
+    uint256 asterOut = calculateSellAmount(tokenAmount);
 
-    require(bnbAfterFee >= minBNBOut, "Slippage exceeded");
+    // Calculate fees: 1% total (0.3% creator, 0.7% protocol)
+    uint256 creatorFee = (asterOut * 30) / 10000; // 0.3%
+    uint256 protocolFee = (asterOut * 70) / 10000; // 0.7%
+    uint256 asterAfterFee = asterOut - creatorFee - protocolFee;
+
+    require(asterAfterFee >= minAsterOut, "Slippage exceeded");
 
     // Transfer tokens from seller
     token.transferFrom(msg.sender, address(this), tokenAmount);
 
     // Update reserves
     realTokenReserve += tokenAmount;
-    realBNBReserve -= bnbOut;
+    realAsterReserve -= asterOut;
 
-    // Send BNB to seller
-    payable(msg.sender).transfer(bnbAfterFee);
+    // Send ASTER to seller
+    asterToken.transfer(msg.sender, asterAfterFee);
 
-    emit Sell(msg.sender, tokenAmount, bnbAfterFee);
+    // Transfer fees
+    asterToken.transfer(creator, creatorFee);
+    asterToken.transfer(protocolFeeRecipient, protocolFee);
+
+    emit Sell(msg.sender, tokenAmount, asterAfterFee, creatorFee, protocolFee);
 }
 ```
 
 ## Fee Collection and Distribution
 
 ### Fee Structure
-- **Trading Fee**: 1.5% (150 basis points) on all trades
-- **Creation Fee**: 0.01 BNB (anti-spam measure)
-- **Graduation Fee**: 0.5% of liquidity migrated
+- **Bonding Curve Trading Fee**: 1% (100 basis points) on all ASTER trades
+  - 0.3% (30 basis points) to Creator
+  - 0.7% (70 basis points) to Protocol
+- **Post-Graduation Trading Fee**: 0.3% (30 basis points) on PancakeSwap
+  - 0.15% (15 basis points) to Creator
+  - 0.15% (15 basis points) to Protocol
+- **Token Creation Fee**: FREE (only gas costs, no platform fee)
+- **Graduation Fee**: No separate fee (included in ASTER→WBNB swap slippage)
 
 ### Fee Distribution Model
-```
-Total Trading Fee (1.5%) splits:
-- 40% to Platform Treasury
-- 30% to Creator (if token reaches certain milestones)
-- 20% to Liquidity Providers (post-graduation)
-- 10% to Referrers (if applicable)
-```
+**During Bonding Curve Phase:**
+- Fixed 1% total fee collected in ASTER tokens
+- 30% of fee (0.3% of trade) goes to token creator immediately
+- 70% of fee (0.7% of trade) goes to protocol treasury immediately
 
-### Milestone-Based Creator Rewards
-- Tier 1: $10K market cap - Creator gets 10% of fees
-- Tier 2: $30K market cap - Creator gets 20% of fees
-- Tier 3: $50K market cap (graduation) - Creator gets 30% of fees
+**Post-Graduation (PancakeSwap):**
+- Fixed 0.3% total fee on Token/WBNB trades
+- 50% of fee (0.15% of trade) goes to token creator
+- 50% of fee (0.15% of trade) goes to protocol treasury
 
 ## Graduation Trigger and Migration
 
 ### Graduation Conditions
 Token graduates from bonding curve to PancakeSwap when:
-1. Market cap reaches $50,000 (approximately 40 BNB at current prices)
-2. Minimum 50 unique holders
-3. Minimum 500 transactions completed
-4. 80% of non-creator supply distributed
+1. **Real ASTER reserves reach 100 ASTER (100e18)** - ONLY condition required
+
+Note: Unlike the original design with multiple conditions, PumpBNB uses a single, simple threshold for graduation to maintain consistency with CLAUDE.md specifications.
 
 ### Migration Process
-1. **Trigger Detection**: Buy transaction pushes market cap over threshold
-2. **Liquidity Extraction**: Remove all BNB and tokens from bonding curve
-3. **PancakeSwap Pair Creation**: Create new pair if doesn't exist
-4. **Liquidity Addition**: Add extracted liquidity to PancakeSwap
-5. **LP Token Locking**: Lock LP tokens for 30 days minimum
-6. **State Update**: Mark bonding curve as graduated
-7. **Event Emission**: Notify indexers and frontend of migration
+1. **Trigger Detection**: Buy transaction pushes real ASTER reserves to 100 ASTER threshold
+2. **Liquidity Extraction**: Extract all ASTER (100 ASTER) and remaining tokens from bonding curve
+3. **ASTER to WBNB Swap**: Convert 100 ASTER to WBNB via PancakeSwap Router (ASTER→WBNB path)
+4. **PancakeSwap Pair Creation**: Create Token/WBNB pair on PancakeSwap (if doesn't exist)
+5. **Liquidity Addition**: Add WBNB (from swap) + proportional tokens to PancakeSwap
+6. **LP Token Burning**: Burn all LP tokens to address(0) for permanent liquidity lock
+7. **State Update**: Mark bonding curve as graduated, disable further trading
+8. **Creator Allocation**: Unlock creator's 20% token allocation for vesting
+9. **Event Emission**: Emit GraduationCompleted event with pair address and amounts
 
 ### Post-Graduation Handling
 - Bonding curve contract remains but rejects new trades

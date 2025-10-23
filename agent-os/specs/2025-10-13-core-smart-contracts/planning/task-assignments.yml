@@ -1,0 +1,204 @@
+# Task Assignments for Core Smart Contracts Implementation
+# Maps each task group to its assigned implementing subagent
+
+task_assignments:
+  # Phase 1: Project Setup & Infrastructure
+  - task_group: "Phase 1, Task 1: Initialize Hardhat TypeScript Project"
+    assigned_subagent: "general-purpose"
+    task_type: "project_setup"
+
+  - task_group: "Phase 1, Task 2: Set Up Testing Framework"
+    assigned_subagent: "testing-engineer"
+    task_type: "test_infrastructure"
+
+  - task_group: "Phase 1, Task 3: Configure External Contract Interfaces"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 1, Task 4: Set Up Security Tools"
+    assigned_subagent: "general-purpose"
+    task_type: "configuration"
+
+  # Phase 2: Core Contract Development
+  - task_group: "Phase 2, Task 5: Implement PlatformConfig.sol"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 6: Implement PumpToken.sol (BEP-20 Standard)"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 7: Implement BondingCurve.sol - Core Structure"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 8: Implement BondingCurve.sol - Price Calculation Functions"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 9: Implement BondingCurve.sol - Buy Functionality"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 10: Implement BondingCurve.sol - Sell Functionality"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 11: Implement GraduationManager.sol - Core Structure"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 12: Implement GraduationManager.sol - ASTER to WBNB Swap"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 13: Implement GraduationManager.sol - Liquidity Addition"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 14: Implement GraduationManager.sol - Graduation Orchestration"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 15: Implement TokenFactory.sol - Core Structure"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 16: Implement TokenFactory.sol - Token Creation"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 2, Task 17: Implement TokenFactory.sol - Query Functions"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  # Phase 3: Testing & Quality Assurance
+  - task_group: "Phase 3, Task 18: Unit Tests - PlatformConfig.sol"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 3, Task 19: Unit Tests - PumpToken.sol"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 3, Task 20: Unit Tests - BondingCurve.sol"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 3, Task 21: Unit Tests - GraduationManager.sol"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 3, Task 22: Unit Tests - TokenFactory.sol"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 3, Task 23: Integration Tests - Complete Token Lifecycle"
+    assigned_subagent: "testing-engineer"
+    task_type: "integration_tests"
+
+  - task_group: "Phase 3, Task 24: Integration Tests - PancakeSwap & ASTER Interactions"
+    assigned_subagent: "testing-engineer"
+    task_type: "integration_tests"
+
+  - task_group: "Phase 3, Task 25: Fuzz Testing - Mathematical Operations"
+    assigned_subagent: "testing-engineer"
+    task_type: "integration_tests"
+
+  - task_group: "Phase 3, Task 26: Gas Optimization & Benchmarking"
+    assigned_subagent: "backend-architect"
+    task_type: "gas_optimization"
+
+  - task_group: "Phase 3, Task 27: Test Coverage Verification"
+    assigned_subagent: "testing-engineer"
+    task_type: "coverage_reporting"
+
+  # Phase 4: Security & Auditing
+  - task_group: "Phase 4, Task 28: Reentrancy Attack Testing"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 4, Task 29: Access Control Testing"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 4, Task 30: Economic Attack Testing"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 4, Task 31: Edge Case & Failure Testing"
+    assigned_subagent: "testing-engineer"
+    task_type: "unit_tests"
+
+  - task_group: "Phase 4, Task 32: Slither Static Analysis"
+    assigned_subagent: "general-purpose"
+    task_type: "configuration"
+
+  - task_group: "Phase 4, Task 33: Mythril Symbolic Execution"
+    assigned_subagent: "general-purpose"
+    task_type: "configuration"
+
+  - task_group: "Phase 4, Task 34: Manual Security Review"
+    assigned_subagent: "backend-architect"
+    task_type: "smart_contracts"
+
+  - task_group: "Phase 4, Task 35: Prepare for External Audit"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  # Phase 5: Deployment & Documentation
+  - task_group: "Phase 5, Task 36: Deployment Scripts - Testnet"
+    assigned_subagent: "devops-automator"
+    task_type: "deployment_scripts"
+
+  - task_group: "Phase 5, Task 37: Deployment Scripts - Mainnet"
+    assigned_subagent: "devops-automator"
+    task_type: "deployment_scripts"
+
+  - task_group: "Phase 5, Task 38: Create Contract Documentation"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  - task_group: "Phase 5, Task 39: Create Developer Guide"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  - task_group: "Phase 5, Task 40: Create ABI and TypeScript Bindings"
+    assigned_subagent: "general-purpose"
+    task_type: "configuration"
+
+  - task_group: "Phase 5, Task 41: Create Migration & Upgrade Guide"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  - task_group: "Phase 5, Task 42: Performance Benchmarking Documentation"
+    assigned_subagent: "backend-architect"
+    task_type: "gas_optimization"
+
+  - task_group: "Phase 5, Task 43: Final Security Documentation"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  # Phase 6: Post-Deployment
+  - task_group: "Phase 6, Task 44: Mainnet Deployment Execution"
+    assigned_subagent: "devops-automator"
+    task_type: "deployment_scripts"
+
+  - task_group: "Phase 6, Task 45: Bug Bounty Program Setup"
+    assigned_subagent: "general-purpose"
+    task_type: "documentation"
+
+  - task_group: "Phase 6, Task 46: Monitoring & Analytics Setup"
+    assigned_subagent: "devops-automator"
+    task_type: "monitoring"
+
+  - task_group: "Phase 6, Task 47: Emergency Response Testing"
+    assigned_subagent: "devops-automator"
+    task_type: "infrastructure"
+
+# Summary Statistics
+# Total Tasks: 47
+# - backend-architect: 18 tasks (smart contracts + gas optimization)
+# - testing-engineer: 15 tasks (unit tests + integration tests + security tests)
+# - devops-automator: 6 tasks (deployment + monitoring + infrastructure)
+# - general-purpose: 8 tasks (setup + documentation + configuration)

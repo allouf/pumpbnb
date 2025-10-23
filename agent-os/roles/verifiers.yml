@@ -1,0 +1,31 @@
+# Verifiers Configuration
+# Defines which subagents verify which types of implementations
+
+verifiers:
+  - id: backend-verifier
+    role: backend-verifier
+    description: "Verifies smart contract implementations, database schemas, and API endpoints"
+    verifies:
+      - smart_contracts
+      - blockchain_logic
+      - contract_deployment
+      - gas_optimization
+      - deployment_scripts
+      - infrastructure
+
+  - id: test-results-analyzer
+    role: test-results-analyzer
+    description: "Analyzes test results, coverage reports, and quality metrics"
+    verifies:
+      - unit_tests
+      - integration_tests
+      - test_infrastructure
+      - coverage_reporting
+
+  - id: implementation-verifier
+    role: implementation-verifier
+    description: "Performs final end-to-end verification of the entire spec implementation"
+    verifies:
+      - complete_implementation
+      - spec_compliance
+      - integration_verification

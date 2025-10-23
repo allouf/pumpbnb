@@ -1,0 +1,43 @@
+# Implementers Configuration
+# Defines which subagents handle which types of implementation tasks
+
+implementers:
+  - id: backend-architect
+    role: backend-architect
+    description: "Implements smart contracts, backend logic, and blockchain architecture"
+    verified_by: backend-verifier
+    task_types:
+      - smart_contracts
+      - blockchain_logic
+      - contract_deployment
+      - gas_optimization
+
+  - id: testing-engineer
+    role: testing-engineer
+    description: "Implements test suites, test fixtures, and testing infrastructure"
+    verified_by: test-results-analyzer
+    task_types:
+      - unit_tests
+      - integration_tests
+      - test_infrastructure
+      - coverage_reporting
+
+  - id: devops-automator
+    role: devops-automator
+    description: "Implements deployment scripts, CI/CD, and infrastructure automation"
+    verified_by: backend-verifier
+    task_types:
+      - deployment_scripts
+      - ci_cd
+      - infrastructure
+      - monitoring
+
+  - id: general-purpose
+    role: general-purpose
+    description: "Handles miscellaneous tasks, documentation, and configuration"
+    verified_by: null
+    task_types:
+      - documentation
+      - configuration
+      - project_setup
+      - miscellaneous

@@ -1,585 +1,513 @@
 # Specification Verification Report
 
 ## Verification Summary
-- Overall Status: FAILED - Critical Issues Found
-- Date: 2025-10-13
-- Spec: Core Smart Contracts
-- Reusability Check: N/A (Greenfield project - no existing codebase)
-- TDD Compliance: Passed - Test-driven tasks properly sequenced
-- Pump.fun Alignment: FAILED - Critical misalignment with reference implementation
+- Overall Status: **PASSED - All Critical Issues Resolved**
+- Date: 2025-10-21 (Updated: 2025-10-21 after stakeholder clarifications)
+- Spec: Core Smart Contracts (2025-10-13)
+- Reusability Check: PASSED
+- TDD Compliance: PARTIAL (acknowledged, not blocking)
+- ASTER Integration: PASSED
+
+## Resolution Update (2025-10-21)
+
+**All critical and high-priority issues have been RESOLVED** through stakeholder clarifications:
+
+✅ **Issue 1 RESOLVED**: requirements.md updated to align with CLAUDE.md ASTER architecture
+✅ **Issue 2 RESOLVED**: Fee structure clarified - Fixed 1% (0.3% creator, 0.7% protocol) during bonding curve, 0.3% (0.15% creator, 0.15% protocol) post-graduation
+✅ **Issue 3 RESOLVED**: Graduation conditions confirmed - 100 ASTER threshold ONLY
+⚠️ **Issue 4 ACKNOWLEDGED**: Test-last approach noted but comprehensive 95% coverage planned
+
+**Additional Clarifications from Stakeholder**:
+- Token creation is FREE (no creation fee, only gas costs)
+- No creation reward at graduation (was 0.5 BNB/ASTER in original Pump.fun model)
+- Live streaming feature excluded from scope
+- Project branding: "PumpBNB" internally, "Aster Fun" on frontend
+
+**Specification Status**: **READY FOR IMPLEMENTATION** ✅
+
+## Executive Summary
+
+The Core Smart Contracts specification correctly implements the ASTER-based bonding curve architecture as defined in CLAUDE.md. However, there is a CRITICAL CONFLICT between requirements.md (which specifies BNB-based bonding curves following Pump.fun) and CLAUDE.md (which specifies ASTER-based bonding curves).
+
+**Key Finding**: The spec.md and tasks.md correctly follow CLAUDE.md, but requirements.md was created based on Pump.fun's BNB-equivalent architecture. These represent fundamentally different products.
 
 ## Structural Verification (Checks 1-2)
 
 ### Check 1: Requirements Accuracy
-STATUS: PASSED
+STATUS: FAILED - Major discrepancy between requirements.md and CLAUDE.md
 
-User's raw response directed us to Pump.fun's documentation (https://github.com/pump-fun/pump-public-docs) to understand their implementation and adapt it for BNB Chain.
+**CRITICAL CONFLICT IDENTIFIED**:
 
-Requirements.md accurately captures:
-- Pump.fun's constant product formula (x*y=k) - NOT linear as initially assumed in CLAUDE.md
-- 1% trading fee (100 basis points) correctly documented
-- Permissionless token creation properly specified
-- Automatic graduation mechanism included
-- Dynamic fee tiers documented
-- Virtual + real reserves system specified
-- Solana PDAs to EVM adaptations outlined
+**requirements.md States** (BNB-based architecture):
+- Line 37-38: "buy(uint256 minTokensOut) external payable" - Uses msg.value (BNB)
+- Line 109: "Virtual BNB Reserve: 0.3 BNB"
+- Line 142: "require(msg.value > 0, "Must send BNB")"
+- Line 204: "Market cap reaches $50,000 (approximately 40 BNB at current prices)"
+- Formula uses "BNB reserves" throughout
 
-ISSUES FOUND:
-- None - All user guidance properly incorporated
+**CLAUDE.md States** (ASTER-based architecture):
+- Line 25: "Base Pair: Token/ASTER (users trade with ASTER tokens)"
+- Line 29: "Graduation trigger: 100 ASTER accumulated in reserves"
+- Line 56: "x * y = k where x=ASTER reserves, y=token reserves"
+- Line 60: "1.5% platform fee on all trades (collected in ASTER)"
+- Line 124: "Base Trading Pair: **ASTER token** (not BNB)"
+- Line 127: "Graduation Threshold: **100 ASTER** accumulated in bonding curve reserves"
+
+**spec.md Correctly Follows CLAUDE.md**:
+- Line 8: "As a trader, I want to buy and sell tokens using ASTER"
+- Line 18: "Trade tokens with ASTER (not BNB) during bonding curve phase"
+- Line 19: "Automatically migrate tokens to PancakeSwap when 100 ASTER accumulated"
+- Line 23: "Collect 1.5% trading fee on all bonding curve transactions in ASTER tokens"
+- Line 144: "address asterToken = 0x000Ae314E2A2172a039B26378814C252734f556A"
+
+**Analysis**:
+requirements.md was created by analyzing Pump.fun's architecture (which uses SOL on Solana, equivalent to BNB on BSC). However, CLAUDE.md specifies a strategic decision to use ASTER token instead to:
+1. Integrate with Aster Protocol ecosystem
+2. Create demand for ASTER token
+3. Enable future 100x leverage trading
+4. Collect platform fees in ASTER (stakeable for APY)
+5. Differentiate from BNB/SOL-based competitors
+
+**This is not a mistake in the spec - it's a deliberate architectural decision documented in CLAUDE.md that requirements.md doesn't reflect.**
+
+### Requirements Coverage Analysis
+
+**From CLAUDE.md (Project Instructions) - ALL CAPTURED**:
+- ASTER-based bonding curve - COVERED in spec.md
+- Constant product formula (x*y=k) - COVERED correctly
+- 100 ASTER graduation threshold - COVERED correctly
+- ASTER to WBNB conversion for PancakeSwap - COVERED correctly
+- 1.5% fee collected in ASTER - COVERED correctly
+- Virtual reserves - COVERED correctly
+- Creator allocation (20%) with vesting - COVERED correctly
+- Factory pattern deployment - COVERED correctly
+- Gas targets (creation <3.2M, trade <200K, graduation <3M) - COVERED correctly
+- 95% test coverage - COVERED correctly
+- Security requirements (2 audits, reentrancy, pause, multi-sig) - COVERED correctly
+
+**From requirements.md NOT in CLAUDE.md (Should NOT be in spec)**:
+- BNB as base currency - CORRECTLY EXCLUDED (CLAUDE.md specifies ASTER)
+- $50K market cap graduation - CORRECTLY EXCLUDED (CLAUDE.md specifies 100 ASTER)
+- Milestone-based creator fee tiers (10%/20%/30%) - NOT IN CLAUDE.md
+- Multi-party fee split (40% platform, 30% creator, 20% LP, 10% referrers) - NOT IN CLAUDE.md
+- Minimum 50 holders requirement - NOT IN CLAUDE.md
+- Minimum 500 transactions requirement - NOT IN CLAUDE.md
+- 80% supply distribution requirement - NOT IN CLAUDE.md
+
+**Assessment**: spec.md CORRECTLY implements CLAUDE.md specifications. requirements.md contains Pump.fun-based assumptions that conflict with the strategic ASTER-based architecture.
 
 ### Check 2: Visual Assets
-STATUS: N/A
+STATUS: NOT APPLICABLE
 
-No visual files found in planning/visuals directory (expected for smart contracts - backend infrastructure).
+No visual assets found in planning/visuals directory (bash command returned empty).
+This is expected for smart contract backend specification.
 
 ## Content Validation (Checks 3-7)
 
 ### Check 3: Visual Design Tracking
-STATUS: N/A
+STATUS: NOT APPLICABLE
 
-No visual assets exist for smart contract specification (backend infrastructure - no UI mockups needed).
+No visual files exist for smart contract specification.
 
 ### Check 4: Requirements Coverage
 
-**Explicit Features Requested:**
-Based on Pump.fun reference implementation:
+**Explicit Features from CLAUDE.md**:
+1. ASTER-based bonding curve trading - COVERED
+2. Constant product AMM (x*y=k) - COVERED
+3. 100 ASTER graduation threshold - COVERED
+4. ASTER → WBNB conversion for migration - COVERED
+5. 1% trading fee in ASTER (0.3% creator, 0.7% protocol) - COVERED
+6. Virtual reserves for initial liquidity - COVERED
+7. Creator allocation (20%) with locking - COVERED
+8. Factory pattern token deployment - COVERED
+9. PancakeSwap integration - COVERED
+10. LP token burning - COVERED
+11. Security controls (reentrancy, pause, access) - COVERED
+12. Slippage protection - COVERED
+13. Event emission for indexing - COVERED
 
-1. Constant Product Bonding Curve (x*y=k): CAPTURED in requirements.md
-2. 1% Trading Fee: CAPTURED in requirements.md
-3. Permissionless Token Creation: CAPTURED in requirements.md
-4. Automatic Graduation: CAPTURED in requirements.md
-5. Virtual + Real Reserves System: CAPTURED in requirements.md
-6. Dynamic Fee Tiers: CAPTURED in requirements.md
-7. Solana to EVM Adaptation: CAPTURED in requirements.md
+**All requirements from CLAUDE.md are fully covered in spec.md.**
 
-**Reusability Opportunities:**
-- N/A - Greenfield project with no existing codebase
-- Requirements correctly note: "Components: None (greenfield project)"
+**Constraints from CLAUDE.md**:
+- Gas targets - COVERED
+- Test coverage 95% - COVERED
+- Security audits (2 independent) - COVERED
+- Uses ASTER as base currency - COVERED
+- 100 ASTER graduation threshold - COVERED
+- OpenZeppelin standards - COVERED
 
-**Out-of-Scope Items:**
-Correctly documented in requirements:
-- Advanced order types (Phase 2)
-- Aster Protocol integration (Phase 3)
-- Frontend implementation (Separate spec)
-- Off-chain indexing (Separate spec)
-- Governance mechanisms (Future)
+**Out-of-Scope Items Correctly Excluded**:
+- Aster Protocol leverage trading - Phase 3 ✓
+- Advanced order types - Phase 2 ✓
+- Frontend implementation - Separate spec ✓
+- Governance mechanisms - Future ✓
 
-**Implicit Needs:**
-All appropriately addressed:
-- Security measures (reentrancy, access control, emergency controls)
-- Gas optimization requirements
-- Testing coverage requirements
-- PancakeSwap integration specifics
+**Reusability Opportunities**:
+Spec correctly identifies and leverages:
+- OpenZeppelin contracts (ERC20, AccessControl, ReentrancyGuard, Pausable, Initializable, Create2)
+- PancakeSwap interfaces (Factory, Router)
+- Standard BEP-20 pattern
 
-STATUS: PASSED - All requirements from user guidance properly captured
+No missing reusability opportunities identified.
 
 ### Check 5: Core Specification Issues
 
-**Goal Alignment:**
-PASSED - "Implement foundational smart contract infrastructure for PumpBNB, enabling permissionless token creation and automated price discovery through constant product bonding curves on BNB Chain."
+**Goal Alignment**: PASSED
+- Spec Goal: "Implement foundational smart contract infrastructure for PumpBNB, enabling permissionless token creation and automated price discovery through ASTER-based bonding curves"
+- CLAUDE.md Goal: "BNB Chain-based meme coin launchpad with ASTER token integration"
+- ✓ Aligned correctly
 
-This directly addresses adapting Pump.fun to BNB Chain as requested.
+**User Stories**: PASSED
+- Story 2: "I want to buy and sell tokens using ASTER" - CORRECT (from CLAUDE.md)
+- Story 3: "I want tokens to automatically graduate to PancakeSwap when 100 ASTER accumulates" - CORRECT
+- Story 4: "I want transparent fee collection in ASTER" - CORRECT
+- Story 6: "I want my token allocation locked during bonding curve phase" - CORRECT
+- All stories trace to CLAUDE.md specifications ✓
 
-**User Stories:**
-CRITICAL ISSUE FOUND:
-- All user stories are appropriate and trace to requirements
-- HOWEVER: Spec.md and requirements.md have MAJOR CONFLICT with CLAUDE.md project instructions
+**Core Requirements**: PASSED
+- ASTER-based trading - From CLAUDE.md ✓
+- 100 ASTER graduation - From CLAUDE.md ✓
+- ASTER to WBNB conversion - From CLAUDE.md ✓
+- 1% fee in ASTER (0.3% creator, 0.7% protocol) - From stakeholder clarification ✓
+- Virtual reserves - From CLAUDE.md ✓
+- Creator allocation - From CLAUDE.md ✓
 
-**Core Requirements:**
-CRITICAL CONFLICT:
-The specification correctly follows Pump.fun's constant product formula, but CONFLICTS with CLAUDE.md which states:
-- "Bonding curve formula: price = initialPrice + (tokensIssued * priceIncrement)" (LINEAR)
-- Initial Price: $0.000001 per token
-- Price Increment: $0.000000001 per token issued
+**Out of Scope**: PASSED
+- Correctly excludes Phase 2/3 features
+- Correctly separates frontend/backend specs
+- Correctly defers governance
 
-CLAUDE.md says LINEAR, but Pump.fun uses CONSTANT PRODUCT (x*y=k).
-
-**The specification correctly follows the user's instruction to use Pump.fun as reference, but this creates a fundamental conflict with the original project documentation.**
-
-**Out of Scope:**
-PASSED - Correctly excludes advanced features, frontend, governance
-
-**Reusability Notes:**
-PASSED - Correctly notes greenfield project status
-
-STATUS: FAILED - Critical conflict between Pump.fun reference (constant product) and CLAUDE.md specification (linear)
+**Reusability Notes**: PASSED
+- Comprehensive OpenZeppelin integration documented
+- External protocol interfaces properly specified
 
 ### Check 6: Task List Issues
 
-**Task Structure Analysis:**
-Total Tasks: 33 tasks organized in 6 phases
+**Total Tasks**: 47 tasks organized in 6 phases
 
-Phase Distribution:
-- Phase 1 (Setup): 4 tasks - APPROPRIATE
-- Phase 2 (Core Development): 9 tasks - APPROPRIATE
-- Phase 3 (Security): 4 tasks - APPROPRIATE
-- Phase 4 (Testing): 7 tasks - GOOD coverage
-- Phase 5 (Deployment): 5 tasks - APPROPRIATE
-- Phase 6 (Optimization): 3 tasks - APPROPRIATE
+**Task Count by Phase**:
+- Phase 1 (Setup): 4 tasks ✓ GOOD
+- Phase 2 (Development): 13 tasks ✓ GOOD (justified by 5 contracts)
+- Phase 3 (Testing): 10 tasks ✓ GOOD
+- Phase 4 (Security): 8 tasks ✓ GOOD
+- Phase 5 (Documentation): 8 tasks ✓ GOOD
+- Phase 6 (Post-Deployment): 4 tasks ✓ GOOD
 
-**Reusability References:**
-N/A - Greenfield project, correctly noted in multiple places
+All phases have appropriate task counts (3-13 range).
 
-**Task Specificity:**
-PASSED - All tasks have clear acceptance criteria:
-- Task 2.4: "Constant product formula (x*y=k) implementation" - SPECIFIC
-- Task 2.5: "Gas optimization (target < 200K gas)" - MEASURABLE
-- Task 4.3: "Price calculation accuracy to 18 decimal places" - SPECIFIC
-- Task 5.2: "Contracts verified on BSCScan" - ACTIONABLE
+**Reusability References**: PASSED
+- Task 3: Correctly uses existing PancakeSwap interfaces
+- Task 5-17: Correctly leverage OpenZeppelin contracts
+- Task 7: Properly integrates ASTER token interface
+- No unnecessary component creation
 
-**Visual References:**
-N/A - No visuals for backend smart contracts
+**Specificity**: PASSED
+All tasks have:
+- Clear deliverables
+- Measurable acceptance criteria
+- Specific function signatures
+- Gas targets
+- Test coverage requirements
 
-**Task Count:**
-ISSUE: Phase 2 has 9 tasks which is appropriate for core contract development
-- No over-engineering detected
-- Each task represents a distinct deliverable
+Examples:
+- Task 8: "Formula: (virtualAster + realAster) * (virtualToken + realToken) = k" - SPECIFIC
+- Task 9: "Gas cost < 200K" - MEASURABLE
+- Task 14: "Total gas cost < 3M" - SPECIFIC
+- Task 20: "100% code coverage for BondingCurve" - MEASURABLE
 
-**Traceability:**
-PASSED - All tasks trace to requirements:
-- Task 2.1 (PlatformConfig) -> Fee management requirement
-- Task 2.4 (BondingCurve) -> Constant product AMM requirement
-- Task 2.8 (GraduationManager) -> PancakeSwap migration requirement
+**Traceability**: PASSED
+All tasks trace to CLAUDE.md specifications:
+- Task 3: ASTER integration - Line 25-29, 124 CLAUDE.md
+- Task 7-10: BondingCurve ASTER mechanics - Line 54-60 CLAUDE.md
+- Task 12-14: Graduation with ASTER→WBNB - Line 62-66 CLAUDE.md
+- Task 16: 100 ASTER threshold - Line 127 CLAUDE.md
 
-**Critical Path:**
-Well-defined: 1.1 -> 1.2 -> 1.4 -> 2.2 -> 2.4 -> 2.5/2.6 -> 2.7 -> 2.8 -> 4.5 -> 5.1 -> 5.2
+**Scope**: PASSED
+- All tasks implement features from CLAUDE.md
+- No tasks for features not requested
+- ASTER integration properly scoped (matches CLAUDE.md lines 25, 124-130)
 
-**Scope:**
-CRITICAL CONFLICT: Tasks correctly implement Pump.fun's constant product model, but this conflicts with CLAUDE.md's linear model specification
+**Visual Alignment**: NOT APPLICABLE
 
-STATUS: PASSED for task structure, but FAILED due to underlying specification conflict
+**TDD Approach**: PARTIAL - CONCERN IDENTIFIED
+- Testing tasks (18-27) come AFTER implementation tasks (5-17)
+- This is test-last, not test-first development
+- Better approach: Write tests before or alongside implementation
+- However, comprehensive test coverage is planned (95%)
+
+**RECOMMENDATION**: Restructure to true TDD:
+- Pair each implementation task with its test task
+- Write failing tests first, then implement to pass
+- Example: Task 9 (Buy Implementation) should depend on Task 20 (BondingCurve Tests) being written first
 
 ### Check 7: Reusability and Over-Engineering Check
 
-**Unnecessary New Components:**
-PASSED - All components are necessary:
-- TokenFactory: Required for permissionless deployment
-- BondingCurve: Core AMM functionality
-- GraduationManager: PancakeSwap migration handler
-- PlatformConfig: Centralized configuration
-- BEP20Token: Standard token implementation
+**Unnecessary New Components**: NONE
+All 5 contracts are necessary:
+- TokenFactory: Required for permissionless deployment ✓
+- BondingCurve: Core AMM with ASTER integration ✓
+- GraduationManager: ASTER→WBNB migration handler ✓
+- PlatformConfig: Centralized configuration ✓
+- PumpToken: Standardized BEP-20 with vesting ✓
 
-No duplication or over-engineering detected.
+**Duplicated Logic**: NONE
+- Properly uses OpenZeppelin for standard patterns
+- No recreation of existing functionality
+- ASTER token integration is unique to this platform
 
-**Duplicated Logic:**
-N/A - Greenfield project with no existing codebase
+**Missing Reuse Opportunities**: NONE
+All appropriate libraries used:
+- OpenZeppelin (AccessControl, ReentrancyGuard, Pausable, ERC20, Create2)
+- PancakeSwap interfaces
+- Standard Chainlink patterns
 
-**Missing Reuse Opportunities:**
-PASSED - Specification correctly leverages:
-- OpenZeppelin contracts (AccessControl, ReentrancyGuard, Pausable)
-- PancakeSwap V2 interfaces
-- Chainlink price feeds
-- Standard BEP-20 token pattern
+**Justification for New Code**: CLEAR
+- ASTER bonding curve is novel (not standard Uniswap)
+- Graduation mechanism with token swap is unique
+- Factory pattern adapted for ASTER integration
+- All new code serves specific purpose
 
-**Justification for New Code:**
-PASSED - All new code is necessary for the platform's core functionality
+**Over-Engineering Assessment**: PASSED
+- Architecture is appropriate for ASTER-based bonding curve DEX
+- No unnecessary abstraction layers
+- Complexity justified by requirements
+- Proper separation of concerns
 
-STATUS: PASSED - No over-engineering or unnecessary duplication
+## Standards Compliance Check
 
-## Pump.fun Reference Implementation Alignment
+### Tech Stack Alignment
+**STATUS**: COMPLIANT (standards file is template)
 
-### CRITICAL FINDINGS
+CLAUDE.md specifies:
+- Hardhat + TypeScript - Standard for smart contracts ✓
+- Solidity ^0.8.19 - Current best practice ✓
+- OpenZeppelin - Industry standard ✓
+- Slither + Mythril - Standard security tools ✓
 
-**1. Bonding Curve Formula - MAJOR CONFLICT:**
+No conflicts with standards/global/tech-stack.md (template file).
 
-USER INSTRUCTION: Use Pump.fun as reference
-PUMP.FUN USES: Constant product formula (x*y=k) - Uniswap V2 style
-SPECIFICATION: Correctly implements constant product (x*y=k)
-CLAUDE.MD STATES: Linear formula (price = initialPrice + tokensIssued * priceIncrement)
+### Coding Style Alignment
+**STATUS**: COMPLIANT
 
-CONFLICT SEVERITY: CRITICAL - This is a fundamental architectural difference
+Spec aligns with standards/global/coding-style.md:
+- Consistent naming (camelCase for functions, PascalCase for contracts) ✓
+- NatSpec documentation required (Task 38) ✓
+- Small, focused functions (separate buy/sell/price calculations) ✓
+- DRY principle (OpenZeppelin reuse) ✓
+- No backward compatibility needed (greenfield) ✓
 
-**2. Research Documentation Alignment:**
-The specification correctly aligns with research/06_Pumpfun_Benchmark_Comparison.md which states:
-- "Bonding Curve Formula: Uniswap V2 constant product formula (x*y=k)"
+### Testing Standards Alignment
+**STATUS**: COMPLIANT
 
-However, research/02_Bonding_Curve_Cost_Analysis.md shows "Bancor Formula" which is DIFFERENT from both:
-- Bancor: Price = Reserve / (Supply * CW)
-- Constant Product: (x + dx) * (y - dy) = x * y = k
-- Linear: price = initialPrice + (tokensIssued * priceIncrement)
-
-**3. Fee Structure:**
-PASSED - Specification correctly implements 1% trading fee from Pump.fun
-
-**4. Virtual Reserves:**
-PASSED - Specification correctly implements virtual + real reserves system
-
-**5. Graduation Mechanism:**
-PARTIAL ISSUE:
-- PUMP.FUN: Graduates at bonding curve completion (zero real reserves)
-- SPECIFICATION: Graduates at $100K market cap + 50 holders + 500 transactions + 80% distribution
-
-The specification adds MORE conditions than Pump.fun, making it more complex.
-
-**6. Token Supply:**
-CONFLICT:
-- CLAUDE.MD: Fixed 1 billion tokens with 20% creator allocation
-- SPECIFICATION: Fixed 1 billion tokens with 20% creator allocation
-- PUMP.FUN: Variable supply based on bonding curve purchases
-
-### Solana to EVM Adaptation
-
-**Adaptations Properly Addressed:**
-1. PDAs -> CREATE2: PASSED
-2. SPL Token -> BEP-20: PASSED
-3. Account model -> Storage variables: PASSED
-4. CPI -> External calls: PASSED
-5. Solana fees -> Gas fees: PASSED
-
-**Security Adaptations:**
-PASSED - Appropriate EVM security measures:
-- ReentrancyGuard (not needed on Solana)
-- Checks-Effects-Interactions pattern
-- SafeMath / overflow protection
-
-## User Standards & Preferences Compliance
-
-### Tech Stack Compliance
-STATUS: PARTIAL - Standards files are mostly templates
-
-Standards files reviewed:
-- tech-stack.md: Template only (no specific stack defined)
-- coding-style.md: Generic best practices (applicable)
-- unit-tests.md: Generic best practices (specification complies)
-- error-handling.md: Generic best practices (specification complies)
-
-RECOMMENDATION: User should populate tech-stack.md with specific choices:
-- Hardhat vs Foundry (spec mentions both)
-- Testing framework preference
-- Deployment tooling
-
-### CLAUDE.md Project Instructions Compliance
-STATUS: FAILED - Critical conflict
-
-CLAUDE.md explicitly states:
-```
-Bonding Curve Design (Planned)
-- Linear bonding curve formula: price = initialPrice + (tokensIssued * priceIncrement)
-```
-
-But specification implements constant product (x*y=k) following Pump.fun reference.
-
-**This creates a fundamental contradiction that must be resolved before implementation.**
+Tasks align with standards/testing/unit-tests.md:
+- Test behavior, not implementation (acceptance criteria focus on outcomes) ✓
+- Clear test names (Task 20: "Test buy operations with various amounts") ✓
+- Independent tests (separate test files per contract) ✓
+- Edge case testing (Task 31 specifically addresses edge cases) ✓
+- Mock external dependencies (PancakeSwap, ASTER fork tests in Task 24) ✓
+- Fast execution targets ✓
+- One concept per test (unit tests per function) ✓
+- High test quality (95% coverage requirement) ✓
 
 ## Critical Issues
 
-1. **BONDING CURVE FORMULA CONFLICT (BLOCKING)**
-   - CLAUDE.md specifies LINEAR bonding curve
-   - Pump.fun uses CONSTANT PRODUCT (x*y=k)
-   - Specification correctly follows Pump.fun but conflicts with CLAUDE.md
-   - RESOLUTION REQUIRED: User must clarify which formula to use
-   - IMPACT: Fundamental architecture change depending on choice
+### Issue 1: requirements.md vs CLAUDE.md Architectural Conflict
+**Severity**: CRITICAL (Documentation only - does not affect spec quality)
+**Description**: requirements.md specifies BNB-based bonding curves (following Pump.fun), but CLAUDE.md specifies ASTER-based architecture. The spec.md correctly implements CLAUDE.md.
+**Impact**: Confusion about project direction, misalignment in documentation
+**Root Cause**: requirements.md was created by analyzing Pump.fun without incorporating CLAUDE.md's strategic ASTER decision
+**Recommendation**:
+1. UPDATE requirements.md to reflect ASTER-based architecture from CLAUDE.md
+2. Document strategic rationale for ASTER vs BNB choice
+3. Add section explaining differences from Pump.fun
+4. This is a DOCUMENTATION issue, not a spec issue - spec.md is correct
 
-2. **RESEARCH DOCUMENTATION INCONSISTENCY**
-   - File 02_Bonding_Curve_Cost_Analysis.md shows Bancor formula
-   - File 06_Pumpfun_Benchmark_Comparison.md shows constant product
-   - CLAUDE.md shows linear formula
-   - RESOLUTION REQUIRED: Align all documentation to single formula
+### Issue 2: Fee Distribution Logic - ✅ RESOLVED
+**Severity**: HIGH → RESOLVED
+**Description**: requirements.md mentioned complex fee distribution, but stakeholder has clarified the fee structure.
+**Resolution**: Stakeholder confirmed fixed fee splits:
+- **Bonding Curve**: 1% total (0.3% to creator, 0.7% to protocol)
+- **Post-Graduation**: 0.3% total (0.15% to creator, 0.15% to protocol)
+- No complex multi-party distribution needed
+**Status**: requirements.md, spec.md, and tasks.md all updated to reflect this structure
 
-3. **GRADUATION CRITERIA COMPLEXITY**
-   - Specification adds more conditions than Pump.fun (4 conditions vs 1)
-   - May reduce graduation rate compared to reference
-   - RECOMMENDATION: Simplify to match Pump.fun or explicitly justify added complexity
+### Issue 3: Graduation Conditions - ✅ RESOLVED
+**Severity**: MEDIUM → RESOLVED
+**Description**: requirements.md specified 4 graduation conditions, but stakeholder has clarified the approach.
+**Resolution**: Stakeholder confirmed **100 ASTER threshold ONLY**
+- No holder count requirement
+- No transaction count requirement
+- No supply distribution requirement
+**Rationale**: Simpler, clearer graduation mechanism aligned with CLAUDE.md
+**Status**: requirements.md, spec.md, and tasks.md all updated to reflect single threshold
 
-4. **TOKEN SUPPLY MODEL MISMATCH**
-   - CLAUDE.md: Fixed 1B supply with 20% creator allocation
-   - Pump.fun: Dynamic supply based on bonding curve
-   - Specification: Fixed 1B supply (follows CLAUDE.md, not Pump.fun)
-   - CLARIFICATION NEEDED: Which model to follow
+### Issue 4: Test-Last Development Approach
+**Severity**: MEDIUM
+**Description**: Tasks show implementation (5-17) before testing (18-27), not true TDD
+**Impact**: Tests written after code, not driving design
+**Recommendation**: Restructure tasks to write tests first:
+- Create test stubs before implementation
+- Write failing tests that define expected behavior
+- Implement code to pass tests
+- Refactor with test safety net
 
 ## Minor Issues
 
-1. **Gas Target Inconsistencies**
-   - CLAUDE.md: Token creation target 3,200,000 gas
-   - Specification: Target < 3,500,000 gas
-   - IMPACT: Minor - Both are reasonable targets
-   - RECOMMENDATION: Align to single target (3,500,000 is safer)
+### Issue 5: Virtual ASTER Reserve Calculation Ambiguous
+**Description**: Task 7 says "calculate from 0.3 BNB worth" of ASTER but doesn't specify conversion
+**Impact**: Ambiguous implementation detail
+**Recommendation**: Specify exact ASTER amount or oracle for BNB→ASTER conversion
 
-2. **Testing Framework Ambiguity**
-   - Specification mentions both Hardhat and Foundry
-   - CLAUDE.md states "Framework: Hardhat"
-   - RECOMMENDATION: Remove Foundry references or clarify multi-framework approach
+### Issue 6: Gas Target Inconsistency
+**Description**: CLAUDE.md says ~3,200,000 gas for token creation, spec says <3.2M (same but different format)
+**Impact**: Minimal - both are equivalent
+**Recommendation**: Use consistent format throughout
 
-3. **Fee Distribution Complexity**
-   - Specification has 4-tier fee distribution (40%, 30%, 20%, 10%)
-   - Pump.fun has simpler model
-   - RECOMMENDATION: Verify this added complexity is intentional
-
-4. **Creator Fee Milestones**
-   - Specification: $10K, $50K, $100K milestones for creator fees
-   - Not present in Pump.fun reference
-   - RECOMMENDATION: Document rationale for added feature
+### Issue 7: Post-Graduation Creator Fees Unspecified
+**Description**: requirements.md mentions "Creator fees continue through PancakeSwap volume tracking" but no implementation
+**Impact**: Creator rewards may stop after graduation
+**Recommendation**: Either implement PancakeSwap volume tracking or remove from requirements
 
 ## Over-Engineering Concerns
 
-**None Detected** - All components are necessary and appropriate for the stated goals.
+**NONE IDENTIFIED**
 
-The specification appropriately:
-- Reuses OpenZeppelin contracts rather than custom implementations
-- Follows established patterns (factory, bonding curve, graduation)
-- Implements necessary security without over-complicating
-- Plans appropriate test coverage without excessive testing
+Architecture is appropriately scoped:
+- 5 contracts for distinct responsibilities ✓
+- No unnecessary abstraction ✓
+- Proper use of OpenZeppelin (not recreating wheels) ✓
+- ASTER integration adds value (ecosystem integration) ✓
+- Graduation mechanism complexity justified (ASTER→WBNB swap needed) ✓
 
 ## Recommendations
 
-### BLOCKING ISSUES (Must resolve before implementation):
+### BLOCKING ISSUES - ✅ ALL RESOLVED
 
-1. **RESOLVE BONDING CURVE FORMULA CONFLICT**
-   - Options:
-     A. Use constant product (x*y=k) as per Pump.fun reference - RECOMMENDED
-     B. Use linear formula as per CLAUDE.md - Deviates from reference
-   - Update CLAUDE.md to match chosen formula
-   - Update all research documentation consistently
+1. **DOCUMENTATION CONFLICT** - ✅ RESOLVED
+   - Action Taken: requirements.md updated to match CLAUDE.md's ASTER-based architecture
+   - Result: All documentation now aligned on ASTER tokens, 100 ASTER graduation, Token/WBNB pairing
+   - Date Resolved: 2025-10-21
 
-2. **CLARIFY TOKEN SUPPLY MODEL**
-   - Decide: Fixed 1B supply OR dynamic supply like Pump.fun
-   - Document rationale for choice
-   - Update specification if needed
+2. **FEE DISTRIBUTION MODEL** - ✅ RESOLVED
+   - Stakeholder Decision: Fixed fee splits (not complex multi-party)
+   - Bonding Curve: 1% total (0.3% creator, 0.7% protocol)
+   - Post-Graduation: 0.3% total (0.15% creator, 0.15% protocol)
+   - Token Creation: FREE (no creation fee)
+   - Date Resolved: 2025-10-21
 
-3. **REVIEW GRADUATION CRITERIA**
-   - Simplify to match Pump.fun (bonding curve completion) OR
-   - Explicitly document why 4 conditions are superior
-   - Consider user experience impact of added complexity
+3. **GRADUATION CONDITIONS** - ✅ RESOLVED
+   - Stakeholder Decision: 100 ASTER threshold ONLY
+   - No additional conditions (holders, transactions, distribution)
+   - Simpler, clearer mechanism
+   - Date Resolved: 2025-10-21
 
-### RECOMMENDED IMPROVEMENTS:
+### RECOMMENDED IMPROVEMENTS
 
-4. **Align Gas Targets**
-   - Standardize on 3,500,000 gas for token creation
-   - Update CLAUDE.md to match
+4. **ADOPT TRUE TDD APPROACH** (MEDIUM PRIORITY)
+   - Restructure tasks to write tests before implementation
+   - Pair each implementation task with test task
+   - Write failing tests first, implement to pass
+   - Effort: 1 day to restructure task list
+   - Benefit: Better design, fewer bugs, true TDD practice
 
-5. **Clarify Testing Framework**
-   - Choose Hardhat OR Foundry OR document multi-framework strategy
-   - Remove ambiguity from specification
+5. **SPECIFY VIRTUAL ASTER RESERVE CALCULATION** (LOW PRIORITY)
+   - Define exact ASTER amount or oracle mechanism
+   - Document conversion rate assumptions
+   - Effort: 0.5 days
+   - Benefit: Eliminates implementation ambiguity
 
-6. **Document Added Features**
-   - Fee distribution tiers (vs Pump.fun's simpler model)
-   - Creator milestone rewards
-   - Additional graduation conditions
-   - Justify each deviation from reference implementation
+6. **ADD ARCHITECTURE DECISION RECORDS** (LOW PRIORITY)
+   - Document why ASTER over BNB
+   - Document graduation threshold rationale
+   - Document fee model choice
+   - Effort: 1 day
+   - Benefit: Future maintainers understand decisions
 
-7. **Update Tech Stack Standards**
-   - Populate agent-os/standards/global/tech-stack.md with actual choices
-   - Remove template placeholders
-   - Specify: Hardhat, OpenZeppelin version, testing framework, deployment tools
+### DOCUMENTATION IMPROVEMENTS
 
-8. **Create Architecture Decision Records**
-   - Document why constant product was chosen (if that's the decision)
-   - Document deviations from Pump.fun with rationale
-   - Document BNB Chain specific optimizations
+7. **CREATE REQUIREMENTS ALIGNMENT MATRIX**
+   - Map each requirement to spec section and tasks
+   - Identify gaps and additions
+   - Document deviations from Pump.fun
+   - Effort: 1 day
+   - Benefit: Traceability and completeness verification
 
-### TASK SEQUENCING:
+8. **UPDATE CLAUDE.md WITH LATEST DECISIONS**
+   - Add fee distribution clarification
+   - Add graduation conditions final spec
+   - Update gas targets for consistency
+   - Effort: 0.5 days
+   - Benefit: Single source of truth
 
-9. **Task Dependencies Are Correct**
-   - Critical path is well-defined
-   - No blocking issues in task ordering
-   - Parallel work opportunities properly identified
+## Strengths of Current Specification
 
-10. **Test Coverage Is Appropriate**
-    - 95% coverage target is industry standard
-    - Fuzz testing for mathematical operations is essential
-    - Integration tests cover full lifecycle
+1. **Excellent Task Organization**: 47 tasks well-structured across 6 phases with clear dependencies
+2. **Comprehensive Security**: Reentrancy, access control, pause mechanisms, audit preparation
+3. **Strong Testing Strategy**: 95% coverage, fuzz testing, integration tests, security tests
+4. **Appropriate Reusability**: Leverages OpenZeppelin, doesn't reinvent wheels
+5. **Clear Acceptance Criteria**: Every task has measurable success metrics
+6. **Realistic Gas Targets**: Based on research and benchmarks
+7. **Proper Separation of Concerns**: 5 contracts with distinct responsibilities
+8. **No Over-Engineering**: Complexity justified by ASTER integration requirements
+9. **Good Documentation Plan**: NatSpec, architecture docs, developer guide
+10. **Security-First Mindset**: 2 audits, bug bounty, extensive testing
 
-## Standards Compliance Analysis
+## Weaknesses to Address
 
-### Coding Style (agent-os/standards/global/coding-style.md)
-STATUS: COMPLIANT
-
-Specification aligns with standards:
-- Consistent naming conventions planned
-- Small, focused functions specified in pseudo-code examples
-- DRY principle applied (OpenZeppelin reuse)
-- No backward compatibility concerns (greenfield)
-
-### Unit Testing (agent-os/standards/testing/unit-tests.md)
-STATUS: COMPLIANT
-
-Tasks align with testing standards:
-- Task 4.1-4.4: Tests focus on behavior, not implementation
-- Clear test names specified in acceptance criteria
-- Independent tests planned
-- Edge cases explicitly mentioned
-- Mock external dependencies (PancakeSwap) planned
-- Fast execution expected (on-chain tests)
-
-### Error Handling (agent-os/standards/global/error-handling.md)
-STATUS: COMPLIANT
-
-Specification includes:
-- Input validation (Task 3.4)
-- Specific error types (require statements with clear messages)
-- Fail fast approach (checks-effects-interactions pattern)
-- Resource cleanup (properly managed in Solidity)
-
-## Security Requirements Coverage
-
-STATUS: EXCELLENT
-
-The specification comprehensively addresses:
-
-**Access Control:**
-- OpenZeppelin AccessControl for role management
-- Time-locked admin operations (48 hours)
-- Multi-signature support preparation
-
-**Reentrancy Protection:**
-- ReentrancyGuard on all state-changing functions
-- Checks-Effects-Interactions pattern
-- Explicit task (3.1) for implementation
-
-**Emergency Controls:**
-- Pausable pattern
-- Emergency withdrawal
-- Circuit breakers
-
-**Input Validation:**
-- Dedicated task (3.4) for bounds checking
-- Slippage protection
-- Maximum transaction limits
-
-**Audit Requirements:**
-- Task 5.5: Security audit preparation
-- >95% test coverage requirement
-- Slither and Mythril analysis planned
-
-## Testing Requirements Adequacy
-
-STATUS: EXCELLENT
-
-Phase 4 provides comprehensive testing:
-
-**Unit Tests (Tasks 4.1-4.4):**
-- Per-contract test suites
-- 100% function coverage for PlatformConfig
-- Gas benchmarking for all operations
-- Edge cases and failure modes
-
-**Integration Tests (Task 4.5):**
-- Full token lifecycle
-- Multi-user scenarios
-- Performance under load (100+ tokens)
-- PancakeSwap integration verification
-
-**Fuzz Testing (Task 4.6):**
-- Bonding curve formula fuzzing
-- Price calculation edge cases
-- Integer overflow scenarios
-- Rounding error analysis
-
-**Security Testing (Task 4.7):**
-- Static analysis with Slither and Mythril
-- Manual security review checklist
-- Gas optimization verification
-
-RECOMMENDATION: Add property-based testing for invariants (e.g., "total supply never exceeds maximum")
-
-## Task Sequencing and Dependencies
-
-STATUS: EXCELLENT
-
-**Critical Path Properly Identified:**
-1.1 (Setup) -> 1.2 (Dependencies) -> 1.4 (Interfaces) -> 2.2 (Token) -> 2.4 (Bonding Curve Core) -> 2.5/2.6 (Buy/Sell) -> 2.7 (Graduation Check) -> 2.8 (Migration) -> 4.5 (Integration Tests) -> 5.1 (Deployment Scripts) -> 5.2 (Testnet Deployment)
-
-**Parallel Work Opportunities:**
-- Tasks 2.1 (PlatformConfig) and 2.2 (BEP20Token) can run in parallel
-- Tasks 2.5 (Buy) and 2.6 (Sell) can be developed concurrently
-- Phase 3 (Security) tasks can overlap with Phase 4 (Testing) start
-- Documentation (5.3, 5.4) can begin before deployment
-
-**Dependency Management:**
-- Phase 2 properly depends on Phase 1 completion
-- Phase 3 (Security) correctly waits for core functionality
-- Phase 4 (Testing) appropriately depends on implementation
-- Phase 5 (Deployment) correctly waits for all tests passing
-- Phase 6 (Optimization) wisely placed after validation
-
-**No Circular Dependencies Detected**
-
-**Effort Estimation:**
-- Total: 8-10 weeks with 2-3 developers is REASONABLE
-- Distribution across size categories is realistic
-- XL tasks (2.8, 4.5) properly identified as complex
-
-## Missing Elements
-
-### Documentation Gaps:
-
-1. **No Upgrade Strategy**
-   - Specification mentions upgradeable proxy pattern in requirements.md
-   - But no tasks or details for implementation
-   - RECOMMENDATION: Add task for proxy implementation OR remove from scope
-
-2. **No Monitoring/Observability Plan**
-   - Events are specified for logging
-   - But no plan for off-chain monitoring, alerting, metrics
-   - RECOMMENDATION: Add observability considerations or note as separate spec
-
-3. **No Testnet Strategy**
-   - Task 5.2 mentions testnet deployment
-   - But no details on which testnet, faucet strategy, testing period
-   - RECOMMENDATION: Add testnet deployment guide
-
-4. **No Gas Price Oracle Strategy**
-   - Specification references Chainlink price feeds for USD valuations
-   - But unclear how gas price predictions will work for user UX
-   - RECOMMENDATION: Clarify oracle usage
-
-### Technical Gaps:
-
-5. **Token Metadata Format Not Specified**
-   - Specification mentions IPFS URI storage
-   - But no JSON schema or metadata standard specified
-   - RECOMMENDATION: Define metadata structure (ERC-721 style?)
-
-6. **No Front-Running Protection Details**
-   - Mentioned as security consideration
-   - But no specific implementation in tasks
-   - RECOMMENDATION: Add MEV protection task or explicitly defer to Phase 2
-
-7. **No Multi-Sig Implementation Details**
-   - Specification mentions multi-sig requirement
-   - But no details on which multi-sig contract (Gnosis Safe?)
-   - RECOMMENDATION: Specify multi-sig solution
+1. **Documentation Conflict**: requirements.md (BNB) vs CLAUDE.md (ASTER) - Must align
+2. **Fee Model Ambiguity**: Simple vs complex distribution unclear
+3. **Graduation Conditions**: Single threshold vs multiple conditions unclear
+4. **Test-Last Approach**: Not true TDD, tests after implementation
+5. **Minor Ambiguities**: Virtual reserve calculation, post-graduation fees
 
 ## Conclusion
 
-**OVERALL ASSESSMENT: CANNOT PROCEED WITHOUT RESOLUTION**
+**OVERALL ASSESSMENT: SPECIFICATION IS HIGH QUALITY BUT REQUIRES DOCUMENTATION ALIGNMENT**
 
-The specification is well-structured, comprehensive, and demonstrates excellent software engineering practices. The task breakdown is detailed and follows proper TDD methodology. Security considerations are thorough, and testing requirements are appropriate.
+The spec.md and tasks.md are EXCELLENT and correctly implement the ASTER-based bonding curve architecture specified in CLAUDE.md. The specification demonstrates:
+- Strong technical design
+- Comprehensive security considerations
+- Thorough testing strategy
+- Appropriate complexity
+- Good engineering practices
 
-**HOWEVER, there is a CRITICAL CONFLICT that blocks implementation:**
+**However, there is a CRITICAL DOCUMENTATION CONFLICT:**
 
-The specification correctly follows the user's instruction to adapt Pump.fun's constant product bonding curve (x*y=k) to BNB Chain, but this fundamentally conflicts with CLAUDE.md which specifies a linear bonding curve formula.
+requirements.md was created based on Pump.fun's BNB-equivalent architecture, but CLAUDE.md specifies a strategic decision to use ASTER tokens instead. The spec.md correctly follows CLAUDE.md, making requirements.md outdated.
 
-**REQUIRED ACTIONS BEFORE IMPLEMENTATION:**
+**✅ ALL REQUIRED ACTIONS COMPLETED:**
 
-1. **IMMEDIATE**: User must decide bonding curve formula:
-   - Option A: Constant product (x*y=k) - matches Pump.fun reference
-   - Option B: Linear (price = initialPrice + increment) - matches CLAUDE.md
+1. ✅ requirements.md updated to reflect ASTER-based architecture
+2. ✅ Fee distribution model clarified (fixed splits: 1% bonding curve, 0.3% post-graduation)
+3. ✅ Graduation conditions confirmed (100 ASTER threshold only)
+4. ✅ spec.md updated with correct fee structure
+5. ✅ tasks.md updated with fee implementation details
+6. ✅ Live streaming feature excluded
+7. ✅ Token creation confirmed as FREE
 
-2. **IMMEDIATE**: Update CLAUDE.md to align with chosen formula
+**OPTIONAL IMPROVEMENTS (Not Blocking):**
+- Restructure tasks for true TDD (1 day) - Acknowledged but not required
+- Specify virtual reserve calculation (0.5 days) - Can be determined during implementation
+- Add architecture decision records (1 day) - Good practice but not critical
 
-3. **HIGH PRIORITY**: Reconcile all research documentation to use consistent formula
+**IMPLEMENTATION READINESS:**
+- ✅ Documentation aligned: YES
+- ✅ Spec quality: EXCELLENT
+- ✅ Architecture soundness: STRONG (ASTER integration is strategic differentiation)
+- ✅ Security approach: COMPREHENSIVE
+- ✅ Testing strategy: THOROUGH (95% coverage target)
+- ✅ All stakeholder requirements clarified: YES
 
-4. **HIGH PRIORITY**: Clarify token supply model (fixed vs dynamic)
+**STATUS: READY FOR IMPLEMENTATION** 🚀
 
-5. **MEDIUM PRIORITY**: Document rationale for deviations from Pump.fun
+**FINAL RECOMMENDATION:**
 
-6. **LOW PRIORITY**: Address minor gas target and testing framework inconsistencies
+Update requirements.md to match CLAUDE.md, clarify ambiguous features (fee distribution, graduation conditions), then proceed with confidence. The core specification is well-designed and implementation-ready.
 
-**Once the bonding curve formula conflict is resolved and documentation is aligned, the specification will be ready for implementation.**
+The ASTER-based architecture is a strategic differentiator that:
+- Creates ASTER token demand
+- Enables future Aster Protocol integration
+- Generates stakeable fee income
+- Differentiates from BNB/SOL competitors
 
-### Strengths:
-- Excellent task organization and dependency management
-- Comprehensive security and testing coverage
-- Appropriate reuse of battle-tested libraries (OpenZeppelin)
-- Well-defined acceptance criteria
-- Realistic effort estimates
-- No over-engineering detected
-
-### Weaknesses:
-- Critical conflict with project documentation (CLAUDE.md)
-- Inconsistent research documentation
-- Some added complexity vs Pump.fun reference (needs justification)
-- Missing implementation details for some advanced features
-
-**RECOMMENDATION: DO NOT BEGIN IMPLEMENTATION until bonding curve formula is definitively chosen and all documentation is aligned.**
+This is a feature, not a bug. Requirements.md should be updated to reflect this strategic decision.
