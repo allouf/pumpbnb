@@ -73,9 +73,10 @@ export default function TokenPage({ params }: { params: { address: string } }) {
     }
   }
 
-  const progress = reserves ? Number(reserves[0]) / 100 : 0
-  const marketCap = reserves ? formatUnits(reserves[0], 18) : '0'
-
+  // Type-safe handling of reserves data
+  const reservesData = reserves as readonly [bigint, bigint] | undefined
+  const progress = reservesData ? Number(reservesData[0]) / 100 : 0
+  const marketCap = reservesData ? formatUnits(reservesData[0], 18) : '0'
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4">
