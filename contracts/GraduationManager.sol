@@ -184,7 +184,7 @@ contract GraduationManager is ReentrancyGuard {
         require(asterAmount > 0, "Invalid amount");
 
         // Approve ASTER to router
-        asterToken.approve(address(pancakeRouter), asterAmount);
+        IERC20(address(asterToken)).forceApprove(address(pancakeRouter), asterAmount);
 
         // Build swap path: ASTER -> WBNB
         address[] memory path = new address[](2);
@@ -233,8 +233,8 @@ contract GraduationManager is ReentrancyGuard {
         }
 
         // Approve tokens to router
-        IERC20(token).approve(address(pancakeRouter), tokenAmount);
-        IERC20(address(wbnb)).approve(address(pancakeRouter), wbnbAmount);
+        IERC20(token).forceApprove(address(pancakeRouter), tokenAmount);
+        IERC20(address(wbnb)).forceApprove(address(pancakeRouter), wbnbAmount);
 
         // Add liquidity
         uint256 wbnbUsed;
@@ -255,18 +255,18 @@ contract GraduationManager is ReentrancyGuard {
         emit LiquidityAdded(token, pairAddress, wbnbUsed, tokensUsed, lpTokens, block.timestamp);
 
         // Burn LP tokens to address(0) for permanent lock
-        IERC20(pairAddress).transfer(address(0), lpTokens);
+        IERC20(pairAddress).safeTransfer(address(0), lpTokens);
 
         // Return any unused tokens/WBNB (dust amounts)
         uint256 unusedTokens = tokenAmount - tokensUsed;
         uint256 unusedWbnb = wbnbAmount - wbnbUsed;
 
         if (unusedTokens > 0) {
-            IERC20(token).transfer(config.protocolFeeRecipient(), unusedTokens);
+            IERC20(token).safeTransfer(config.protocolFeeRecipient(), unusedTokens);
         }
 
         if (unusedWbnb > 0) {
-            IERC20(address(wbnb)).transfer(config.protocolFeeRecipient(), unusedWbnb);
+            IERC20(address(wbnb)).safeTransfer(config.protocolFeeRecipient(), unusedWbnb);
         }
     }
 

@@ -113,3 +113,4 @@ deployments/hardhat/
 # Claude Code
 .claude/state/
 .claude/cache/
+mythril-env/

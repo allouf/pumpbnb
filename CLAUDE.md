@@ -10,15 +10,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Currently in **Phase 2 Complete - Testing Phase**. The codebase contains:
+Currently in **Phase 4 Complete - Ready for External Audit**. The codebase contains:
 - ✅ Comprehensive specifications (`agent-os/specs/2025-10-13-core-smart-contracts/`)
-- ✅ Core smart contracts implemented and compiled (Phase 2: Tasks 5-17 complete)
-- ✅ All 5 core contracts deployed: PlatformConfig, PumpToken, BondingCurve, GraduationManager, TokenFactory
+- ✅ Core smart contracts implemented and compiled (Phases 1-2 complete)
+- ✅ All 5 core contracts: PlatformConfig, PumpToken, BondingCurve, GraduationManager, TokenFactory
 - ✅ Interface contracts for PancakeSwap integration
-- 🔄 Next: Phase 3 - Unit testing (Tasks 18-22) targeting 95% coverage
+- ✅ Unit testing complete: 227 tests passing (Phase 3 complete)
+- ✅ Security auditing: Slither + Mythril analysis complete (Phase 4 complete)
+- ✅ **BSC Testnet Deployment: LIVE and operational**
+- 🔄 Next: External security audit + Frontend development
 - ❌ Frontend and backend not yet started
 
 **Smart Contracts Status**: All core contracts compiled successfully with Solidity 0.8.20 and OpenZeppelin 5.4.0
+
+**BSC Testnet Deployment** (October 25, 2025):
+- Network: BSC Testnet (Chain ID: 97)
+- TokenFactory: `0x0d4D25e0239e689D7856c9760e74Ee12a2758866`
+- Mock ASTER: `0x311ECE533632bca662E100B8c4E0EB927EFE2588`
+- Full deployment: See `deployments/bsc-testnet.json` and `TESTNET_DEPLOYMENT_SUCCESS.md`
 
 ## Core Technical Architecture
 

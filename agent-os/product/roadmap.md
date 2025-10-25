@@ -1,6 +1,6 @@
 # Product Roadmap
 
-1. [ ] **Smart Contract Core Infrastructure** — Deploy TokenFactory, BondingCurve, and GraduationManager contracts to BSC with BEP-20 standard, constant product AMM formula (x*y=k), and automatic PancakeSwap migration at 100 ASTER threshold. `L`
+1. [x] **Smart Contract Core Infrastructure** — Deploy TokenFactory, BondingCurve, and GraduationManager contracts to BSC with BEP-20 standard, constant product AMM formula (x*y=k), and automatic PancakeSwap migration at 100 ASTER threshold. `L`
 
 2. [ ] **Web3 Wallet Integration** — Implement MetaMask, WalletConnect, and Trust Wallet connectivity with signature verification, network switching to BSC, and transaction management for token creation and trading operations. `M`
 

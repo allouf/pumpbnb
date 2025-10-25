@@ -1,0 +1,1155 @@
+2025-10-24T20:52:42.019Z hardhat:core:vars:varsManager Creating a new instance of VarsManager
+2025-10-24T20:52:42.021Z hardhat:core:vars:varsManager Loading ENV variables if any
+2025-10-24T20:52:42.030Z hardhat:core:config Loading Hardhat config from F:\BNB_PumpFun\hardhat.config.ts
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+2025-10-24T20:52:42.668Z hardhat:core:hre Creating HardhatRuntimeEnvironment
+2025-10-24T20:52:42.671Z hardhat:core:global-dir Looking up Client Id at C:\Users\mohanad\AppData\Local\hardhat-nodejs\Data\analytics.json
+2025-10-24T20:52:42.673Z hardhat:core:global-dir Client Id found: 77f1d2e6-c150-4bb3-9dd7-04dd3fc44e04
+2025-10-24T20:52:42.673Z hardhat:core:hre Running task test
+2025-10-24T20:52:42.674Z hardhat:core:hre Running task hhgas:start
+2025-10-24T20:52:42.674Z hardhat:core:hre Running test's super
+2025-10-24T20:52:42.674Z hardhat:core:hre Running task compile
+2025-10-24T20:52:42.674Z hardhat:core:hre Running compile's super
+2025-10-24T20:52:42.674Z hardhat:core:hre Running compile's super
+2025-10-24T20:52:42.674Z hardhat:core:hre Running task compile:get-compilation-tasks
+2025-10-24T20:52:42.675Z hardhat:core:hre Running task compile:solidity
+2025-10-24T20:52:42.675Z hardhat:core:hre Running task compile:solidity:get-source-paths
+2025-10-24T20:52:42.676Z hardhat:core:hre Running task compile:solidity:get-source-names
+2025-10-24T20:52:42.683Z hardhat:core:hre Running task compile:solidity:get-dependency-graph
+2025-10-24T20:52:42.683Z hardhat:core:hre Running task compile:solidity:get-remappings
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.685Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.686Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.689Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.690Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.690Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.690Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.690Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.690Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.712Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.713Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.714Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.714Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.714Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.714Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.715Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.715Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.715Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.715Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.717Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.717Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.723Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.724Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.725Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.725Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.725Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.725Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.727Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.729Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.730Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.730Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.730Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.730Z hardhat:core:hre Running task compile:solidity:transform-import-name
+2025-10-24T20:52:42.733Z hardhat:core:hre Running task compile:solidity:read-file
+2025-10-24T20:52:42.737Z hardhat:core:hre Running task compile:solidity:get-compilation-jobs
+2025-10-24T20:52:42.738Z hardhat:core:tasks:compile The dependency graph was divided in '4' connected components
+2025-10-24T20:52:42.738Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.738Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\BondingCurve.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.740Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\BondingCurve.sol'
+2025-10-24T20:52:42.741Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.741Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Lock.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.741Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.741Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.741Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\mocks\MockPancakeFactory.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.741Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.741Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\mocks\MockPancakeRouter.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.742Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.742Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\TokenFactory.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\BondingCurve.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.742Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\TokenFactory.sol'
+2025-10-24T20:52:42.743Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.743Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.743Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol'
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol'
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol'
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol'
+2025-10-24T20:52:42.744Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.744Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.744Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.744Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol'
+2025-10-24T20:52:42.744Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.744Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.744Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.744Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.744Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol'
+2025-10-24T20:52:42.745Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.745Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol'
+2025-10-24T20:52:42.745Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.745Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol'
+2025-10-24T20:52:42.745Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.745Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.745Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.745Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.745Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol'
+2025-10-24T20:52:42.746Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.746Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol'
+2025-10-24T20:52:42.746Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.746Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.746Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.746Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol'
+2025-10-24T20:52:42.746Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.746Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PlatformConfig.sol'
+2025-10-24T20:52:42.746Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.746Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.747Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.747Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\PumpToken.sol'
+2025-10-24T20:52:42.747Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.747Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\GraduationManager.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\BondingCurve.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IWBNB.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IPancakeRouter.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IPancakeFactory.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\contracts\GraduationManager.sol'
+2025-10-24T20:52:42.747Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.747Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol'
+2025-10-24T20:52:42.747Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.747Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.747Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.747Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.747Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IPancakeFactory.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IPancakeRouter.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IWBNB.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\interfaces\IWBNB.sol'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\test\MockERC20.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MockERC20.sol'
+2025-10-24T20:52:42.748Z hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file
+2025-10-24T20:52:42.748Z hardhat:core:hre Running compile:solidity:get-compilation-job-for-file's super
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol' will be compiled with version '0.8.20'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\BondingCurve.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PlatformConfig.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\interfaces\IASTER.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\PumpToken.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\ReentrancyGuard.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\utils\SafeERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Pausable.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\AccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\ERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\access\IAccessControl.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\contracts\Constants.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\ERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\draft-IERC6093.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\Context.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC1363.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\interfaces\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\token\ERC20\IERC20.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.748Z hardhat:core:compilation-job File 'F:\BNB_PumpFun\node_modules\@openzeppelin\contracts\utils\introspection\IERC165.sol' added as dependency of 'F:\BNB_PumpFun\contracts\test\MaliciousContracts.sol'
+2025-10-24T20:52:42.749Z hardhat:core:hre Running task compile:solidity:handle-compilation-jobs-failures
+2025-10-24T20:52:42.749Z hardhat:core:hre Running task compile:solidity:filter-compilation-jobs
+2025-10-24T20:52:42.751Z hardhat:core:tasks:compile '30' jobs were filtered out
+2025-10-24T20:52:42.751Z hardhat:core:hre Running task compile:solidity:merge-compilation-jobs
+2025-10-24T20:52:42.751Z hardhat:core:hre Running task compile:solidity:compile-jobs
+2025-10-24T20:52:42.751Z hardhat:core:hre Running compile:solidity:compile-jobs's super
+2025-10-24T20:52:42.751Z hardhat:core:tasks:compile No compilation jobs to compile
+2025-10-24T20:52:42.751Z hardhat:core:hre Running task compile:solidity:log:nothing-to-compile
+2025-10-24T20:52:42.752Z hardhat:core:hre Running task typechain:generate-types
+2025-10-24T20:52:42.760Z hardhat:core:hre Running task compile:solidity:log:compilation-result
+2025-10-24T20:52:42.760Z hardhat:core:hre Running task compile:remove-obsolete-artifacts
+2025-10-24T20:52:42.779Z hardhat:core:hre Running task size-contracts
+ ·-----------------------------------|--------------------------------|--------------------------------·
+ |  Solc version: 0.8.20             ·  Optimizer enabled: true       ·  Runs: 200                     │
+ ····································|································|·································
+ |  Contract Name                    ·  Deployed size (KiB) (change)  ·  Initcode size (KiB) (change)  │
+ ····································|································|·································
+ |  BondingCurve                     ·                 5.202 (0.000)  ·                 5.984 (0.000)  │
+ ····································|································|·································
+ |  Constants                        ·                 0.594 (0.000)  ·                 0.650 (0.000)  │
+ ····································|································|·································
+ |  CrossContractReentrancyAttacker  ·                 1.496 (0.000)  ·                 1.714 (0.000)  │
+ ····································|································|·································
+ |  GraduationManager                ·                 6.120 (0.000)  ·                 6.612 (0.000)  │
+ ····································|································|·································
+ |  Lock                             ·                 0.471 (0.000)  ·                 0.661 (0.000)  │
+ ····································|································|·································
+ |  MaliciousERC20WithCallback       ·                 1.299 (0.000)  ·                 1.376 (0.000)  │
+ ····································|································|·································
+ |  MockERC20                        ·                 1.972 (0.000)  ·                 3.145 (0.000)  │
+ ····································|································|·································
+ |  MockPancakeFactory               ·                 4.049 (0.000)  ·                 4.080 (0.000)  │
+ ····································|································|·································
+ |  MockPancakePair                  ·                 2.885 (0.000)  ·                 2.916 (0.000)  │
+ ····································|································|·································
+ |  MockPancakeRouter                ·                 4.222 (0.000)  ·                 4.470 (0.000)  │
+ ····································|································|·································
+ |  PlatformConfig                   ·                 2.928 (0.000)  ·                 3.676 (0.000)  │
+ ····································|································|·································
+ |  PumpToken                        ·                 2.968 (0.000)  ·                 4.674 (0.000)  │
+ ····································|································|·································
+ |  ReentrantBuyer                   ·                 0.874 (0.000)  ·                 1.060 (0.000)  │
+ ····································|································|·································
+ |  ReentrantFeeWithdrawer           ·                 0.281 (0.000)  ·                 0.425 (0.000)  │
+ ····································|································|·································
+ |  ReentrantSeller                  ·                 1.030 (0.000)  ·                 1.216 (0.000)  │
+ ····································|································|·································
+ |  ReentrantTokenCreator            ·                 1.215 (0.000)  ·                 1.358 (0.000)  │
+ ····································|································|·································
+ |  SafeERC20                        ·                 0.084 (0.000)  ·                 0.138 (0.000)  │
+ ····································|································|·································
+ |  TokenFactory                     ·                18.973 (0.000)  ·                19.520 (0.000)  │
+ ·-----------------------------------|--------------------------------|--------------------------------·
+2025-10-24T20:52:42.805Z hardhat:core:hre Running task test:get-test-files
+2025-10-24T20:52:42.807Z hardhat:core:hre Running task test:setup-test-environment
+2025-10-24T20:52:42.807Z hardhat:core:hre Running task test:show-fork-recommendations
+2025-10-24T20:52:42.807Z hardhat:core:hre Running task test:run-mocha-tests
+
+
+  BondingCurve
+    Deployment
+2025-10-24T20:52:43.310Z hardhat:core:hre Creating provider for network hardhat
+2025-10-24T20:52:43.567Z hardhat:core:hardhat-network:provider Making tracing config
+2025-10-24T20:52:43.571Z hardhat:core:hardhat-network:provider Creating EDR provider
+2025-10-24T20:52:43.596Z hardhat:core:hardhat-network:provider EDR provider created
+      ✔ Should set correct token address
+      ✔ Should set correct creator address
+      ✔ Should set correct config address
+      ✔ Should set correct virtual ASTER reserve
+      ✔ Should initialize real ASTER reserve to zero
+      ✔ Should initialize real token reserve to bonding curve supply
+      ✔ Should not be graduated on deployment
+      ✔ Should revert if token is zero address
+      ✔ Should revert if creator is zero address
+      ✔ Should revert if config is zero address
+      ✔ Should revert if virtual reserve is zero
+    Price Calculation
+      ✔ Should return initial price correctly
+      ✔ Should increase price after buy
+      ✔ Should decrease price after sell
+    getBuyAmount
+      ✔ Should calculate correct buy amount and fees
+      ✔ Should revert if input is zero
+      ✔ Should calculate larger purchases correctly
+    getSellAmount
+      ✔ Should calculate correct sell amount and fees
+      ✔ Should revert if input is zero
+    buyWithAster
+      ✔ Should allow buying tokens with ASTER
+      ✔ Should transfer ASTER from buyer
+      ✔ Should pay creator fee
+      ✔ Should pay protocol fee
+      ✔ Should update ASTER reserves correctly
+      ✔ Should update token reserves correctly
+      ✔ Should revert if slippage exceeded
+      ✔ Should revert if already graduated
+      ✔ Should revert if platform is paused
+      ✔ Should revert if input is zero
+    sellForAster
+      ✔ Should allow selling tokens for ASTER
+      ✔ Should transfer tokens from seller
+      ✔ Should pay creator fee on sell
+      ✔ Should revert if slippage exceeded
+      ✔ Should revert if already graduated
+      ✔ Should revert if platform is paused
+    Graduation
+      ✔ Should mark as graduated when threshold met
+      ✔ Should revert if marking graduated when threshold not met
+      ✔ Should revert if marking graduated twice
+      ✔ Should allow extracting reserves after graduation
+      ✔ Should transfer reserves when extracting
+      ✔ Should reset reserves to zero after extraction
+      ✔ Should revert extracting reserves if not graduated
+    Reserve Management
+      ✔ Should return correct reserves
+      ✔ Should update reserves correctly after buy
+    Edge Cases
+      ✔ Should handle multiple sequential buys
+      ✔ Should handle buy and sell cycle
+      ✔ Should handle very small amounts
+
+  BondingCurve - Fuzz Testing
+    Buy Operation Fuzz Tests
+      1) should handle random buy amounts without reverting
+      2) should maintain constant product invariant (k) within tolerance
+      3) should handle sequential buys with varying amounts
+    Sell Operation Fuzz Tests
+      4) "before each" hook for "should handle random sell amounts without reverting"
+    Edge Case Fuzz Tests
+      5) should handle very small amounts (dust)
+      6) should handle alternating buy/sell patterns
+      7) should prevent price manipulation through rapid trades
+    Mathematical Invariant Fuzz Tests
+      ✔ should never allow reserves to go negative (155ms)
+      8) should maintain fee calculations accuracy across random amounts
+
+  Gas Benchmarks
+    9) "before all" hook in "Gas Benchmarks"
+
+
+====================================================================================================
+GAS BENCHMARK REPORT
+====================================================================================================
+
+
+====================================================================================================
+
+SUMMARY: 0/0 operations within target
+✓ All operations within gas targets
+====================================================================================================
+
+
+  GraduationManager
+    Deployment
+      ✔ Should set correct config address
+      ✔ Should set correct PancakeSwap router address
+      ✔ Should set correct PancakeSwap factory address
+      ✔ Should set correct ASTER token address
+      ✔ Should set correct WBNB address
+      ✔ Should have correct slippage constants
+      ✔ Should revert if config is zero address
+    checkGraduationEligibility
+      ✔ Should return false if ASTER reserves below threshold
+      ✔ Should return true if ASTER reserves meet threshold
+      ✔ Should return false if already graduated
+      ✔ Should revert if bonding curve address is zero
+    Graduation Status Tracking
+      ✔ Should return false for non-graduated bonding curve
+      ✔ Should return zero address for non-graduated token pair
+    View Functions
+      ✔ Should correctly identify eligible bonding curve
+      ✔ Should correctly identify ineligible bonding curve
+    Edge Cases
+      ✔ Should handle checking eligibility multiple times
+      ✔ Should handle exact threshold amount
+      ✔ Should maintain correct state across multiple checks
+    Integration with BondingCurve
+      ✔ Should correctly detect when bonding curve reaches threshold
+      ✔ Should handle bonding curve with no trades
+      ✔ Should handle bonding curve with small trades
+    Multiple Bonding Curves
+      ✔ Should handle multiple bonding curves independently
+      ✔ Should track graduation status per bonding curve
+    Reserve Requirements
+      ✔ Should require minimum 100 ASTER for graduation
+      ✔ Should allow graduation with reserves above threshold
+    Security
+      ✔ Should prevent checking graduation on invalid address
+      ✔ Should handle platform pause correctly
+
+  GraduationManager - Integration Tests
+    View Functions Post-Graduation Setup
+      ✔ should return correct graduation status before graduation
+      ✔ should return zero address for non-graduated token pair
+      ✔ should check graduation eligibility correctly
+    Graduation Eligibility Edge Cases
+      ✔ should handle exact graduation threshold amount
+      ✔ should handle multiple eligibility checks
+      ✔ should return false for already graduated bonding curve
+    Error Handling in executeGraduation
+      ✔ should revert if bonding curve address is zero
+      ✔ should revert if not eligible for graduation
+      ✔ should revert if already graduated
+    Constants and Configuration
+      ✔ should have correct slippage constants
+      ✔ should have correct address configuration
+    Integration with BondingCurve
+      ✔ should correctly detect when bonding curve reaches threshold
+      ✔ should handle bonding curve with progressive trades
+    Multiple Bonding Curves
+      ✔ should handle multiple bonding curves independently
+      ✔ should track graduation status per bonding curve
+    Reserve Requirements
+      ✔ should require minimum ASTER for graduation
+      ✔ should allow graduation with reserves above threshold
+
+  Integration: PancakeSwap & ASTER
+    ASTER Token Integration
+      ✔ Should use correct ASTER token address
+      ✔ Should handle ASTER transfers in bonding curve
+      ✔ Should accumulate ASTER in bonding curve reserves
+      ✔ Should distribute ASTER fees correctly
+    PancakeSwap Address Validation
+      ✔ Should have correct PancakeSwap router address
+      ✔ Should have correct PancakeSwap factory address
+      ✔ Should have correct WBNB address
+      ✔ Should use immutable addresses
+    Graduation Process
+      ✔ Should detect graduation eligibility correctly
+      ✔ Should mark bonding curve as graduated
+      ✔ Should extract reserves after graduation
+      ✔ Should prevent trading after graduation
+    Reserve Management
+      ✔ Should maintain accurate reserve accounting
+      ✔ Should handle reserve extraction correctly
+    Gas and Slippage Protection
+      ✔ Should have reasonable slippage parameters
+      ✔ Should enforce slippage on buy
+      ✔ Should enforce slippage on sell
+    Multi-Protocol Integration
+      ✔ Should track multiple tokens independently
+      ✔ Should handle concurrent trading on multiple tokens
+
+  Integration: Complete Token Lifecycle
+    Full Lifecycle: Creation → Trading → Graduation
+      ✔ Should complete entire lifecycle successfully (45ms)
+    Multi-Token Scenarios
+      ✔ Should handle multiple tokens independently
+    Trading Scenarios
+      ✔ Should handle buy → sell → buy cycle correctly
+      ✔ Should maintain price consistency across trades
+      ✔ Should accumulate fees correctly over multiple trades
+    Edge Cases & Error Scenarios
+      ✔ Should prevent operations when platform is paused
+      ✔ Should handle very small trade amounts
+      ✔ Should enforce slippage protection
+      ✔ Should maintain system integrity after graduation (38ms)
+    Creator Economics
+      ✔ Should lock creator allocation until graduation
+      ✔ Should earn fees from trades
+
+  PlatformConfig
+    Deployment
+      ✔ Should set the correct initial values
+      ✔ Should grant correct roles
+      ✔ Should not be paused initially
+      ✔ Should revert if protocol fee recipient is zero address
+      ✔ Should revert if admin is zero address
+      ✔ Should revert if pauser is zero address
+    Bonding Curve Fee Management
+      ✔ Should allow admin to update bonding curve fees
+      ✔ Should revert if non-admin tries to update bonding curve fees
+      ✔ Should revert if total fee exceeds maximum
+      ✔ Should revert if fee split doesn't match total
+      ✔ Should allow setting fees to maximum allowed
+      ✔ Should allow setting fees to zero
+    Post-Graduation Fee Management
+      ✔ Should allow admin to update post-graduation fees
+      ✔ Should revert if non-admin tries to update post-graduation fees
+      ✔ Should revert if total fee exceeds maximum
+      ✔ Should revert if fee split doesn't match total
+    Protocol Fee Recipient Management
+      ✔ Should allow admin to update protocol fee recipient
+      ✔ Should revert if non-admin tries to update protocol fee recipient
+      ✔ Should revert if new recipient is zero address
+    Graduation Threshold Management
+      ✔ Should allow admin to update graduation threshold
+      ✔ Should revert if non-admin tries to update graduation threshold
+      ✔ Should revert if threshold is zero
+      ✔ Should allow setting very high graduation threshold
+      ✔ Should allow setting very low graduation threshold
+    Pause Functionality
+      ✔ Should allow pauser to pause the contract
+      ✔ Should allow pauser to unpause the contract
+      ✔ Should revert if non-pauser tries to pause
+      ✔ Should revert if non-pauser tries to unpause
+      ✔ Should revert when trying to pause already paused contract
+      ✔ Should revert when trying to unpause already unpaused contract
+      ✔ Should allow admin to pause if they have pauser role
+    Role Management
+      ✔ Should allow admin to grant admin role
+      ✔ Should allow admin to grant pauser role
+      ✔ Should allow admin to revoke admin role
+      ✔ Should allow admin to revoke pauser role
+      ✔ Should not allow non-admin to grant roles
+    Edge Cases
+      ✔ Should handle multiple fee updates correctly
+      ✔ Should handle pause/unpause cycles correctly
+      ✔ Should maintain correct state across multiple role grants
+
+  PumpToken
+    Deployment
+      ✔ Should set the correct token name and symbol
+      ✔ Should set the correct metadata URI
+      ✔ Should set the correct creator
+      ✔ Should set the correct factory
+      ✔ Should mint total supply to contract
+      ✔ Should lock 200M tokens for creator
+      ✔ Should not unlock creator allocation on deployment
+      ✔ Should emit TokenDeployed event
+      ✔ Should revert if creator is zero address
+      ✔ Should revert if URI is empty
+      ✔ Should allow deployment with bonding curve set
+    setBondingCurve
+      ✔ Should allow factory to set bonding curve
+      ✔ Should transfer 800M tokens to bonding curve
+      ✔ Should leave 200M tokens in contract after setting bonding curve
+      ✔ Should revert if called by non-factory
+      ✔ Should revert if bonding curve is zero address
+      ✔ Should revert if bonding curve is already set
+    unlockCreatorAllocation
+      ✔ Should allow bonding curve to unlock creator allocation
+      ✔ Should transfer locked tokens to creator
+      ✔ Should reset creator locked balance to zero
+      ✔ Should leave contract with zero balance after unlock
+      ✔ Should revert if called by non-bonding curve
+      ✔ Should revert if already unlocked
+      ✔ Should revert if bonding curve not set
+    ERC20 Functionality
+      ✔ Should allow creator to transfer tokens after unlock
+      ✔ Should allow bonding curve to transfer tokens
+      ✔ Should allow approve and transferFrom
+      ✔ Should have correct decimals (18)
+      ✔ Should have correct total supply
+    View Functions
+      ✔ Should return correct locked balance before unlock
+      ✔ Should return zero locked balance after unlock
+      ✔ Should return correct unlock status before unlock
+      ✔ Should return correct unlock status after unlock
+    Edge Cases
+      ✔ Should handle long metadata URI
+      ✔ Should handle long token name and symbol
+      ✔ Should not allow creator to transfer locked tokens
+      ✔ Should maintain correct balances across multiple transfers
+    Security
+      ✔ Should prevent double unlock
+      ✔ Should prevent setting bonding curve twice
+      ✔ Should only allow factory to set bonding curve
+      ✔ Should only allow bonding curve to unlock allocation
+
+  Security - Access Control
+    PlatformConfig Access Control
+      ✔ should prevent non-admin from updating bonding curve fees
+      ✔ should prevent non-admin from updating post-graduation fees
+      ✔ should prevent non-admin from updating protocol fee recipient
+      ✔ should prevent non-admin from updating graduation threshold
+      ✔ should prevent non-pauser from pausing
+      ✔ should prevent non-pauser from unpausing
+      ✔ should allow pauser to pause but not modify fees
+      ✔ should allow admin to modify fees but require separate pauser role for pausing
+      ✔ should prevent attacker from granting themselves admin role
+    TokenFactory Access Control
+      ✔ should prevent non-admin from updating virtual ASTER reserve
+      ✔ should allow deployer (owner) to update virtual reserve
+      ✔ should prevent attacker from granting themselves factory admin role
+      ✔ should allow creating tokens when platform not paused
+      ✔ should prevent creating tokens when platform is paused
+    PumpToken Access Control
+      ✔ should only allow factory to set bonding curve
+      ✔ should only allow bonding curve to unlock creator allocation
+      10) should prevent setting bonding curve twice
+    BondingCurve Access Control
+      11) should only allow graduation manager or internal to mark as graduated
+      12) should only allow graduation manager to extract reserves
+    Role Hierarchy and Separation
+      ✔ should enforce role separation in PlatformConfig
+      ✔ should allow DEFAULT_ADMIN to grant and revoke other roles
+    Emergency Scenarios
+      13) should allow pauser to immediately halt trading
+      14) should prevent fee changes when paused
+    Creator-Specific Access
+      15) should allow creator to receive fees from their token
+      ✔ should prevent creator from accessing locked tokens before graduation
+
+  Security - Economic Attacks
+    Flash Loan Attack Simulations
+      16) should resist flash loan price manipulation attack
+      17) should prevent flash loan arbitrage between multiple tokens
+      18) should maintain reserve integrity during flash loan attacks
+    Sandwich Attack Prevention
+      19) should protect users from sandwich attacks via slippage
+      Victim received: 35880615.406918797455738181 tokens
+      ✔ should allow victim to adjust slippage and complete trade
+      20) should make sandwich attacks unprofitable due to fees
+    Front-Running Attack Mitigation
+      21) should detect and handle large front-running attempts
+      22) should make front-running unprofitable via fees
+    Price Manipulation Resistance
+      23) should resist price manipulation through large single trades
+      Price after 10 trades: 0.000000447005 ASTER per token
+      ✔ should maintain fair pricing across multiple sequential trades (49ms)
+      ✔ should prevent oracle price manipulation
+    Liquidity Draining Attacks
+      Remaining token reserve: 800000000.0
+      ✔ should prevent complete liquidity drainage
+      ✔ should maintain bonding curve integrity with minimal liquidity
+    Compound Attack Scenarios
+      Combined attack result: profit 77.856824161034976776 ASTER
+      24) should resist combined flash loan + sandwich attack
+      Multi-block MEV attempt: profit 35.192746230499825134 ASTER
+      25) should resist multi-block MEV extraction attempts
+    Economic Invariants
+      26) should always maintain k invariant after any attack
+      ✔ should ensure total token supply remains constant
+
+  Security - Reentrancy Attacks
+    BondingCurve Reentrancy Protection
+      ✔ should prevent reentrancy on buy() function
+      ✔ should prevent reentrancy on sellForAster() function
+    TokenFactory Reentrancy Protection
+      ✔ should prevent reentrancy on createToken() function
+    Cross-Contract Reentrancy
+      ✔ should prevent cross-contract reentrancy between buy and sell
+      ✔ should prevent read-only reentrancy attacks
+    Callback Reentrancy
+      ✔ should safely handle ERC20 callbacks without reentrancy
+    Graduation Reentrancy
+      ASTER reserve after buy: 118.8
+      Graduated: false
+      ✔ should prevent reentrancy during graduation process
+    State Consistency After Failed Reentrancy
+      ✔ should maintain consistent state even after failed reentrancy attempts
+
+  TokenFactory
+    Deployment
+      ✔ Should set correct config address
+      ✔ Should set correct virtual ASTER reserve
+      ✔ Should initialize token counter to zero
+      ✔ Should grant deployer admin roles
+      ✔ Should revert if config is zero address
+      ✔ Should revert if virtual reserve is zero
+    createToken
+      ✔ Should create a new token with bonding curve
+      ✔ Should emit TokenCreated event with correct parameters
+      ✔ Should increment token counter
+      ✔ Should register token in allTokens array
+      ✔ Should store token metadata
+      ✔ Should deploy token and bonding curve with correct addresses
+      ✔ Should configure token correctly
+      ✔ Should configure bonding curve correctly
+      ✔ Should revert if platform is paused
+      ✔ Should revert if name is empty
+      ✔ Should revert if name is too long
+      ✔ Should revert if symbol is empty
+      ✔ Should revert if symbol is too long
+      ✔ Should revert if URI is empty
+      ✔ Should revert if URI is too long
+      ✔ Should allow maximum valid lengths
+    Query Functions
+      ✔ Should return correct token count
+      ✔ Should return all tokens with getAllTokensNoPagination
+      ✔ Should return tokens with pagination
+      ✔ Should handle pagination offset
+      ✔ Should handle pagination beyond array length
+      ✔ Should return bonding curve for token
+      ✔ Should check if token exists
+      ✔ Should return tokens by creator
+      ✔ Should return empty array for creator with no tokens
+      ✔ Should get token info for individual tokens
+    Virtual ASTER Reserve Management
+      ✔ Should allow admin to update virtual ASTER reserve
+      ✔ Should revert if non-admin tries to update reserve
+      ✔ Should revert if new reserve is zero
+      ✔ Should use new reserve for newly created tokens
+    Role Management
+      ✔ Should grant FACTORY_ADMIN_ROLE to new admin
+      ✔ Should revoke FACTORY_ADMIN_ROLE
+    Edge Cases
+      ✔ Should handle creating many tokens
+      ✔ Should handle special characters in metadata
+      ✔ Should maintain correct state across multiple creators
+      ✔ Should revert when getting info for non-existent token
+    Token Creation is FREE
+      ✔ Should not charge any fee for token creation
+
+
+  278 passing (13s)
+  26 failing
+
+  1) BondingCurve - Fuzz Testing
+       Buy Operation Fuzz Tests
+         should handle random buy amounts without reverting:
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:157:46)
+
+  2) BondingCurve - Fuzz Testing
+       Buy Operation Fuzz Tests
+         should maintain constant product invariant (k) within tolerance:
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:194:44)
+
+  3) BondingCurve - Fuzz Testing
+       Buy Operation Fuzz Tests
+         should handle sequential buys with varying amounts:
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:220:44)
+
+  4) BondingCurve - Fuzz Testing
+       Sell Operation Fuzz Tests
+         "before each" hook for "should handle random sell amounts without reverting":
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:240:42)
+
+  5) BondingCurve - Fuzz Testing
+       Edge Case Fuzz Tests
+         should handle very small amounts (dust):
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:337:46)
+
+  6) BondingCurve - Fuzz Testing
+       Edge Case Fuzz Tests
+         should handle alternating buy/sell patterns:
+     TypeError: bondingCurve.connect(...).buy is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:365:46)
+
+  7) BondingCurve - Fuzz Testing
+       Edge Case Fuzz Tests
+         should prevent price manipulation through rapid trades:
+     TypeError: bondingCurve.getCurrentPrice is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:389:47)
+      at processImmediate (node:internal/timers:485:21)
+
+  8) BondingCurve - Fuzz Testing
+       Mathematical Invariant Fuzz Tests
+         should maintain fee calculations accuracy across random amounts:
+     TypeError: bondingCurve.protocolFees is not a function
+      at Context.<anonymous> (test\fuzz\BondingCurveFuzz.test.ts:472:58)
+
+  9) Gas Benchmarks
+       "before all" hook in "Gas Benchmarks":
+     Error: incorrect number of arguments to constructor
+      at ContractFactory.getDeployTransaction (node_modules\ethers\src.ts\contract\factory.ts:87:19)
+      at ContractFactory.deploy (node_modules\ethers\src.ts\contract\factory.ts:105:31)
+      at Context.<anonymous> (test\gas\GasBenchmarks.test.ts:49:50)
+
+  10) Security - Access Control
+       PumpToken Access Control
+         should prevent setting bonding curve twice:
+     AssertionError: Expected transaction to be reverted with reason 'Already set', but it reverted with reason 'Only factory'
+      at async Context.<anonymous> (test\security\AccessControl.test.ts:252:7)
+
+  11) Security - Access Control
+       BondingCurve Access Control
+         should only allow graduation manager or internal to mark as graduated:
+     AssertionError: Expected transaction to be reverted with reason 'Only graduation manager', but it reverted with reason 'Threshold not met'
+      at async Context.<anonymous> (test\security\AccessControl.test.ts:265:7)
+
+  12) Security - Access Control
+       BondingCurve Access Control
+         should only allow graduation manager to extract reserves:
+     TypeError: bondingCurve.connect(...).extractReservesForGraduation is not a function
+      at Context.<anonymous> (test\security\AccessControl.test.ts:277:40)
+      at processImmediate (node:internal/timers:485:21)
+
+  13) Security - Access Control
+       Emergency Scenarios
+         should allow pauser to immediately halt trading:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientAllowance("0x89F02bA1e1a87b5412ac19Cc7ceA370333a702F0", 0, 10000000000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20.transferFrom (@openzeppelin/contracts/token/ERC20/ERC20.sol:144)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.buyWithAster (contracts/BondingCurve.sol:212)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.buyWithAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\AccessControl.test.ts:334:7)
+  
+
+  14) Security - Access Control
+       Emergency Scenarios
+         should prevent fee changes when paused:
+     AssertionError: Expected transaction to be reverted with custom error 'EnforcedPause', but it didn't revert
+      at async Context.<anonymous> (test\security\AccessControl.test.ts:352:7)
+
+  15) Security - Access Control
+       Creator-Specific Access
+         should allow creator to receive fees from their token:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientAllowance("0x86a3782D383d5aB912f74E40A57B9Df96aCef017", 0, 50000000000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20.transferFrom (@openzeppelin/contracts/token/ERC20/ERC20.sol:144)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.buyWithAster (contracts/BondingCurve.sol:212)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.buyWithAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\AccessControl.test.ts:365:7)
+  
+
+  16) Security - Economic Attacks
+       Flash Loan Attack Simulations
+         should resist flash loan price manipulation attack:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientBalance("0x5fE7aF3863A1b927f6D5784A1cb563919900eB51", 3464999999999999999, 3465000000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20._transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:166)
+    at MockERC20.transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:101)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.sellForAster (contracts/BondingCurve.sol:269)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.sellForAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:114:7)
+  
+
+  17) Security - Economic Attacks
+       Flash Loan Attack Simulations
+         should prevent flash loan arbitrage between multiple tokens:
+     Error: VM Exception while processing transaction: reverted with reason string 'Insufficient liquidity'
+    at BondingCurve.getBuyAmount (contracts/BondingCurve.sol:125)
+    at BondingCurve.buyWithAster (contracts/BondingCurve.sol:207)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.buyWithAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:156:7)
+  
+
+  18) Security - Economic Attacks
+       Flash Loan Attack Simulations
+         should maintain reserve integrity during flash loan attacks:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientBalance("0x30abA3490Fd94117E730F7fBdf6332E64784bF6f", 2078999999999999999, 2079000000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20._transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:166)
+    at MockERC20.transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:101)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.sellForAster (contracts/BondingCurve.sol:269)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.sellForAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:194:7)
+  
+
+  19) Security - Economic Attacks
+       Sandwich Attack Prevention
+         should protect users from sandwich attacks via slippage:
+     TypeError: bondingCurve.getAmountOut is not a function
+      at Context.<anonymous> (test\security\EconomicAttacks.test.ts:214:49)
+
+  20) Security - Economic Attacks
+       Sandwich Attack Prevention
+         should make sandwich attacks unprofitable due to fees:
+
+      AssertionError: expected 148784426242599101554425 to be below 148703735000000000000000.
+      + expected - actual
+
+      -148784426242599101554425
+      +148703735000000000000000
+      
+      at Context.<anonymous> (test\security\EconomicAttacks.test.ts:271:42)
+
+  21) Security - Economic Attacks
+       Front-Running Attack Mitigation
+         should detect and handle large front-running attempts:
+     Error: VM Exception while processing transaction: reverted with reason string 'Insufficient liquidity'
+    at BondingCurve.getBuyAmount (contracts/BondingCurve.sol:125)
+    at BondingCurve.buyWithAster (contracts/BondingCurve.sol:207)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.buyWithAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:291:7)
+  
+
+  22) Security - Economic Attacks
+       Front-Running Attack Mitigation
+         should make front-running unprofitable via fees:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientBalance("0xa6A37BAff170fFcd4dFA49F8fEb7F09D83cE0BFA", 554399999999999999, 554400000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20._transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:166)
+    at MockERC20.transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:101)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.sellForAster (contracts/BondingCurve.sol:269)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.sellForAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:319:7)
+  
+
+  23) Security - Economic Attacks
+       Price Manipulation Resistance
+         should resist price manipulation through large single trades:
+     Error: VM Exception while processing transaction: reverted with custom error 'ERC20InsufficientBalance("0x9703dD49eaBf1367427c9bb23C0C61C988aDD2a1", 1385999999999999999, 1386000000000000000)'
+    at MockERC20._spendAllowance (@openzeppelin/contracts/token/ERC20/ERC20.sol:298)
+    at MockERC20._transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:166)
+    at MockERC20.transfer (@openzeppelin/contracts/token/ERC20/ERC20.sol:101)
+    at BondingCurve._callOptionalReturn (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:177)
+    at BondingCurve.safeTransfer (@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol:34)
+    at BondingCurve.sellForAster (contracts/BondingCurve.sol:269)
+    at EdrProviderWrapper.request (node_modules\hardhat\src\internal\hardhat-network\provider\provider.ts:359:41)
+    at async HardhatEthersSigner.sendTransaction (node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at async send (node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at async Proxy.sellForAster (node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at async Context.<anonymous> (test\security\EconomicAttacks.test.ts:347:7)
+  
+
+  24) Security - Economic Attacks
+       Compound Attack Scenarios
+         should resist combined flash loan + sandwich attack:
+
+      AssertionError: expected 2595 to be at most 100.
+      + expected - actual
+
+      -2595
+      +100
+      
+      at Context.<anonymous> (test\security\EconomicAttacks.test.ts:490:38)
+
+  25) Security - Economic Attacks
+       Compound Attack Scenarios
+         should resist multi-block MEV extraction attempts:
+
+      AssertionError: expected 703 to be at most 100.
+      + expected - actual
+
+      -703
+      +100
+      
+      at Context.<anonymous> (test\security\EconomicAttacks.test.ts:524:40)
+
+  26) Security - Economic Attacks
+       Economic Invariants
+         should always maintain k invariant after any attack:
+
+      AssertionError: expected 199999999999999999999600334215695605257337417310 to be at least 200000000000000000000000000000000000000000000000.
+      + expected - actual
+
+      -199999999999999999999600334215695605257337417310
+      +200000000000000000000000000000000000000000000000
+      
+      at Context.<anonymous> (test\security\EconomicAttacks.test.ts:549:28)
+
+
+
+2025-10-24T20:52:56.391Z hardhat:core:hre Running task hhgas:stop
+2025-10-24T20:52:56.391Z hardhat:core:cli Killing Hardhat after successfully running task test

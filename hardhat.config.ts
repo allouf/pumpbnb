@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
+import "solidity-coverage";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -20,6 +21,15 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       chainId: 31337,
+      forking: process.env.FORK_MAINNET === "true" ? {
+        url: process.env.BSC_MAINNET_RPC || "https://bsc-dataseed1.binance.org",
+        blockNumber: process.env.FORK_BLOCK_NUMBER ? parseInt(process.env.FORK_BLOCK_NUMBER) : undefined,
+        enabled: true
+      } : undefined,
+      accounts: {
+        count: 10,
+        accountsBalance: "10000000000000000000000", // 10000 ETH per account for testing
+      },
     },
     bscTestnet: {
       url: process.env.BSC_TESTNET_RPC || "https://data-seed-prebsc-1-s1.binance.org:8545/",
@@ -62,11 +72,23 @@ const config: HardhatUserConfig = {
     target: "ethers-v6",
   },
   etherscan: {
-    apiKey: {
-      bscTestnet: process.env.BSCSCAN_API_KEY || "",
-      bsc: process.env.BSCSCAN_API_KEY || "",
-    },
+    apiKey: process.env.BSCSCAN_API_KEY || "",
   },
+  sourcify: {
+    enabled: false,
+  },
+  mocha: {
+    timeout: 120000, // 2 minutes timeout for tests
+    parallel: false, // Run tests sequentially for better debugging
+  },
+  // Solidity coverage configuration
+  solcover: {
+    skipFiles: [
+      'test/',
+      'mocks/',
+      'interfaces/',
+    ]
+  }
 };
 
 export default config;
