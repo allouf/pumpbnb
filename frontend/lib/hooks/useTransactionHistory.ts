@@ -1,0 +1,141 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { usePublicClient } from 'wagmi'
+import { formatUnits } from 'viem'
+import BondingCurveABI from '@/lib/abis/BondingCurve.json'
+
+export interface Transaction {
+  hash: string
+  type: 'buy' | 'sell'
+  user: string
+  tokenAmount: bigint
+  tokenAmountFormatted: string
+  asterAmount: bigint
+  asterAmountFormatted: string
+  timestamp: number
+  blockNumber: bigint
+  bondingCurve: string
+}
+
+export function useTransactionHistory(bondingCurveAddress?: string, userAddress?: string) {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+  const publicClient = usePublicClient()
+
+  useEffect(() => {
+    async function fetchTransactions() {
+      if (!publicClient || !bondingCurveAddress) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+
+        const currentBlock = await publicClient.getBlockNumber()
+        const fromBlock = currentBlock - BigInt(10000) // Last ~10,000 blocks
+
+        // Fetch Buy events
+        const buyLogs = await publicClient.getContractEvents({
+          address: bondingCurveAddress as `0x${string}`,
+          abi: BondingCurveABI,
+          eventName: 'Buy',
+          fromBlock,
+          toBlock: 'latest',
+        })
+
+        // Fetch Sell events
+        const sellLogs = await publicClient.getContractEvents({
+          address: bondingCurveAddress as `0x${string}`,
+          abi: BondingCurveABI,
+          eventName: 'Sell',
+          fromBlock,
+          toBlock: 'latest',
+        })
+
+        // Process Buy transactions
+        const buyTransactions: Transaction[] = buyLogs.map((log: any) => {
+          const buyer = log.args.buyer as string
+          const asterAmount = log.args.asterAmount as bigint
+          const tokenAmount = log.args.tokenAmount as bigint
+
+          return {
+            hash: log.transactionHash,
+            type: 'buy' as const,
+            user: buyer,
+            tokenAmount,
+            tokenAmountFormatted: formatUnits(tokenAmount, 18),
+            asterAmount,
+            asterAmountFormatted: formatUnits(asterAmount, 18),
+            timestamp: 0, // Will fetch from block
+            blockNumber: log.blockNumber,
+            bondingCurve: bondingCurveAddress,
+          }
+        })
+
+        // Process Sell transactions
+        const sellTransactions: Transaction[] = sellLogs.map((log: any) => {
+          const seller = log.args.seller as string
+          const tokenAmount = log.args.tokenAmount as bigint
+          const asterAmount = log.args.asterAmount as bigint
+
+          return {
+            hash: log.transactionHash,
+            type: 'sell' as const,
+            user: seller,
+            tokenAmount,
+            tokenAmountFormatted: formatUnits(tokenAmount, 18),
+            asterAmount,
+            asterAmountFormatted: formatUnits(asterAmount, 18),
+            timestamp: 0,
+            blockNumber: log.blockNumber,
+            bondingCurve: bondingCurveAddress,
+          }
+        })
+
+        // Combine and fetch timestamps
+        const allTransactions = [...buyTransactions, ...sellTransactions]
+
+        // Fetch block timestamps
+        const transactionsWithTimestamps = await Promise.all(
+          allTransactions.map(async (tx) => {
+            try {
+              const block = await publicClient.getBlock({ blockNumber: tx.blockNumber })
+              return {
+                ...tx,
+                timestamp: Number(block.timestamp),
+              }
+            } catch (err) {
+              console.error('Error fetching block:', err)
+              return tx
+            }
+          })
+        )
+
+        // Filter by user if provided
+        const filteredTransactions = userAddress
+          ? transactionsWithTimestamps.filter(tx =>
+              tx.user.toLowerCase() === userAddress.toLowerCase()
+            )
+          : transactionsWithTimestamps
+
+        // Sort by most recent first
+        filteredTransactions.sort((a, b) => b.timestamp - a.timestamp)
+
+        setTransactions(filteredTransactions)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching transactions:', err)
+        setError(err as Error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTransactions()
+  }, [publicClient, bondingCurveAddress, userAddress])
+
+  return { transactions, isLoading, error }
+}

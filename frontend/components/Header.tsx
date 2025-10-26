@@ -24,6 +24,9 @@ export function Header() {
             <Link href="/portfolio" className="hover:text-primary transition">
               Portfolio
             </Link>
+            <Link href="/history" className="hover:text-primary transition">
+              History
+            </Link>
           </nav>
         </div>
         <ConnectButton />
