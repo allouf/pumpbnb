@@ -7,6 +7,7 @@ import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents'
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import BondingCurveABI from '@/lib/abis/BondingCurve.json'
+import { TokenAvatar } from '@/components/TokenAvatar'
 
 function TokenCard({ token }: { token: any }) {
   // Read bonding curve reserves to get progress
@@ -27,9 +28,12 @@ function TokenCard({ token }: { token: any }) {
       className="bg-secondary-light p-6 rounded-xl hover:bg-secondary-light/80 transition border border-gray-800 hover:border-primary/50 block"
     >
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-xl font-bold">{token.name}</h3>
-          <p className="text-gray-400">${token.symbol}</p>
+        <div className="flex items-center gap-3">
+          <TokenAvatar symbol={token.symbol} size="md" />
+          <div>
+            <h3 className="text-xl font-bold">{token.name}</h3>
+            <p className="text-gray-400">${token.symbol}</p>
+          </div>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-primary">{marketCap} ASTER</div>

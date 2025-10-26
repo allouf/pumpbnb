@@ -3,6 +3,7 @@
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useUserPortfolio } from '@/lib/hooks/useUserPortfolio'
+import { TokenAvatar } from '@/components/TokenAvatar'
 
 export default function PortfolioPage() {
   const { address, isConnected } = useAccount()
@@ -103,9 +104,7 @@ export default function PortfolioPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-black font-bold text-lg">
-                        {holding.symbol.slice(0, 2)}
-                      </div>
+                      <TokenAvatar symbol={holding.symbol} size="md" />
                       <div>
                         <h3 className="text-xl font-bold group-hover:text-primary transition">
                           {holding.name}

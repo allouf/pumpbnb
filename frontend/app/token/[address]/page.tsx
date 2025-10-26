@@ -6,6 +6,7 @@ import { formatUnits, parseUnits } from 'viem'
 import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABI from '@/lib/abis/BondingCurve.json'
 import PumpTokenABI from '@/lib/abis/PumpToken.json'
+import { TokenAvatar } from '@/components/TokenAvatar'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
   const { address: userAddress, isConnected } = useAccount()
@@ -84,8 +85,13 @@ export default function TokenPage({ params }: { params: { address: string } }) {
           {/* Token Info */}
           <div className="lg:col-span-2">
             <div className="bg-secondary-light p-6 rounded-xl mb-6">
-              <h1 className="text-4xl font-bold mb-2">{tokenName as string || 'Loading...'}</h1>
-              <p className="text-gray-400 text-xl mb-6">${tokenSymbol as string || '...'}</p>
+              <div className="flex items-center gap-4 mb-6">
+                <TokenAvatar symbol={tokenSymbol as string || 'TOKEN'} size="xl" />
+                <div>
+                  <h1 className="text-4xl font-bold mb-1">{tokenName as string || 'Loading...'}</h1>
+                  <p className="text-gray-400 text-xl">${tokenSymbol as string || '...'}</p>
+                </div>
+              </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-secondary p-4 rounded-lg">
