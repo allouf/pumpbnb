@@ -21,6 +21,9 @@ export function Header() {
             <Link href="/tokens" className="hover:text-primary transition">
               Tokens
             </Link>
+            <Link href="/portfolio" className="hover:text-primary transition">
+              Portfolio
+            </Link>
           </nav>
         </div>
         <ConnectButton />
