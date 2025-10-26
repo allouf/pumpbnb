@@ -7,6 +7,8 @@ import PumpTokenABI from '@/lib/abis/PumpToken.json'
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
+import { LikeButton } from '@/components/LikeButton'
+import { CommentsSection } from '@/components/CommentsSection'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
   // Sample bonding curve address - in production, fetch this from TokenFactory events
@@ -43,12 +45,15 @@ export default function TokenPage({ params }: { params: { address: string } }) {
           {/* Token Info */}
           <div className="lg:col-span-2">
             <div className="bg-secondary-light p-6 rounded-xl mb-6">
-              <div className="flex items-center gap-4 mb-6">
-                <TokenAvatar symbol={tokenSymbol as string || 'TOKEN'} size="xl" />
-                <div>
-                  <h1 className="text-4xl font-bold mb-1">{tokenName as string || 'Loading...'}</h1>
-                  <p className="text-gray-400 text-xl">${tokenSymbol as string || '...'}</p>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <TokenAvatar symbol={tokenSymbol as string || 'TOKEN'} size="xl" />
+                  <div>
+                    <h1 className="text-4xl font-bold mb-1">{tokenName as string || 'Loading...'}</h1>
+                    <p className="text-gray-400 text-xl">${tokenSymbol as string || '...'}</p>
+                  </div>
                 </div>
+                <LikeButton tokenAddress={params.address} />
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -89,6 +94,11 @@ export default function TokenPage({ params }: { params: { address: string } }) {
               bondingCurveAddress={bondingCurveAddress}
               tokenSymbol={tokenSymbol as string || 'TOKEN'}
             />
+
+            {/* Comments Section */}
+            <div className="mt-6">
+              <CommentsSection tokenAddress={params.address} />
+            </div>
           </div>
 
           {/* Trading Panel */}
