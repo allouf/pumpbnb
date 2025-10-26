@@ -19,7 +19,7 @@ export function useWatchTokenCreated(
     abi: TokenFactoryABI,
     eventName: 'TokenCreated',
     onLogs(logs) {
-      logs.forEach((log) => {
+      logs.forEach((log: any) => {
         if (log.args && onTokenCreated) {
           const event: TokenCreatedEvent = {
             token: log.args.token as string,
@@ -65,7 +65,7 @@ export function useWatchTradeEvents(
       },
     ],
     onLogs(logs) {
-      logs.forEach((log) => {
+      logs.forEach((log: any) => {
         if (onTrade) {
           onTrade(log)
         }

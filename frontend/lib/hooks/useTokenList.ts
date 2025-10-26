@@ -39,7 +39,7 @@ export function useTokenList() {
           toBlock: 'latest',
         })
 
-        const tokenList: Token[] = logs.map((log) => ({
+        const tokenList: Token[] = logs.map((log: any) => ({
           address: log.args.token as string,
           bondingCurve: log.args.bondingCurve as string,
           creator: log.args.creator as string,

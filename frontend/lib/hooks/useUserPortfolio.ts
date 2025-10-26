@@ -62,7 +62,7 @@ export function useUserPortfolio() {
         })
 
         // For each token, check if user has a balance
-        const holdingsPromises = logs.map(async (log) => {
+        const holdingsPromises = logs.map(async (log: any) => {
           if (!log.args) return null
 
           const tokenAddress = log.args.token as string
