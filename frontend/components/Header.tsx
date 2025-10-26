@@ -24,6 +24,9 @@ export function Header() {
             <Link href="/portfolio" className="hover:text-primary transition">
               Portfolio
             </Link>
+            <Link href="/dashboard" className="hover:text-primary transition">
+              Dashboard
+            </Link>
             <Link href="/history" className="hover:text-primary transition">
               History
             </Link>
