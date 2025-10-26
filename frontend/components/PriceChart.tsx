@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 interface PriceChartProps {
@@ -12,7 +12,7 @@ interface PriceChartProps {
 export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const seriesRef = useRef<ISeriesApi<'Area'> | null>(null)
+  const seriesRef = useRef<any>(null)
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
   useEffect(() => {
@@ -38,8 +38,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
     chartRef.current = chart
 
-    // Add area series
-    const series = chart.addAreaSeries({
+    // Add area series using addSeries
+    const series = chart.addSeries('Area' as any, {
       lineColor: '#F0B90B',
       topColor: 'rgba(240, 185, 11, 0.4)',
       bottomColor: 'rgba(240, 185, 11, 0.0)',
