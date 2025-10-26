@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { Header } from "@/components/Header";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "PumpBNB - Meme Coin Launchpad on BNB Chain",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <Web3Provider>
+          <ToastProvider />
           <Header />
           {children}
         </Web3Provider>
