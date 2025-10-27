@@ -2,9 +2,9 @@ import { ethers } from 'ethers';
 import config from '../config';
 import logger from '../utils/logger';
 import { prisma } from './database.service';
-import TokenFactoryABI from '../../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
-import BondingCurveABI from '../../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
-// import GraduationManagerABI from '../../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
+import TokenFactoryABI from '../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
+import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
+// import GraduationManagerABI from '../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
 
 let provider: ethers.JsonRpcProvider;
 let tokenFactoryContract: ethers.Contract;

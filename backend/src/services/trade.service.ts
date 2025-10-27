@@ -3,7 +3,7 @@ import { Trade, PaginationParams, PaginatedResponse } from '../types';
 import { NotFoundError } from '../utils/errors';
 import { ethers } from 'ethers';
 import { provider } from './indexer.service';
-import BondingCurveABI from '../../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
+import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 
 export class TradeService {
   /**

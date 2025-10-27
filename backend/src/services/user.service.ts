@@ -3,7 +3,7 @@ import { UserPortfolio, PaginationParams, PaginatedResponse } from '../types';
 // import { NotFoundError } from '../utils/errors'; // TODO: Use for error handling
 import { ethers } from 'ethers';
 import { provider } from './indexer.service';
-import PumpTokenABI from '../../../artifacts/contracts/PumpToken.sol/PumpToken.json';
+import PumpTokenABI from '../../artifacts/contracts/PumpToken.sol/PumpToken.json';
 
 export class UserService {
   /**
