@@ -6,46 +6,51 @@ import Joi from 'joi';
 
 const router = Router();
 
-// Validation schemas
+// Validation schemas - all allow unknown keys for body/query/params
 const getTradesSchema = Joi.object({
   params: Joi.object({
     tokenAddress: schemas.address,
-  }),
+  }).unknown(true),
   query: Joi.object({
     page: Joi.number().integer().min(1).optional(),
     limit: Joi.number().integer().min(1).max(100).optional(),
     sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+}).unknown(true);
 
 const getChartSchema = Joi.object({
   params: Joi.object({
     tokenAddress: schemas.address,
-  }),
+  }).unknown(true),
   query: Joi.object({
     interval: Joi.string().valid('1m', '5m', '15m', '1h', '4h', '1d').optional(),
     limit: Joi.number().integer().min(1).max(1000).optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+}).unknown(true);
 
 const estimateTradeSchema = Joi.object({
   body: Joi.object({
     tokenAddress: schemas.address,
     amountIn: Joi.string().required(),
     isBuy: Joi.boolean().required(),
-  }),
-});
+  }).unknown(true),
+  query: Joi.any(),
+  params: Joi.any(),
+}).unknown(true);
 
 const getUserTradesSchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
-  }),
+  }).unknown(true),
   query: Joi.object({
     page: Joi.number().integer().min(1).optional(),
     limit: Joi.number().integer().min(1).max(100).optional(),
     sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+}).unknown(true);
 
 // Routes
 router.get('/:tokenAddress', validate(getTradesSchema), optionalAuth, tradeController.getTokenTrades);

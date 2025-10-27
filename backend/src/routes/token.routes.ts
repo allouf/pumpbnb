@@ -13,25 +13,33 @@ const getTokensSchema = Joi.object({
     limit: Joi.number().integer().min(1).max(100).optional(),
     sortBy: Joi.string().optional(),
     sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+  params: Joi.any(),
+}).unknown(true);
 
 const getTokenByAddressSchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
-  }),
-});
+  }).unknown(true),
+  query: Joi.any(),
+  body: Joi.any(),
+}).unknown(true);
 
 const searchTokensSchema = Joi.object({
   query: Joi.object({
     q: Joi.string().min(1).required(),
     limit: Joi.number().integer().min(1).max(100).optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+  params: Joi.any(),
+}).unknown(true);
 
 const createMetadataSchema = Joi.object({
   body: schemas.tokenMetadata,
-});
+  query: Joi.any(),
+  params: Joi.any(),
+}).unknown(true);
 
 // Routes
 router.get('/', validate(getTokensSchema), optionalAuth, tokenController.getAllTokens);

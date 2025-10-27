@@ -6,39 +6,45 @@ import Joi from 'joi';
 
 const router = Router();
 
-// Validation schemas
+// Validation schemas - all allow unknown keys
 const addressSchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
-  }),
-});
+  }).unknown(true),
+  query: Joi.any(),
+  body: Joi.any(),
+}).unknown(true);
 
 const historySchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
-  }),
+  }).unknown(true),
   query: Joi.object({
     page: Joi.number().integer().min(1).optional(),
     limit: Joi.number().integer().min(1).max(100).optional(),
     sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }),
-});
+  }).unknown(true),
+  body: Joi.any(),
+}).unknown(true);
 
 const watchlistSchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
-  }),
+  }).unknown(true),
   body: Joi.object({
     tokenAddress: schemas.address,
-  }),
-});
+  }).unknown(true),
+  query: Joi.any(),
+}).unknown(true);
 
 const removeWatchlistSchema = Joi.object({
   params: Joi.object({
     address: schemas.address,
     tokenAddress: schemas.address,
-  }),
-});
+  }).unknown(true),
+  query: Joi.any(),
+  body: Joi.any(),
+}).unknown(true);
 
 // Routes
 router.get('/:address/portfolio', validate(addressSchema), optionalAuth, userController.getUserPortfolio);
