@@ -1,0 +1,73 @@
+# Environment Variables for pumpbnb-backend on Render
+# Copy and paste these into Render Dashboard → pumpbnb-backend → Environment
+
+# ============================================
+# SERVER CONFIGURATION
+# ============================================
+NODE_ENV=production
+PORT=3001
+HOST=0.0.0.0
+
+# ============================================
+# DATABASE (Get from pumpbnb-db → Info)
+# ============================================
+DATABASE_URL=postgresql://pumpbnb_db_user:PASSWORD@dpg-XXXXX.oregon-postgres.render.com/pumpbnb_db
+
+# ============================================
+# REDIS (Get from pumpbnb-redis → Connect)
+# ============================================
+REDIS_URL=redis://default:PASSWORD@red-XXXXX.oregon-redis.render.com:6379
+
+# ============================================
+# BLOCKCHAIN CONFIGURATION
+# ============================================
+BSC_TESTNET_RPC=https://bsc-testnet-rpc.publicnode.com
+BSC_MAINNET_RPC=https://bsc-dataseed1.binance.org
+CHAIN_ID=97
+
+# ============================================
+# SMART CONTRACT ADDRESSES (Updated Oct 27, 2025)
+# ============================================
+TOKEN_FACTORY_ADDRESS=0xCF0b298E26db22bCc886E03654A2Bfcb4E2742C2
+GRADUATION_MANAGER_ADDRESS=0xeE147bc2307b645c59033B7A0b16EC5E68b2A5d3
+PLATFORM_CONFIG_ADDRESS=0x0e4ED6983Bc8100936C42e5D98F9f1fEbF76b58E
+ASTER_TOKEN_ADDRESS=0x2e5bEffE46eAADAb062ED2b520a0d95654CEdF5A
+SAMPLE_TOKEN_ADDRESS=0xcFE6968c3427EcA3641d7132E03F53E7096d370e
+
+# ============================================
+# IPFS CONFIGURATION (Get from https://pinata.cloud)
+# ============================================
+PINATA_API_KEY=YOUR_PINATA_API_KEY
+PINATA_SECRET_KEY=YOUR_PINATA_SECRET_KEY
+PINATA_JWT=YOUR_PINATA_JWT_TOKEN
+
+# ============================================
+# SECURITY
+# ============================================
+JWT_SECRET=GENERATE_RANDOM_32_CHAR_STRING
+CORS_ORIGIN=https://pumpbnb-frontend.onrender.com
+
+# ============================================
+# RATE LIMITING
+# ============================================
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# ============================================
+# LOGGING
+# ============================================
+LOG_LEVEL=info
+
+# ============================================
+# OPTIONAL: MONGODB (If using)
+# ============================================
+# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/pumpbnb
+
+# ============================================
+# NOTES
+# ============================================
+# 1. Replace all UPPERCASE placeholders with actual values
+# 2. Get DATABASE_URL from: Render Dashboard → pumpbnb-db → Info → Internal Database URL
+# 3. Get REDIS_URL from: Render Dashboard → pumpbnb-redis → Connect → Internal Redis URL
+# 4. Generate JWT_SECRET: Use PowerShell command from DEPLOYMENT_STEPS.md
+# 5. Get Pinata credentials from: https://app.pinata.cloud/developers/api-keys

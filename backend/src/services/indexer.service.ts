@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 import { prisma } from './database.service';
 import TokenFactoryABI from '../../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
 import BondingCurveABI from '../../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
-import GraduationManagerABI from '../../../artifacts/contracts/GraduationManager.sol/GraduationManager.json';
+// import GraduationManagerABI from '../../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
 
 let provider: ethers.JsonRpcProvider;
 let tokenFactoryContract: ethers.Contract;
@@ -213,17 +213,21 @@ async function updateTokenStats(tokenAddress: string): Promise<void> {
       },
     });
 
-    const volume24hResult = await prisma.trade.aggregate({
+    // Get trades from last 24 hours to calculate volume
+    const tradesFor24h = await prisma.trade.findMany({
       where: {
         tokenAddress,
         timestamp: { gte: oneDayAgo },
       },
-      _sum: {
+      select: {
         amountIn: true,
       },
     });
 
-    const volume24h = volume24hResult._sum.amountIn || '0';
+    // Manually sum the volume (since amountIn is String, can't use Prisma aggregate)
+    const volume24h = tradesFor24h
+      .reduce((sum, trade) => sum + BigInt(trade.amountIn), BigInt(0))
+      .toString();
 
     // Get unique holders
     const holders = await prisma.userPortfolio.count({
@@ -263,7 +267,7 @@ async function indexPastEvents(fromBlock: number): Promise<void> {
       for (const event of events) {
         // Process each event (similar to real-time listener)
         // This is a simplified version - you may want to batch insert for performance
-        const args = event.args;
+        const args = (event as any).args;
         if (args) {
           const [tokenAddress, bondingCurve, creator, name, symbol] = args;
 

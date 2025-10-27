@@ -1,0 +1,68 @@
+# Environment Variables for pumpbnb-backend on Render
+# Copy and paste these into Render Dashboard → pumpbnb-backend → Environment
+
+# ============================================
+# SERVER CONFIGURATION
+# ============================================
+NODE_ENV=production
+PORT=3001
+HOST=0.0.0.0
+
+# ============================================
+# DATABASE - Internal URL (for Render services)
+# ============================================
+DATABASE_URL=postgresql://pumpbnb_user:nB3rAtHIN9kxP9hSxOgpA9jTJBkXb3Nb@dpg-d3qk5vali9vc73cej0mg-a/pumpbnb
+
+# ============================================
+# REDIS - Internal URL (for Render services)
+# ============================================
+REDIS_URL=redis://red-d3vppb7diees73ahug30:6379
+
+# ============================================
+# BLOCKCHAIN CONFIGURATION
+# ============================================
+BSC_TESTNET_RPC=https://bsc-testnet-rpc.publicnode.com
+BSC_MAINNET_RPC=https://bsc-dataseed1.binance.org
+CHAIN_ID=97
+
+# ============================================
+# SMART CONTRACT ADDRESSES (Updated Oct 27, 2025)
+# ============================================
+TOKEN_FACTORY_ADDRESS=0xCF0b298E26db22bCc886E03654A2Bfcb4E2742C2
+GRADUATION_MANAGER_ADDRESS=0xeE147bc2307b645c59033B7A0b16EC5E68b2A5d3
+PLATFORM_CONFIG_ADDRESS=0x0e4ED6983Bc8100936C42e5D98F9f1fEbF76b58E
+ASTER_TOKEN_ADDRESS=0x2e5bEffE46eAADAb062ED2b520a0d95654CEdF5A
+SAMPLE_TOKEN_ADDRESS=0xcFE6968c3427EcA3641d7132E03F53E7096d370e
+
+# ============================================
+# IPFS CONFIGURATION (Get from https://pinata.cloud)
+# ============================================
+PINATA_API_KEY=YOUR_PINATA_API_KEY_HERE
+PINATA_SECRET_KEY=YOUR_PINATA_SECRET_KEY_HERE
+PINATA_JWT=YOUR_PINATA_JWT_TOKEN_HERE
+
+# ============================================
+# SECURITY
+# ============================================
+JWT_SECRET=GENERATE_RANDOM_32_CHAR_STRING_FOR_PRODUCTION
+CORS_ORIGIN=https://pumpbnb-frontend.onrender.com
+
+# ============================================
+# RATE LIMITING
+# ============================================
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# ============================================
+# LOGGING
+# ============================================
+LOG_LEVEL=info
+
+# ============================================
+# IMPORTANT NOTES
+# ============================================
+# 1. DATABASE_URL: Uses INTERNAL URL (without .oregon-postgres.render.com)
+# 2. REDIS_URL: Uses INTERNAL URL (redis:// not rediss://)
+# 3. Get Pinata credentials from: https://app.pinata.cloud/developers/api-keys
+# 4. Generate JWT_SECRET using: PowerShell command or random generator
+# 5. CORS_ORIGIN: Update with your actual frontend URL on Render

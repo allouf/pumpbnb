@@ -99,16 +99,15 @@ export class TradeService {
     }
 
     // Get additional computed stats
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const [volume7d, allTimeTrades, uniqueTraders] = await Promise.all([
-      prisma.trade.aggregate({
+    const [trades7d, allTimeTrades, uniqueTraders] = await Promise.all([
+      prisma.trade.findMany({
         where: {
           tokenAddress: tokenAddress.toLowerCase(),
           timestamp: { gte: oneWeekAgo },
         },
-        _sum: { amountIn: true },
+        select: { amountIn: true },
       }),
       prisma.trade.count({
         where: { tokenAddress: tokenAddress.toLowerCase() },
@@ -120,9 +119,14 @@ export class TradeService {
       }),
     ]);
 
+    // Manually calculate 7-day volume
+    const volume7d = trades7d
+      .reduce((sum, trade) => sum + BigInt(trade.amountIn), BigInt(0))
+      .toString();
+
     return {
       ...stats,
-      volume7d: volume7d._sum.amountIn || '0',
+      volume7d,
       allTimeTrades,
       uniqueTraders: uniqueTraders.length,
     };

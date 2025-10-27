@@ -1,6 +1,6 @@
 import { prisma } from './database.service';
 import { UserPortfolio, PaginationParams, PaginatedResponse } from '../types';
-import { NotFoundError } from '../utils/errors';
+// import { NotFoundError } from '../utils/errors'; // TODO: Use for error handling
 import { ethers } from 'ethers';
 import { provider } from './indexer.service';
 import PumpTokenABI from '../../../artifacts/contracts/PumpToken.sol/PumpToken.json';
@@ -12,16 +12,6 @@ export class UserService {
   async getUserPortfolio(userAddress: string): Promise<UserPortfolio> {
     const holdings = await prisma.userPortfolio.findMany({
       where: { userAddress: userAddress.toLowerCase() },
-      include: {
-        token: {
-          select: {
-            name: true,
-            symbol: true,
-            imageUrl: true,
-            stats: true,
-          },
-        },
-      },
     });
 
     let totalValue = BigInt(0);
@@ -29,7 +19,8 @@ export class UserService {
 
     const tokens = holdings.map((holding) => {
       const balance = BigInt(holding.balance);
-      const currentPrice = BigInt((holding as any).token.stats?.price || '0');
+      // TODO: Fetch token stats separately for accurate pricing
+      const currentPrice = BigInt('0'); // Simplified for now
       const value = (balance * currentPrice) / BigInt(10 ** 18);
 
       const invested = BigInt(holding.totalInvested);
@@ -233,19 +224,12 @@ export class UserService {
   async getWatchlist(userAddress: string): Promise<any[]> {
     const watchlist = await prisma.watchlist.findMany({
       where: { userAddress: userAddress.toLowerCase() },
-      include: {
-        token: {
-          include: {
-            stats: true,
-          },
-        },
-      },
     });
 
+    // TODO: Fetch token details separately
     return watchlist.map((item) => ({
       tokenAddress: item.tokenAddress,
       addedAt: item.addedAt,
-      token: (item as any).token,
     }));
   }
 

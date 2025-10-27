@@ -1,0 +1,8 @@
+
+> pumpbnb-backend@1.0.0 build
+> tsc
+
+src/controllers/token.controller.ts(103,31): error TS7030: Not all code paths return a value.
+src/services/user.service.ts(3,1): error TS6133: 'NotFoundError' is declared but its value is never read.
+src/services/user.service.ts(15,7): error TS2322: Type 'any' is not assignable to type 'never'.
+src/services/user.service.ts(236,7): error TS2322: Type 'any' is not assignable to type 'never'.

@@ -71,5 +71,3 @@ export function getMongoDb(): Db {
   }
   return mongoDb;
 }
-
-export { prisma, redis };

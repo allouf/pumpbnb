@@ -100,15 +100,16 @@ export class TokenController {
    * GET /api/tokens/search
    * Search tokens by name or symbol
    */
-  searchTokens = asyncHandler(async (req: Request, res: Response) => {
+  searchTokens = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const query = req.query.q as string;
     const limit = parseInt(req.query.limit as string) || 20;
 
     if (!query) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Query parameter "q" is required',
       });
+      return;
     }
 
     const tokens = await tokenService.searchTokens(query, limit);

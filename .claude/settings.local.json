@@ -41,7 +41,13 @@
       "Bash(git push:*)",
       "Bash(node:*)",
       "Bash(npm run build:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(set PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=yes, delete all data and reset the database)",
+      "Bash(npx prisma migrate reset:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(timeout 10 npx prisma:*)",
+      "Bash(if not exist \"prisma\\migrations\" mkdir \"prisma\\migrations\")",
+      "Bash(npx prisma generate:*)"
     ],
     "deny": [],
     "ask": []

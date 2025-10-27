@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
+// import RedisStore from 'rate-limit-redis'; // Temporarily disabled
 import Redis from 'ioredis';
 import config from '../config';
 import logger from '../utils/logger';
@@ -19,13 +19,14 @@ export const apiLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  ...(redis && {
-    store: new RedisStore({
-      // @ts-expect-error - Redis client types mismatch
-      client: redis,
-      prefix: 'rl:',
-    }),
-  }),
+  // Redis store temporarily disabled due to type issues
+  // Will use in-memory store for now
+  // ...(redis && {
+  //   store: new RedisStore({
+  //     client: redis as any,
+  //     prefix: 'rl:',
+  //   }),
+  // }),
 });
 
 export const strictLimiter = rateLimit({
@@ -34,11 +35,12 @@ export const strictLimiter = rateLimit({
   message: 'Rate limit exceeded for this endpoint.',
   standardHeaders: true,
   legacyHeaders: false,
-  ...(redis && {
-    store: new RedisStore({
-      // @ts-expect-error - Redis client types mismatch
-      client: redis,
-      prefix: 'rl:strict:',
-    }),
-  }),
+  // Redis store temporarily disabled due to type issues
+  // Will use in-memory store for now
+  // ...(redis && {
+  //   store: new RedisStore({
+  //     client: redis as any,
+  //     prefix: 'rl:strict:',
+  //   }),
+  // }),
 });

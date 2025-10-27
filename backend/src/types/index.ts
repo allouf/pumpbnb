@@ -5,6 +5,8 @@ export interface AuthRequest extends Request {
     address: string;
     nonce?: number;
   };
+  body: any;
+  headers: any;
 }
 
 export interface TokenMetadata {
