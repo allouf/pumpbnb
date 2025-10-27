@@ -2,14 +2,14 @@
   "network": "BSC Testnet",
   "chainId": 97,
   "deployer": "0x900333E7D9BFa2781308C8A4203BF2823c605Ef0",
-  "timestamp": "2025-10-25T12:41:45.807Z",
+  "timestamp": "2025-10-27T10:20:50.145Z",
   "contracts": {
-    "MockASTER": "0x311ECE533632bca662E100B8c4E0EB927EFE2588",
-    "PlatformConfig": "0x2FdB3697Bb6ef63F7c5dF5EAA9F78d4d2fa51479",
-    "GraduationManager": "0x459313EbBb829b0a39a71806C022F25891332E53",
-    "TokenFactory": "0x0d4D25e0239e689D7856c9760e74Ee12a2758866",
-    "SampleToken": "0xE1bD0AFB5A41fDEd89678D2826eD9F3c6062dF3a",
-    "SampleBondingCurve": "0xCefD1ff0849AcDe7ebE6f0Ee26c96Bc17B490da9"
+    "MockASTER": "0x2e5bEffE46eAADAb062ED2b520a0d95654CEdF5A",
+    "PlatformConfig": "0x0e4ED6983Bc8100936C42e5D98F9f1fEbF76b58E",
+    "GraduationManager": "0xeE147bc2307b645c59033B7A0b16EC5E68b2A5d3",
+    "TokenFactory": "0xCF0b298E26db22bCc886E03654A2Bfcb4E2742C2",
+    "SampleToken": "0xcFE6968c3427EcA3641d7132E03F53E7096d370e",
+    "SampleBondingCurve": "0xf26b290E656aa55C6b10e0a97Ad27597B6aA446c"
   },
   "externalContracts": {
     "WBNB": "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",

@@ -59,6 +59,7 @@ describe("Gas Benchmarks", function () {
     const mockAsterDeploy = await MockERC20.deploy(
       "Mock ASTER",
       "ASTER",
+      18, // decimals
       ethers.parseEther("100000000") // 100M initial supply
     );
     await mockAsterDeploy.waitForDeployment();
@@ -82,6 +83,7 @@ describe("Gas Benchmarks", function () {
     mockWBNB = await MockERC20.deploy(
       "Mock WBNB",
       "WBNB",
+      18, // decimals
       ethers.parseEther("100000000") // 100M initial supply
     ) as any;
     await mockWBNB.waitForDeployment();

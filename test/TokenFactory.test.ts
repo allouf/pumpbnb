@@ -429,6 +429,64 @@ describe("TokenFactory", function () {
     });
   });
 
+  describe("Batch Query Functions", function () {
+    let token1: string, token2: string, token3: string;
+
+    beforeEach(async function () {
+      // Create 3 tokens for batch testing
+      const tx1 = await factory.connect(creator1).createToken("Token 1", "TK1", "ipfs://1");
+      const receipt1 = await tx1.wait();
+      const event1 = receipt1?.logs.find((log: any) => log.fragment?.name === "TokenCreated");
+      token1 = (event1 as any).args[0];
+
+      const tx2 = await factory.connect(creator1).createToken("Token 2", "TK2", "ipfs://2");
+      const receipt2 = await tx2.wait();
+      const event2 = receipt2?.logs.find((log: any) => log.fragment?.name === "TokenCreated");
+      token2 = (event2 as any).args[0];
+
+      const tx3 = await factory.connect(creator2).createToken("Token 3", "TK3", "ipfs://3");
+      const receipt3 = await tx3.wait();
+      const event3 = receipt3?.logs.find((log: any) => log.fragment?.name === "TokenCreated");
+      token3 = (event3 as any).args[0];
+    });
+
+    it("Should return batch info for multiple tokens", async function () {
+      const infos = await factory.getTokenInfoBatch([token1, token2, token3]);
+
+      expect(infos.length).to.equal(3);
+      expect(infos[0].exists).to.be.true;
+      expect(infos[1].exists).to.be.true;
+      expect(infos[2].exists).to.be.true;
+
+      expect(infos[0].name).to.equal("Token 1");
+      expect(infos[1].name).to.equal("Token 2");
+      expect(infos[2].name).to.equal("Token 3");
+    });
+
+    it("Should handle batch query with non-existent tokens", async function () {
+      const fakeToken = ethers.ZeroAddress;
+      const infos = await factory.getTokenInfoBatch([token1, fakeToken, token2]);
+
+      expect(infos.length).to.equal(3);
+      expect(infos[0].exists).to.be.true;
+      expect(infos[1].exists).to.be.false; // Non-existent token
+      expect(infos[2].exists).to.be.true;
+    });
+
+    it("Should handle empty batch query", async function () {
+      const infos = await factory.getTokenInfoBatch([]);
+      expect(infos.length).to.equal(0);
+    });
+
+    it("Should handle batch query with single token", async function () {
+      const infos = await factory.getTokenInfoBatch([token1]);
+
+      expect(infos.length).to.equal(1);
+      expect(infos[0].exists).to.be.true;
+      expect(infos[0].name).to.equal("Token 1");
+    });
+  });
+
   describe("Token Creation is FREE", function () {
     it("Should not charge any fee for token creation", async function () {
       // This is a documentation test - token creation is FREE (only gas costs)

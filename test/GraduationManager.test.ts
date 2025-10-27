@@ -47,10 +47,11 @@ describe("GraduationManager", function () {
     pauser = accounts.pauser;
 
     // Deploy mock ASTER token at the expected address
-    const MockERC20 = await ethers.getContractFactory("contracts/test/MockERC20.sol:MockERC20");
+    const MockERC20 = await ethers.getContractFactory("contracts/mocks/MockERC20.sol:MockERC20");
     const mockAsterDeploy = await MockERC20.deploy(
       "ASTER Token",
       "ASTER",
+      18, // decimals
       parseAster("10000000")
     );
 

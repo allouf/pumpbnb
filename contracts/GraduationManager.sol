@@ -158,8 +158,8 @@ contract GraduationManager is ReentrancyGuard {
         // Store pair address
         tokenToPancakePair[address(token)] = pancakePair;
 
-        // Step 4: Unlock creator allocation
-        token.unlockCreatorAllocation();
+        // Step 4: Unlock creator allocation (via bonding curve)
+        curve.unlockCreatorAllocation();
 
         emit GraduationCompleted(
             address(token),

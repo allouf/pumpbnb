@@ -41,6 +41,7 @@ describe("BondingCurve - Fuzz Testing", function () {
     const mockAsterDeploy = await MockERC20Factory.deploy(
       "Mock ASTER",
       "ASTER",
+      18, // decimals
       ethers.parseEther("100000000") // 100M initial supply
     );
     await mockAsterDeploy.waitForDeployment();
@@ -63,6 +64,7 @@ describe("BondingCurve - Fuzz Testing", function () {
     const mockWBNBDeploy = await MockERC20Factory.deploy(
       "Mock WBNB",
       "WBNB",
+      18, // decimals
       ethers.parseEther("100000000") // 100M initial supply
     );
     await mockWBNBDeploy.waitForDeployment();

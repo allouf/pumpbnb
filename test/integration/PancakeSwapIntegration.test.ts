@@ -63,8 +63,8 @@ describe("Integration: PancakeSwap & ASTER", function () {
     pauser = accounts.pauser;
 
     // Deploy mock ASTER at expected address
-    const MockERC20 = await ethers.getContractFactory("contracts/test/MockERC20.sol:MockERC20");
-    const mockAsterDeploy = await MockERC20.deploy("ASTER Token", "ASTER", parseAster("10000000"));
+    const MockERC20 = await ethers.getContractFactory("contracts/mocks/MockERC20.sol:MockERC20");
+    const mockAsterDeploy = await MockERC20.deploy("ASTER Token", "ASTER", 18, parseAster("10000000"));
 
     const mockAsterCode = await ethers.provider.getCode(await mockAsterDeploy.getAddress());
     await ethers.provider.send("hardhat_setCode", [ASTER_ADDRESS, mockAsterCode]);

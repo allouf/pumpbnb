@@ -38,6 +38,7 @@ describe("Security - Reentrancy Attacks", function () {
     const mockAsterDeploy = await MockERC20Factory.deploy(
       "Mock ASTER",
       "ASTER",
+      18, // decimals
       ethers.parseEther("10000000") // 10M initial supply
     );
     await mockAsterDeploy.waitForDeployment();

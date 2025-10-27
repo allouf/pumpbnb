@@ -312,6 +312,15 @@ contract BondingCurve is ReentrancyGuard {
     }
 
     /**
+     * @notice Unlock creator allocation (called by GraduationManager after graduation)
+     * @dev This function can only be called after graduation to unlock the creator's tokens
+     */
+    function unlockCreatorAllocation() external {
+        require(graduated, "Not graduated");
+        token.unlockCreatorAllocation();
+    }
+
+    /**
      * @notice Check if graduation threshold is met
      */
     function _checkGraduation() internal view {

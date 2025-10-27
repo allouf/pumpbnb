@@ -1,0 +1,135 @@
+// Prisma schema for PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id              String    @id @default(uuid())
+  address         String    @unique
+  name            String
+  symbol          String
+  description     String
+  imageUrl        String
+  creator         String
+  totalSupply     String
+  bondingCurve    String
+  createdAt       DateTime  @default(now())
+  graduatedAt     DateTime?
+  isGraduated     Boolean   @default(false)
+  ipfsHash        String?
+  website         String?
+  twitter         String?
+  telegram        String?
+  discord         String?
+
+  trades          Trade[]
+  stats           TokenStats?
+
+  @@index([creator])
+  @@index([createdAt])
+  @@index([isGraduated])
+  @@map("tokens")
+}
+
+model Trade {
+  id              String    @id @default(uuid())
+  tokenAddress    String
+  trader          String
+  isBuy           Boolean
+  amountIn        String
+  amountOut       String
+  fee             String
+  timestamp       DateTime  @default(now())
+  txHash          String    @unique
+  blockNumber     Int
+
+  token           Token     @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
+
+  @@index([tokenAddress])
+  @@index([trader])
+  @@index([timestamp])
+  @@index([blockNumber])
+  @@map("trades")
+}
+
+model TokenStats {
+  id                String    @id @default(uuid())
+  tokenAddress      String    @unique
+  price             String
+  marketCap         String
+  volume24h         String
+  trades24h         Int       @default(0)
+  holders           Int       @default(0)
+  liquidity         String
+  priceChange24h    String    @default("0")
+  updatedAt         DateTime  @updatedAt
+
+  token             Token     @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
+
+  @@index([volume24h])
+  @@index([marketCap])
+  @@index([updatedAt])
+  @@map("token_stats")
+}
+
+model UserPortfolio {
+  id              String    @id @default(uuid())
+  userAddress     String
+  tokenAddress    String
+  balance         String
+  averageBuyPrice String    @default("0")
+  totalInvested   String    @default("0")
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userAddress, tokenAddress])
+  @@index([userAddress])
+  @@index([tokenAddress])
+  @@map("user_portfolios")
+}
+
+model Watchlist {
+  id              String    @id @default(uuid())
+  userAddress     String
+  tokenAddress    String
+  addedAt         DateTime  @default(now())
+
+  @@unique([userAddress, tokenAddress])
+  @@index([userAddress])
+  @@map("watchlists")
+}
+
+model GraduationEvent {
+  id                String    @id @default(uuid())
+  tokenAddress      String    @unique
+  asterCollected    String
+  wbnbReceived      String
+  lpTokensBurned    String
+  pancakeSwapPair   String
+  timestamp         DateTime  @default(now())
+  txHash            String    @unique
+  blockNumber       Int
+
+  @@index([timestamp])
+  @@index([blockNumber])
+  @@map("graduation_events")
+}
+
+model PlatformStats {
+  id                    String    @id @default(uuid())
+  date                  DateTime  @unique @default(now())
+  totalTokensCreated    Int       @default(0)
+  totalTokensGraduated  Int       @default(0)
+  totalVolume           String    @default("0")
+  totalFees             String    @default("0")
+  totalTrades           Int       @default(0)
+  activeUsers           Int       @default(0)
+
+  @@index([date])
+  @@map("platform_stats")
+}

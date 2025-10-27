@@ -58,8 +58,8 @@ describe("Integration: Complete Token Lifecycle", function () {
     pauser = accounts.pauser;
 
     // Deploy mock ASTER at expected address
-    const MockERC20 = await ethers.getContractFactory("contracts/test/MockERC20.sol:MockERC20");
-    const mockAsterDeploy = await MockERC20.deploy("ASTER Token", "ASTER", parseAster("10000000"));
+    const MockERC20 = await ethers.getContractFactory("contracts/mocks/MockERC20.sol:MockERC20");
+    const mockAsterDeploy = await MockERC20.deploy("ASTER Token", "ASTER", 18, parseAster("10000000"));
 
     const ASTER_ADDRESS = "0x000Ae314E2A2172a039B26378814C252734f556A";
     const mockAsterCode = await ethers.provider.getCode(await mockAsterDeploy.getAddress());

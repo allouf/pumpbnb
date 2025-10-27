@@ -51,7 +51,10 @@ contract MockPancakePair {
 
     uint public totalSupply;
     mapping(address => uint) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
 
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
@@ -110,6 +113,32 @@ contract MockPancakePair {
 
         _update(balance0, balance1);
         emit Burn(msg.sender, amount0, amount1, to);
+    }
+
+    function transfer(address to, uint value) external returns (bool) {
+        require(balanceOf[msg.sender] >= value, "INSUFFICIENT_BALANCE");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint value) external returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint value) external returns (bool) {
+        require(balanceOf[from] >= value, "INSUFFICIENT_BALANCE");
+        if (from != msg.sender && allowance[from][msg.sender] != type(uint).max) {
+            require(allowance[from][msg.sender] >= value, "INSUFFICIENT_ALLOWANCE");
+            allowance[from][msg.sender] -= value;
+        }
+        balanceOf[from] -= value;
+        balanceOf[to] += value;
+        emit Transfer(from, to, value);
+        return true;
     }
 
     function _update(uint balance0, uint balance1) private {
