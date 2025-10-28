@@ -14,6 +14,9 @@ import userRoutes from './routes/user.routes';
 
 const app: Application = express();
 
+// Trust proxy - required for Render to properly handle X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(
