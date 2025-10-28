@@ -1,14 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useRouter } from 'next/navigation'
 import { CONTRACTS } from '@/lib/contracts'
 import TokenFactoryABI from '@/lib/abis/TokenFactory.json'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
 export default function CreateTokenPage() {
+  const router = useRouter()
   const { address, isConnected } = useAccount()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Form fields
   const [name, setName] = useState('')
   const [symbol, setSymbol] = useState('')
+  const [description, setDescription] = useState('')
+  const [image, setImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>('')
+  const [website, setWebsite] = useState('')
+  const [twitter, setTwitter] = useState('')
+  const [telegram, setTelegram] = useState('')
+  const [discord, setDiscord] = useState('')
+
+  // UI states
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [uploadError, setUploadError] = useState<string>('')
   const [metadataURI, setMetadataURI] = useState('')
 
   const { data: hash, isPending, writeContract, error } = useWriteContract()
@@ -16,6 +34,117 @@ export default function CreateTokenPage() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   })
+
+  // Handle image selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file size (max 15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      setUploadError('Image must be less than 15MB')
+      return
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      setUploadError('Only JPG, PNG, or GIF images are allowed')
+      return
+    }
+
+    setImage(file)
+    setUploadError('')
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // Handle drag and drop
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file && file.type.startsWith('image/')) {
+      const fakeEvent = {
+        target: { files: [file] }
+      } as unknown as React.ChangeEvent<HTMLInputElement>
+      handleImageChange(fakeEvent)
+    }
+  }
+
+  // Upload image to IPFS via backend
+  const uploadImageToIPFS = async (): Promise<string> => {
+    if (!image) return ''
+
+    setIsUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', image)
+
+      const response = await fetch(`${API_URL}/api/ipfs/upload`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await response.json()
+      return data.ipfsHash || data.url || ''
+    } catch (err) {
+      console.error('Error uploading to IPFS:', err)
+      setUploadError('Failed to upload image. Please try again.')
+      return ''
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  // Upload metadata to IPFS via backend
+  const uploadMetadataToIPFS = async (imageUrl: string): Promise<string> => {
+    try {
+      const metadata = {
+        name,
+        symbol,
+        description,
+        image: imageUrl,
+        external_url: website || undefined,
+        attributes: [],
+        properties: {
+          social: {
+            twitter: twitter || undefined,
+            telegram: telegram || undefined,
+            discord: discord || undefined,
+            website: website || undefined,
+          },
+        },
+      }
+
+      const response = await fetch(`${API_URL}/api/ipfs/upload-json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(metadata),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload metadata')
+      }
+
+      const data = await response.json()
+      return data.ipfsHash || data.url || ''
+    } catch (err) {
+      console.error('Error uploading metadata:', err)
+      return ''
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,28 +154,71 @@ export default function CreateTokenPage() {
       return
     }
 
+    if (!name || !symbol) {
+      alert('Please fill in token name and symbol')
+      return
+    }
+
     try {
+      // Upload image to IPFS if provided
+      let imageUrl = ''
+      if (image) {
+        imageUrl = await uploadImageToIPFS()
+        if (!imageUrl && image) {
+          alert('Failed to upload image. Please try again.')
+          return
+        }
+      }
+
+      // Upload metadata to IPFS
+      let metadataUri = ''
+      if (imageUrl || description || website || twitter || telegram || discord) {
+        metadataUri = await uploadMetadataToIPFS(imageUrl)
+      }
+
+      setMetadataURI(metadataUri)
+
+      // Create token on blockchain
       writeContract({
         address: CONTRACTS.TokenFactory as `0x${string}`,
         abi: TokenFactoryABI,
         functionName: 'createToken',
-        args: [name, symbol, metadataURI],
+        args: [name, symbol, metadataUri || ''],
       })
     } catch (err) {
       console.error('Error creating token:', err)
     }
   }
 
+  // Redirect to token page on success
+  if (isSuccess && hash) {
+    // Extract token address from event logs (would need to parse the receipt)
+    // For now, redirect to tokens page
+    setTimeout(() => {
+      router.push('/tokens')
+    }, 2000)
+  }
+
   return (
     <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <h1 className="text-4xl font-bold mb-2 text-center">Create Your Token</h1>
-        <p className="text-gray-400 text-center mb-8">
-          Launch your meme coin in seconds. FREE creation, only gas costs!
+      <div className="container mx-auto px-4 max-w-3xl">
+        <h1 className="text-4xl font-bold mb-2">Create new coin</h1>
+        <p className="text-gray-400 mb-8">
+          Launch your meme coin in seconds on BNB Chain
         </p>
 
-        <div className="bg-secondary-light p-8 rounded-xl">
+        <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Warning Banner */}
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+              <p className="text-yellow-500 text-sm">
+                ⚠️ <strong>Choose carefully</strong> - these can't be changed once the coin is created
+              </p>
+            </div>
+
+            {/* Coin Details Section */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Coin details</h2>
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-2">
                 Token Name
