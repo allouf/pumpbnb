@@ -1,21 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, usePublicClient, useReadContract } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
-import { CONTRACTS } from '@/lib/contracts'
-import TokenFactoryABI from '@/lib/abis/TokenFactory.json'
-import BondingCurveABI from '@/lib/abis/BondingCurve.json'
 
-const ERC20_ABI = [
-  {
-    constant: true,
-    inputs: [{ name: 'owner', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ name: '', type: 'uint256' }],
-    type: 'function',
-  },
-]
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export interface TokenHolding {
   tokenAddress: string
@@ -31,14 +20,13 @@ export interface TokenHolding {
 
 export function useUserPortfolio() {
   const { address, isConnected } = useAccount()
-  const publicClient = usePublicClient()
   const [holdings, setHoldings] = useState<TokenHolding[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     async function fetchPortfolio() {
-      if (!address || !isConnected || !publicClient) {
+      if (!address || !isConnected) {
         setHoldings([])
         setIsLoading(false)
         return
@@ -48,103 +36,45 @@ export function useUserPortfolio() {
         setIsLoading(true)
         setError(null)
 
-        // Get current block number
-        const currentBlock = await publicClient.getBlockNumber()
-        const fromBlock = currentBlock - BigInt(10000) // Last ~10,000 blocks
+        // Fetch portfolio from backend API
+        const response = await fetch(`${API_URL}/api/users/${address}/portfolio`)
 
-        // Fetch all TokenCreated events
-        const logs = await publicClient.getContractEvents({
-          address: CONTRACTS.TokenFactory as `0x${string}`,
-          abi: TokenFactoryABI,
-          eventName: 'TokenCreated',
-          fromBlock,
-          toBlock: 'latest',
-        })
+        if (!response.ok) {
+          throw new Error(`Failed to fetch portfolio: ${response.statusText}`)
+        }
 
-        // For each token, check if user has a balance
-        const holdingsPromises = logs.map(async (log: any) => {
-          if (!log.args) return null
+        const data = await response.json()
 
-          const tokenAddress = log.args.token as string
-          const bondingCurveAddress = log.args.bondingCurve as string
-          const name = log.args.name as string
-          const symbol = log.args.symbol as string
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch portfolio')
+        }
 
-          try {
-            // Get user's token balance
-            const balance = await publicClient.readContract({
-              address: tokenAddress as `0x${string}`,
-              abi: ERC20_ABI,
-              functionName: 'balanceOf',
-              args: [address],
-            }) as bigint
+        // Transform backend data to match TokenHolding interface
+        const portfolioHoldings: TokenHolding[] = data.data.map((item: any) => ({
+          tokenAddress: item.tokenAddress,
+          bondingCurveAddress: item.bondingCurve || '', // Backend might not have this
+          name: item.name || 'Unknown',
+          symbol: item.symbol || 'UNKNOWN',
+          balance: BigInt(item.balance || 0),
+          balanceFormatted: formatUnits(BigInt(item.balance || 0), 18),
+          valueInAster: BigInt(item.valueInAster || 0),
+          valueInAsterFormatted: formatUnits(BigInt(item.valueInAster || 0), 18),
+          isGraduated: item.isGraduated || false,
+        }))
 
-            // Skip if user has zero balance
-            if (balance === BigInt(0)) {
-              return null
-            }
-
-            // Get bonding curve reserves to calculate value
-            const reserves = await publicClient.readContract({
-              address: bondingCurveAddress as `0x${string}`,
-              abi: BondingCurveABI,
-              functionName: 'getReserves',
-            }) as readonly [bigint, bigint]
-
-            const asterReserves = reserves[0]
-            const tokenReserves = reserves[1]
-
-            // Calculate value in ASTER using current bonding curve price
-            // Price = asterReserves / tokenReserves
-            // Value = balance * price = (balance * asterReserves) / tokenReserves
-            let valueInAster = BigInt(0)
-            if (tokenReserves > BigInt(0)) {
-              valueInAster = (balance * asterReserves) / tokenReserves
-            }
-
-            // Check if token is graduated (when real ASTER reserves >= 100)
-            const isGraduated = asterReserves >= BigInt(100) * BigInt(10 ** 18)
-
-            const holding: TokenHolding = {
-              tokenAddress,
-              bondingCurveAddress,
-              name,
-              symbol,
-              balance,
-              balanceFormatted: formatUnits(balance, 18),
-              valueInAster,
-              valueInAsterFormatted: formatUnits(valueInAster, 18),
-              isGraduated,
-            }
-
-            return holding
-          } catch (err) {
-            console.error(`Error fetching balance for ${symbol}:`, err)
-            return null
-          }
-        })
-
-        const results = await Promise.all(holdingsPromises)
-        const validHoldings = results.filter((h): h is TokenHolding => h !== null)
-
-        // Sort by value (highest first)
-        validHoldings.sort((a, b) => {
-          if (a.valueInAster > b.valueInAster) return -1
-          if (a.valueInAster < b.valueInAster) return 1
-          return 0
-        })
-
-        setHoldings(validHoldings)
+        setHoldings(portfolioHoldings)
       } catch (err) {
         console.error('Error fetching portfolio:', err)
         setError(err as Error)
+        // Set empty holdings on error
+        setHoldings([])
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchPortfolio()
-  }, [address, isConnected, publicClient])
+  }, [address, isConnected])
 
   // Calculate total portfolio value
   const totalValueInAster = holdings.reduce(
