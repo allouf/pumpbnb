@@ -49,17 +49,21 @@ export function useUserPortfolio() {
           throw new Error(data.message || 'Failed to fetch portfolio')
         }
 
+        // Backend returns: { address, tokens: [...], totalValue, totalProfitLoss }
         // Transform backend data to match TokenHolding interface
-        const portfolioHoldings: TokenHolding[] = data.data.map((item: any) => ({
+        const portfolioData = data.data
+        const tokens = portfolioData.tokens || []
+
+        const portfolioHoldings: TokenHolding[] = tokens.map((item: any) => ({
           tokenAddress: item.tokenAddress,
-          bondingCurveAddress: item.bondingCurve || '', // Backend might not have this
+          bondingCurveAddress: '', // Backend doesn't provide this yet
           name: item.name || 'Unknown',
           symbol: item.symbol || 'UNKNOWN',
           balance: BigInt(item.balance || 0),
           balanceFormatted: formatUnits(BigInt(item.balance || 0), 18),
-          valueInAster: BigInt(item.valueInAster || 0),
-          valueInAsterFormatted: formatUnits(BigInt(item.valueInAster || 0), 18),
-          isGraduated: item.isGraduated || false,
+          valueInAster: BigInt(item.value || 0),
+          valueInAsterFormatted: formatUnits(BigInt(item.value || 0), 18),
+          isGraduated: false, // Backend doesn't provide this in portfolio
         }))
 
         setHoldings(portfolioHoldings)
