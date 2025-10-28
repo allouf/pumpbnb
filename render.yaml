@@ -10,8 +10,8 @@ services:
     plan: free # Upgrade to 'starter' for production ($7/mo - always on)
     branch: main
     rootDir: backend
-    buildCommand: npm install && npx prisma migrate deploy && npx prisma generate && npm run build
-    startCommand: npm start
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start:reset
     healthCheckPath: /health
 
     envVars:
