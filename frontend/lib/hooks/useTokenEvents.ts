@@ -18,6 +18,10 @@ export function useWatchTokenCreated(
     address: CONTRACTS.TokenFactory as `0x${string}`,
     abi: TokenFactoryABI,
     eventName: 'TokenCreated',
+    // Only watch for NEW events, don't query historical events
+    // This prevents the "limit exceeded" error from querying too many blocks
+    poll: true,
+    pollingInterval: 5_000, // Poll every 5 seconds for new events
     onLogs(logs) {
       logs.forEach((log: any) => {
         if (log.args && onTokenCreated) {

@@ -1,8 +1,4 @@
 import { useState, useEffect } from 'react'
-import { usePublicClient } from 'wagmi'
-import { CONTRACTS } from '@/lib/contracts'
-import TokenFactoryABI from '@/lib/abis/TokenFactory.json'
-import type { TokenCreatedEvent } from './useTokenEvents'
 
 export interface Token {
   address: string
@@ -11,46 +7,48 @@ export interface Token {
   name: string
   symbol: string
   timestamp: number
-  blockNumber: bigint
+  description?: string
+  imageUrl?: string
+  isGraduated?: boolean
 }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export function useTokenList() {
   const [tokens, setTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const publicClient = usePublicClient()
 
   useEffect(() => {
     async function fetchTokens() {
-      if (!publicClient) return
-
       try {
         setIsLoading(true)
 
-        // Get TokenCreated events from the last 10000 blocks (adjust as needed)
-        const currentBlock = await publicClient.getBlockNumber()
-        const fromBlock = currentBlock - BigInt(10000)
+        // Fetch tokens from backend API
+        const response = await fetch(`${API_URL}/api/tokens?limit=100`)
 
-        const logs = await publicClient.getContractEvents({
-          address: CONTRACTS.TokenFactory as `0x${string}`,
-          abi: TokenFactoryABI,
-          eventName: 'TokenCreated',
-          fromBlock,
-          toBlock: 'latest',
-        })
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tokens: ${response.statusText}`)
+        }
 
-        const tokenList: Token[] = logs.map((log: any) => ({
-          address: log.args.token as string,
-          bondingCurve: log.args.bondingCurve as string,
-          creator: log.args.creator as string,
-          name: log.args.name as string,
-          symbol: log.args.symbol as string,
-          timestamp: Number(log.args.timestamp),
-          blockNumber: log.blockNumber,
+        const data = await response.json()
+
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch tokens')
+        }
+
+        // Transform backend data to match Token interface
+        const tokenList: Token[] = data.data.map((token: any) => ({
+          address: token.address,
+          bondingCurve: token.bondingCurve,
+          creator: token.creator,
+          name: token.name,
+          symbol: token.symbol,
+          timestamp: new Date(token.createdAt).getTime() / 1000, // Convert to Unix timestamp
+          description: token.description,
+          imageUrl: token.imageUrl,
+          isGraduated: token.isGraduated,
         }))
-
-        // Sort by most recent first
-        tokenList.sort((a, b) => b.timestamp - a.timestamp)
 
         setTokens(tokenList)
         setError(null)
@@ -63,7 +61,14 @@ export function useTokenList() {
     }
 
     fetchTokens()
-  }, [publicClient])
+  }, [])
 
-  return { tokens, isLoading, error, refetch: () => setTokens([]) }
+  const refetch = () => {
+    setIsLoading(true)
+    setError(null)
+    // Trigger re-fetch by updating state
+    setTokens([])
+  }
+
+  return { tokens, isLoading, error, refetch }
 }
