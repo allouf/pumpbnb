@@ -45,16 +45,23 @@ export async function startBlockchainIndexer(): Promise<void> {
 
 async function getLatestIndexedBlock(): Promise<number> {
   try {
-    // Get the latest trade or graduation event block
+    // Get the latest trade block
     const latestTrade = await prisma.trade.findFirst({
       orderBy: { blockNumber: 'desc' },
       select: { blockNumber: true },
     });
 
-    const latestGraduation = await prisma.graduationEvent.findFirst({
-      orderBy: { blockNumber: 'desc' },
-      select: { blockNumber: true },
-    });
+    // Try to get graduation event block, but handle if table doesn't exist
+    let latestGraduation = null;
+    try {
+      latestGraduation = await prisma.graduationEvent.findFirst({
+        orderBy: { blockNumber: 'desc' },
+        select: { blockNumber: true },
+      });
+    } catch (graduationError) {
+      // Table might not exist yet (migration not run), that's OK
+      logger.warn('graduation_events table not found, will be created on migration');
+    }
 
     const latestBlock = Math.max(
       latestTrade?.blockNumber || 0,
@@ -71,7 +78,9 @@ async function getLatestIndexedBlock(): Promise<number> {
     return latestBlock + 1;
   } catch (error) {
     logger.error('Error getting latest indexed block:', error);
-    return 0;
+    // Return current block so we start fresh
+    const currentBlock = await provider.getBlockNumber();
+    return currentBlock;
   }
 }
 
@@ -92,14 +101,22 @@ async function pollForNewEvents(): Promise<void> {
   try {
     const currentBlock = await provider.getBlockNumber();
 
+    // Initialize lastIndexedBlock if it's 0 (first run)
+    if (lastIndexedBlock === 0) {
+      lastIndexedBlock = currentBlock;
+      logger.info(`Initialized lastIndexedBlock to current block: ${currentBlock}`);
+      return;
+    }
+
     // If we're already at the latest block, skip
     if (lastIndexedBlock >= currentBlock) {
       return;
     }
 
-    // Query recent events (small batch)
+    // Limit the block range to 1000 blocks max per query to avoid RPC limits
+    const maxBlockRange = 1000;
     const fromBlock = lastIndexedBlock + 1;
-    const toBlock = currentBlock;
+    const toBlock = Math.min(fromBlock + maxBlockRange - 1, currentBlock);
 
     logger.info(`Polling blocks ${fromBlock} to ${toBlock}`);
 
@@ -116,7 +133,7 @@ async function pollForNewEvents(): Promise<void> {
     }
 
     // Update last indexed block
-    lastIndexedBlock = currentBlock;
+    lastIndexedBlock = toBlock;
   } catch (error) {
     logger.error('Error polling for new events:', error);
   }
