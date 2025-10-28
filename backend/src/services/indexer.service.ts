@@ -3,12 +3,14 @@ import config from '../config';
 import logger from '../utils/logger';
 import { prisma } from './database.service';
 import TokenFactoryABI from '../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
-import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
+// import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 // import GraduationManagerABI from '../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
 
 let provider: ethers.JsonRpcProvider;
 let tokenFactoryContract: ethers.Contract;
 let isIndexing = false;
+let pollingInterval: NodeJS.Timeout | null = null;
+let lastIndexedBlock = 0;
 
 export async function startBlockchainIndexer(): Promise<void> {
   try {
@@ -24,14 +26,16 @@ export async function startBlockchainIndexer(): Promise<void> {
     );
 
     // Get the latest indexed block
-    const latestBlock = await getLatestIndexedBlock();
-    logger.info(`Starting indexer from block ${latestBlock}`);
+    lastIndexedBlock = await getLatestIndexedBlock();
+    logger.info(`Starting indexer from block ${lastIndexedBlock}`);
 
-    // Start listening to events
-    await listenToTokenCreation();
-    await indexPastEvents(latestBlock);
+    // Index past events first
+    await indexPastEvents(lastIndexedBlock);
 
+    // Start polling for new events every 10 seconds
     isIndexing = true;
+    startPolling();
+
     logger.info('Blockchain indexer started successfully');
   } catch (error) {
     logger.error('Failed to start blockchain indexer:', error);
@@ -71,137 +75,117 @@ async function getLatestIndexedBlock(): Promise<number> {
   }
 }
 
-async function listenToTokenCreation(): Promise<void> {
-  // Listen for TokenCreated events
-  tokenFactoryContract.on(
-    'TokenCreated',
-    async (
-      tokenAddress: string,
-      bondingCurve: string,
-      creator: string,
-      name: string,
-      symbol: string,
-      event: any
-    ) => {
-      try {
-        logger.info(`New token created: ${tokenAddress} by ${creator}`);
-
-        // Store token in database
-        await prisma.token.create({
-          data: {
-            address: tokenAddress.toLowerCase(),
-            name,
-            symbol,
-            description: '', // Will be updated from IPFS metadata
-            imageUrl: '', // Will be updated from IPFS metadata
-            creator: creator.toLowerCase(),
-            totalSupply: '1000000000000000000000000000', // 1 billion with 18 decimals
-            bondingCurve: bondingCurve.toLowerCase(),
-            createdAt: new Date(event.log.timestamp * 1000 || Date.now()),
-            isGraduated: false,
-          },
-        });
-
-        // Initialize token stats
-        await prisma.tokenStats.create({
-          data: {
-            tokenAddress: tokenAddress.toLowerCase(),
-            price: '0',
-            marketCap: '0',
-            volume24h: '0',
-            liquidity: '0',
-            trades24h: 0,
-            holders: 1, // Creator is first holder
-            priceChange24h: '0',
-          },
-        });
-
-        // Start listening to bonding curve events for this token
-        await listenToBondingCurve(bondingCurve);
-
-        logger.info(`Token ${tokenAddress} indexed successfully`);
-      } catch (error) {
-        logger.error(`Error processing TokenCreated event:`, error);
-      }
-    }
-  );
-
-  logger.info('Listening for TokenCreated events');
-}
-
-async function listenToBondingCurve(bondingCurveAddress: string): Promise<void> {
-  const bondingCurve = new ethers.Contract(bondingCurveAddress, BondingCurveABI.abi, provider);
-
-  // Get token address from bonding curve
-  const tokenAddress = await bondingCurve.token();
-
-  // Listen for Buy events
-  bondingCurve.on('Buy', async (buyer: string, amountIn: bigint, amountOut: bigint, event: any) => {
+function startPolling(): void {
+  // Poll for new events every 10 seconds
+  pollingInterval = setInterval(async () => {
     try {
-      logger.info(`Buy event on ${tokenAddress}: ${buyer}`);
-
-      const receipt = await event.log.getTransactionReceipt();
-      const block = await provider.getBlock(event.log.blockNumber);
-
-      await prisma.trade.create({
-        data: {
-          tokenAddress: tokenAddress.toLowerCase(),
-          trader: buyer.toLowerCase(),
-          isBuy: true,
-          amountIn: amountIn.toString(),
-          amountOut: amountOut.toString(),
-          fee: '0', // Calculate from event if needed
-          timestamp: new Date((block?.timestamp || Date.now() / 1000) * 1000),
-          txHash: receipt.hash,
-          blockNumber: event.log.blockNumber,
-        },
-      });
-
-      // Update token stats
-      await updateTokenStats(tokenAddress.toLowerCase());
-
-      logger.info(`Buy event indexed for ${tokenAddress}`);
+      await pollForNewEvents();
     } catch (error) {
-      logger.error(`Error processing Buy event:`, error);
+      logger.error('Error during polling:', error);
     }
-  });
+  }, 10000); // 10 seconds
 
-  // Listen for Sell events
-  bondingCurve.on(
-    'Sell',
-    async (seller: string, amountIn: bigint, amountOut: bigint, event: any) => {
-      try {
-        logger.info(`Sell event on ${tokenAddress}: ${seller}`);
-
-        const receipt = await event.log.getTransactionReceipt();
-        const block = await provider.getBlock(event.log.blockNumber);
-
-        await prisma.trade.create({
-          data: {
-            tokenAddress: tokenAddress.toLowerCase(),
-            trader: seller.toLowerCase(),
-            isBuy: false,
-            amountIn: amountIn.toString(),
-            amountOut: amountOut.toString(),
-            fee: '0',
-            timestamp: new Date((block?.timestamp || Date.now() / 1000) * 1000),
-            txHash: receipt.hash,
-            blockNumber: event.log.blockNumber,
-          },
-        });
-
-        await updateTokenStats(tokenAddress.toLowerCase());
-
-        logger.info(`Sell event indexed for ${tokenAddress}`);
-      } catch (error) {
-        logger.error(`Error processing Sell event:`, error);
-      }
-    }
-  );
-
-  logger.info(`Listening for trades on bonding curve ${bondingCurveAddress}`);
+  logger.info('Started polling for new events every 10 seconds');
 }
 
+async function pollForNewEvents(): Promise<void> {
+  try {
+    const currentBlock = await provider.getBlockNumber();
+
+    // If we're already at the latest block, skip
+    if (lastIndexedBlock >= currentBlock) {
+      return;
+    }
+
+    // Query recent events (small batch)
+    const fromBlock = lastIndexedBlock + 1;
+    const toBlock = currentBlock;
+
+    logger.info(`Polling blocks ${fromBlock} to ${toBlock}`);
+
+    // Query TokenCreated events
+    const filter = tokenFactoryContract.filters.TokenCreated();
+    const events = await tokenFactoryContract.queryFilter(filter, fromBlock, toBlock);
+
+    if (events.length > 0) {
+      logger.info(`Found ${events.length} new TokenCreated events`);
+
+      for (const event of events) {
+        await processTokenCreatedEvent(event);
+      }
+    }
+
+    // Update last indexed block
+    lastIndexedBlock = currentBlock;
+  } catch (error) {
+    logger.error('Error polling for new events:', error);
+  }
+}
+
+async function processTokenCreatedEvent(event: any): Promise<void> {
+  try {
+    const args = event.args;
+    if (!args) return;
+
+    const [tokenAddress, bondingCurve, creator, name, symbol] = args;
+
+    logger.info(`New token created: ${tokenAddress} by ${creator}`);
+
+    // Check if already indexed
+    const existing = await prisma.token.findUnique({
+      where: { address: tokenAddress.toLowerCase() },
+    });
+
+    if (existing) {
+      logger.info(`Token ${tokenAddress} already indexed, skipping`);
+      return;
+    }
+
+    // Get block timestamp
+    const block = await provider.getBlock(event.blockNumber);
+    const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
+
+    // Store token in database
+    await prisma.token.create({
+      data: {
+        address: tokenAddress.toLowerCase(),
+        name,
+        symbol,
+        description: '', // Will be updated from IPFS metadata
+        imageUrl: '', // Will be updated from IPFS metadata
+        creator: creator.toLowerCase(),
+        totalSupply: '1000000000000000000000000000', // 1 billion with 18 decimals
+        bondingCurve: bondingCurve.toLowerCase(),
+        createdAt: timestamp,
+        isGraduated: false,
+      },
+    });
+
+    // Initialize token stats
+    await prisma.tokenStats.create({
+      data: {
+        tokenAddress: tokenAddress.toLowerCase(),
+        price: '0',
+        marketCap: '0',
+        volume24h: '0',
+        liquidity: '0',
+        trades24h: 0,
+        holders: 1, // Creator is first holder
+        priceChange24h: '0',
+      },
+    });
+
+    logger.info(`Token ${tokenAddress} indexed successfully`);
+  } catch (error) {
+    logger.error(`Error processing TokenCreated event:`, error);
+  }
+}
+
+// Bonding curve events are now polled in pollForNewEvents
+// This function is kept for reference but not used with polling approach
+
+// TODO: Re-enable when implementing bonding curve event polling
+/*
 async function updateTokenStats(tokenAddress: string): Promise<void> {
   try {
     // Calculate 24h volume
@@ -248,66 +232,38 @@ async function updateTokenStats(tokenAddress: string): Promise<void> {
     logger.error(`Error updating token stats for ${tokenAddress}:`, error);
   }
 }
+*/
 
 async function indexPastEvents(fromBlock: number): Promise<void> {
   try {
     const currentBlock = await provider.getBlockNumber();
-    logger.info(`Indexing past events from block ${fromBlock} to ${currentBlock}`);
 
-    // Query TokenCreated events in chunks to avoid rate limits
-    const chunkSize = 5000;
-    for (let startBlock = fromBlock; startBlock < currentBlock; startBlock += chunkSize) {
-      const endBlock = Math.min(startBlock + chunkSize - 1, currentBlock);
+    // Limit to last 1000 blocks to avoid RPC rate limits on initial start
+    const maxBlockRange = 1000;
+    const startBlock = Math.max(fromBlock, currentBlock - maxBlockRange);
 
-      const filter = tokenFactoryContract.filters.TokenCreated();
-      const events = await tokenFactoryContract.queryFilter(filter, startBlock, endBlock);
+    logger.info(`Indexing past events from block ${startBlock} to ${currentBlock}`);
 
-      logger.info(`Found ${events.length} TokenCreated events in blocks ${startBlock}-${endBlock}`);
+    // Query TokenCreated events in smaller chunks (500 blocks) to avoid rate limits
+    const chunkSize = 500;
+    for (let start = startBlock; start < currentBlock; start += chunkSize) {
+      const end = Math.min(start + chunkSize - 1, currentBlock);
 
-      for (const event of events) {
-        // Process each event (similar to real-time listener)
-        // This is a simplified version - you may want to batch insert for performance
-        const args = (event as any).args;
-        if (args) {
-          const [tokenAddress, bondingCurve, creator, name, symbol] = args;
+      try {
+        const filter = tokenFactoryContract.filters.TokenCreated();
+        const events = await tokenFactoryContract.queryFilter(filter, start, end);
 
-          // Check if already indexed
-          const existing = await prisma.token.findUnique({
-            where: { address: tokenAddress.toLowerCase() },
-          });
+        logger.info(`Found ${events.length} TokenCreated events in blocks ${start}-${end}`);
 
-          if (!existing) {
-            await prisma.token.create({
-              data: {
-                address: tokenAddress.toLowerCase(),
-                name,
-                symbol,
-                description: '',
-                imageUrl: '',
-                creator: creator.toLowerCase(),
-                totalSupply: '1000000000000000000000000000',
-                bondingCurve: bondingCurve.toLowerCase(),
-                createdAt: new Date(),
-                isGraduated: false,
-              },
-            });
-
-            await prisma.tokenStats.create({
-              data: {
-                tokenAddress: tokenAddress.toLowerCase(),
-                price: '0',
-                marketCap: '0',
-                volume24h: '0',
-                liquidity: '0',
-                trades24h: 0,
-                holders: 1,
-                priceChange24h: '0',
-              },
-            });
-
-            logger.info(`Indexed past token: ${tokenAddress}`);
-          }
+        for (const event of events) {
+          await processTokenCreatedEvent(event);
         }
+
+        // Add a small delay between chunks to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        logger.error(`Error querying blocks ${start}-${end}:`, error);
+        // Continue with next chunk even if this one fails
       }
     }
 
@@ -318,8 +274,11 @@ async function indexPastEvents(fromBlock: number): Promise<void> {
 }
 
 export function stopBlockchainIndexer(): void {
-  if (provider && isIndexing) {
-    provider.removeAllListeners();
+  if (isIndexing) {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
     isIndexing = false;
     logger.info('Blockchain indexer stopped');
   }
