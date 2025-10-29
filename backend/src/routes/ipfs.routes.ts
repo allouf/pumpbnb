@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ipfsService } from '../services/ipfs.service';
 import logger from '../utils/logger';
-import multer from 'multer';
+import multer, { FileFilterCallback } from 'multer';
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const upload = multer({
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB max
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     // Accept only images
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -25,13 +25,14 @@ const upload = multer({
  * Upload image file to IPFS
  * POST /api/ipfs/upload
  */
-router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
+router.post('/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'No file provided',
       });
+      return;
     }
 
     const ipfsHash = await ipfsService.uploadFile(req.file.buffer, req.file.originalname);
@@ -59,15 +60,16 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
  * Upload JSON metadata to IPFS
  * POST /api/ipfs/upload-json
  */
-router.post('/upload-json', async (req: Request, res: Response) => {
+router.post('/upload-json', async (req: Request, res: Response): Promise<void> => {
   try {
     const metadata = req.body;
 
     if (!metadata || typeof metadata !== 'object') {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Invalid metadata provided',
       });
+      return;
     }
 
     const ipfsHash = await ipfsService.uploadJSON(metadata);
@@ -95,15 +97,16 @@ router.post('/upload-json', async (req: Request, res: Response) => {
  * Get metadata from IPFS
  * GET /api/ipfs/:hash
  */
-router.get('/:hash', async (req: Request, res: Response) => {
+router.get('/:hash', async (req: Request, res: Response): Promise<void> => {
   try {
     const { hash } = req.params;
 
     if (!hash) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'IPFS hash required',
       });
+      return;
     }
 
     const metadata = await ipfsService.getJSON(hash);
@@ -125,7 +128,7 @@ router.get('/:hash', async (req: Request, res: Response) => {
  * Test Pinata connection
  * GET /api/ipfs/test-connection
  */
-router.get('/test/connection', async (req: Request, res: Response) => {
+router.get('/test/connection', async (_req: Request, res: Response): Promise<void> => {
   try {
     const isConnected = await ipfsService.testConnection();
 
