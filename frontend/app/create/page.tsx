@@ -25,9 +25,9 @@ export default function CreateTokenPage() {
   const [discord, setDiscord] = useState('')
 
   // UI states
+  const [showSocialLinks, setShowSocialLinks] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [uploadError, setUploadError] = useState<string>('')
-  const [metadataURI, setMetadataURI] = useState('')
 
   const { data: hash, isPending, writeContract, error } = useWriteContract()
 
@@ -98,7 +98,7 @@ export default function CreateTokenPage() {
       }
 
       const data = await response.json()
-      return data.ipfsHash || data.url || ''
+      return data.data.ipfsHash || data.data.url || ''
     } catch (err) {
       console.error('Error uploading to IPFS:', err)
       setUploadError('Failed to upload image. Please try again.')
@@ -139,7 +139,7 @@ export default function CreateTokenPage() {
       }
 
       const data = await response.json()
-      return data.ipfsHash || data.url || ''
+      return `ipfs://${data.data.ipfsHash}`
     } catch (err) {
       console.error('Error uploading metadata:', err)
       return ''
@@ -176,8 +176,6 @@ export default function CreateTokenPage() {
         metadataUri = await uploadMetadataToIPFS(imageUrl)
       }
 
-      setMetadataURI(metadataUri)
-
       // Create token on blockchain
       writeContract({
         address: CONTRACTS.TokenFactory as `0x${string}`,
@@ -192,8 +190,6 @@ export default function CreateTokenPage() {
 
   // Redirect to token page on success
   if (isSuccess && hash) {
-    // Extract token address from event logs (would need to parse the receipt)
-    // For now, redirect to tokens page
     setTimeout(() => {
       router.push('/tokens')
     }, 2000)
@@ -201,131 +197,336 @@ export default function CreateTokenPage() {
 
   return (
     <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4 max-w-3xl">
+      <div className="container mx-auto px-4 max-w-6xl">
         <h1 className="text-4xl font-bold mb-2">Create new coin</h1>
         <p className="text-gray-400 mb-8">
           Launch your meme coin in seconds on BNB Chain
         </p>
 
-        <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Warning Banner */}
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-              <p className="text-yellow-500 text-sm">
-                ⚠️ <strong>Choose carefully</strong> - these can't be changed once the coin is created
-              </p>
-            </div>
-
-            {/* Coin Details Section */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">Coin details</h2>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
-                Token Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., PumpBNB Coin"
-                required
-                className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="symbol" className="block text-sm font-medium mb-2">
-                Token Symbol
-              </label>
-              <input
-                id="symbol"
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="e.g., PUMP"
-                required
-                maxLength={10}
-                className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="metadata" className="block text-sm font-medium mb-2">
-                Metadata URI (Optional)
-              </label>
-              <input
-                id="metadata"
-                type="text"
-                value={metadataURI}
-                onChange={(e) => setMetadataURI(e.target.value)}
-                placeholder="ipfs://... (optional)"
-                className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Upload token metadata to IPFS and paste the URI here
-              </p>
-            </div>
-
-            <div className="bg-secondary rounded-lg p-4 space-y-2 text-sm">
-              <h3 className="font-semibold mb-2">Token Distribution:</h3>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Total Supply:</span>
-                <span className="font-mono">1,000,000,000 tokens</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Bonding Curve:</span>
-                <span className="font-mono">800,000,000 (80%)</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Creator (locked):</span>
-                <span className="font-mono">200,000,000 (20%)</span>
-              </div>
-              <div className="flex justify-between border-t border-gray-700 pt-2 mt-2">
-                <span className="text-gray-400">Graduation Threshold:</span>
-                <span className="font-mono text-primary">100 ASTER</span>
-              </div>
-            </div>
-
-            {!isConnected && (
-              <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+        <div className="grid lg:grid-cols-[1fr,400px] gap-8">
+          {/* Main Form - Left Side */}
+          <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Warning Banner */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
                 <p className="text-yellow-500 text-sm">
-                  Please connect your wallet to create a token
+                  ⚠️ <strong>Choose carefully</strong> - these can't be changed once the coin is created
                 </p>
               </div>
-            )}
 
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-                <p className="text-red-500 text-sm">
-                  Error: {error.message}
-                </p>
+              {/* Coin Details Section */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Coin details</h2>
+
+                {/* Name and Symbol - Side by side */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium mb-2">
+                      Coin name
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Name your coin"
+                      required
+                      className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="symbol" className="block text-sm font-medium mb-2">
+                      Ticker
+                    </label>
+                    <input
+                      id="symbol"
+                      type="text"
+                      value={symbol}
+                      onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                      placeholder="Add a coin ticker (e.g. DOGE)"
+                      required
+                      maxLength={10}
+                      className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <label htmlFor="description" className="block text-sm font-medium mb-2">
+                    Description <span className="text-gray-500">(Optional)</span>
+                  </label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Write a short description"
+                    rows={4}
+                    className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none transition"
+                  />
+                </div>
+
+                {/* Social Links - Collapsible */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowSocialLinks(!showSocialLinks)}
+                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition mb-3"
+                  >
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showSocialLinks ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    Add social links <span className="text-gray-600">(Optional)</span>
+                  </button>
+
+                  {showSocialLinks && (
+                    <div className="space-y-3 pl-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="website" className="block text-sm font-medium mb-2">
+                            Website
+                          </label>
+                          <input
+                            id="website"
+                            type="url"
+                            value={website}
+                            onChange={(e) => setWebsite(e.target.value)}
+                            placeholder="Add URL"
+                            className="w-full px-4 py-2 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="twitter" className="block text-sm font-medium mb-2">
+                            X (Twitter)
+                          </label>
+                          <input
+                            id="twitter"
+                            type="url"
+                            value={twitter}
+                            onChange={(e) => setTwitter(e.target.value)}
+                            placeholder="Add URL"
+                            className="w-full px-4 py-2 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="telegram" className="block text-sm font-medium mb-2">
+                            Telegram
+                          </label>
+                          <input
+                            id="telegram"
+                            type="url"
+                            value={telegram}
+                            onChange={(e) => setTelegram(e.target.value)}
+                            placeholder="Add URL"
+                            className="w-full px-4 py-2 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="discord" className="block text-sm font-medium mb-2">
+                            Discord
+                          </label>
+                          <input
+                            id="discord"
+                            type="url"
+                            value={discord}
+                            onChange={(e) => setDiscord(e.target.value)}
+                            placeholder="Add URL"
+                            className="w-full px-4 py-2 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none transition text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Coin image
+                  </label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    className="border-2 border-dashed border-gray-700 rounded-lg p-12 text-center cursor-pointer hover:border-primary transition"
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+
+                    {imagePreview ? (
+                      <div className="space-y-4">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="max-w-[200px] max-h-[200px] mx-auto rounded-lg"
+                        />
+                        <p className="text-sm text-gray-400">
+                          Click to change image
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="w-16 h-16 mx-auto bg-secondary rounded-lg flex items-center justify-center">
+                          <svg
+                            className="w-8 h-8 text-gray-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1">
+                            Select video or image to upload
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            or drag and drop it here
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="bg-primary text-black px-6 py-2 rounded-lg font-semibold hover:bg-primary-dark transition"
+                        >
+                          Log in
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {uploadError && (
+                    <p className="text-red-500 text-sm mt-2">{uploadError}</p>
+                  )}
+
+                  <div className="mt-3 grid grid-cols-2 gap-4 text-xs text-gray-500">
+                    <div>
+                      <p className="font-semibold mb-1">File size and type</p>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        <li>Image - max 15mb, .jpg, .gif or .png recommended</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-1">Resolution and aspect ratio</p>
+                      <ul className="list-disc list-inside space-y-0.5">
+                        <li>Image - min 1000x1000px (1:1 square recommended)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {isSuccess && (
-              <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
-                <p className="text-green-500 text-sm">
-                  Token created successfully! Transaction: {hash}
-                </p>
+              {/* Token Distribution Info */}
+              <div className="bg-secondary rounded-lg p-4 space-y-2 text-sm">
+                <h3 className="font-semibold mb-2">Token Distribution:</h3>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Total Supply:</span>
+                  <span className="font-mono">1,000,000,000 tokens</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Bonding Curve:</span>
+                  <span className="font-mono">800,000,000 (80%)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Creator (locked):</span>
+                  <span className="font-mono">200,000,000 (20%)</span>
+                </div>
+                <div className="flex justify-between border-t border-gray-700 pt-2 mt-2">
+                  <span className="text-gray-400">Graduation Threshold:</span>
+                  <span className="font-mono text-primary">100 ASTER</span>
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={!isConnected || isPending || isConfirming}
-              className="w-full bg-primary text-black px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending || isConfirming ? 'Creating...' : 'Create Token (FREE)'}
-            </button>
+              {/* Status Messages */}
+              {!isConnected && (
+                <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+                  <p className="text-yellow-500 text-sm">
+                    Please connect your wallet to create a token
+                  </p>
+                </div>
+              )}
 
-            <p className="text-xs text-gray-500 text-center">
-              By creating a token, you agree that the token is for entertainment purposes.
-              You are responsible for compliance with applicable laws.
-            </p>
-          </form>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+                  <p className="text-red-500 text-sm">
+                    Error: {error.message}
+                  </p>
+                </div>
+              )}
+
+              {isSuccess && (
+                <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+                  <p className="text-green-500 text-sm">
+                    Token created successfully! Transaction: {hash}
+                  </p>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={!isConnected || isPending || isConfirming || isUploadingImage}
+                className="w-full bg-primary text-black px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploadingImage
+                  ? 'Uploading image...'
+                  : isPending || isConfirming
+                  ? 'Creating...'
+                  : 'Login to create coin'}
+              </button>
+
+              <p className="text-xs text-gray-500 text-center">
+                Coin data (social links, banner, and coin) can only be added now, and can't be changed or edited after creation
+              </p>
+            </form>
+          </div>
+
+          {/* Preview Panel - Right Side */}
+          <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
+            <h2 className="text-xl font-bold mb-4">Preview</h2>
+            <div className="text-center text-gray-500">
+              <p className="text-sm">
+                A preview of how the coin will look like
+              </p>
+              {imagePreview && (
+                <div className="mt-6">
+                  <img
+                    src={imagePreview}
+                    alt="Coin preview"
+                    className="w-32 h-32 mx-auto rounded-full border-4 border-gray-700"
+                  />
+                  <p className="mt-4 font-bold text-white">{name || 'Coin Name'}</p>
+                  <p className="text-sm text-gray-400">{symbol || 'SYMBOL'}</p>
+                  {description && (
+                    <p className="mt-3 text-xs text-gray-400">{description}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
+        {/* Features */}
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="text-2xl mb-2">⚡</div>
