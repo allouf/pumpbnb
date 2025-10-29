@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ipfsService } from '../services/ipfs.service';
 import logger from '../utils/logger';
-import multer, { FileFilterCallback } from 'multer';
+import multer from 'multer';
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const upload = multer({
   limits: {
     fileSize: 15 * 1024 * 1024, // 15MB max
   },
-  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  fileFilter: (_req, file, cb) => {
     // Accept only images
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -27,7 +27,10 @@ const upload = multer({
  */
 router.post('/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
-    if (!req.file) {
+    // Type assertion for multer file
+    const file = (req as any).file;
+
+    if (!file) {
       res.status(400).json({
         success: false,
         error: 'No file provided',
@@ -35,7 +38,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       return;
     }
 
-    const ipfsHash = await ipfsService.uploadFile(req.file.buffer, req.file.originalname);
+    const ipfsHash = await ipfsService.uploadFile(file.buffer, file.originalname);
     const url = ipfsService.getGatewayUrl(ipfsHash);
 
     logger.info(`Image uploaded to IPFS: ${ipfsHash}`);

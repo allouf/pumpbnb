@@ -33,6 +33,7 @@
     "@types/express": "^5.0.4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.9.1",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
@@ -54,7 +55,6 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
-    "@types/multer": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.38.0",
