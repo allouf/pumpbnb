@@ -1,11 +1,11 @@
 // Contract addresses on BSC Testnet
-// UPDATED: October 27, 2025 - Redeployed due to bug fixes
+// UPDATED: October 30, 2025 - Fixed ASTER address configuration
 export const CONTRACTS = {
-  TokenFactory: "0xCF0b298E26db22bCc886E03654A2Bfcb4E2742C2",
-  PlatformConfig: "0x0e4ED6983Bc8100936C42e5D98F9f1fEbF76b58E",
-  GraduationManager: "0xeE147bc2307b645c59033B7A0b16EC5E68b2A5d3",
-  MockASTER: "0x2e5bEffE46eAADAb062ED2b520a0d95654CEdF5A",
-  SampleToken: "0xcFE6968c3427EcA3641d7132E03F53E7096d370e",
+  TokenFactory: "0x1c3a8Afb7DCA2479c7bC9546e54d6B5d01005d10",
+  PlatformConfig: "0xE98D020690F715EDb2dc1b48C4cfd678c9e2a3B5",
+  GraduationManager: "0x9aAF1512b9d74CdEb076F9b9756DA5588b7c0ED5",
+  MockASTER: "0xB1c4267412EAc792973261CC450ce7902b33a42D",
+  SampleToken: "0x301F75A5B8DD75dA71a331CE36d752A1bFfc0723",
   // External contracts (unchanged)
   WBNB: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
   PancakeFactory: "0x6725F303b657a9451d8BA641348b6761A6CC7a17",

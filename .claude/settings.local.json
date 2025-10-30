@@ -47,7 +47,19 @@
       "Bash(npx prisma migrate:*)",
       "Bash(timeout 10 npx prisma:*)",
       "Bash(if not exist \"prisma\\migrations\" mkdir \"prisma\\migrations\")",
-      "Bash(npx prisma generate:*)"
+      "Bash(npx prisma generate:*)",
+      "Bash(timeout 5 bash:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File test-backend-deployment.ps1)",
+      "Bash(curl:*)",
+      "Bash(git log:*)",
+      "Bash(git remote:*)",
+      "Bash(set DATABASE_URL=postgresql://pumpbnb_user:nB3rAtHIN9kxP9hSxOgpA9jTJBkXb3Nb@dpg-d3qk5vali9vc73cej0mg-a.oregon-postgres.render.com/pumpbnb?sslmode=require)",
+      "WebFetch(domain:pump.fun)",
+      "Bash(git checkout:*)",
+      "Bash(cp:*)",
+      "Bash(timeout 120 npx hardhat run:*)",
+      "Bash(timeout 60 npx hardhat:*)",
+      "Bash(timeout 180 npx hardhat:*)"
     ],
     "deny": [],
     "ask": []

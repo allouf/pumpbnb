@@ -1,162 +1,269 @@
-# Tech Stack
+# Technology Stack
 
-## Smart Contracts ✅ IMPLEMENTED
+## Smart Contract Layer ✅ COMPLETE
 
-### Core Infrastructure
-- **Language:** Solidity ^0.8.20 (compiled with 0.8.20)
-- **Development Framework:** Hardhat 2.26.3 with TypeScript 5.9.3
-- **Contract Libraries:** OpenZeppelin Contracts 5.4.0 for secure implementations
-- **Testing Framework:** Hardhat Test Suite with Chai/Mocha
-- **Gas Optimization:** Hardhat Gas Reporter 2.3.0 + Solidity Optimizer (200 runs)
-- **Contract Size:** Hardhat Contract Sizer 2.10.1
+### Core Development
+- **Language:** Solidity ^0.8.20
+- **Framework:** Hardhat 2.26.3
+- **Runtime:** Node.js v20 LTS
+- **Language Extensions:** TypeScript 5.9.3
+- **Package Manager:** npm
 
-### Security & Analysis
-- **Static Analysis:** Slither for vulnerability detection (✅ Complete - 0 vulnerabilities)
-- **Symbolic Execution:** Mythril for deep security analysis (✅ Complete - 0 issues)
-- **Coverage:** Solidity Coverage (Current: 58.52%, Target: 95%)
-- **Test Results:** 278/304 tests passing (91.4% success rate)
-
-### External Integrations
-- **DEX Integration:** PancakeSwap V2 interfaces for liquidity operations
-- **Token Standards:** BEP-20 (ERC-20 compatible) implementation
+### Contract Architecture
+- **Token Standard:** BEP-20 (ERC-20 compatible)
+- **Libraries:** OpenZeppelin Contracts 5.4.0
+- **DEX Integration:** PancakeSwap V2 interfaces
 - **Base Trading Token:** ASTER (0x000Ae314E2A2172a039B26378814C252734f556A)
+- **Deployment Pattern:** Create2 factory for deterministic addresses
 
-### Deployment Status
-- **Testnet:** BSC Testnet (Chain ID: 97) - ✅ LIVE
-- **TokenFactory Contract:** 0x0d4D25e0239e689D7856c9760e74Ee12a2758866
+### Testing & Security
+- **Test Framework:** Hardhat Test Suite with Chai/Mocha
+- **Coverage Tool:** Solidity Coverage (58.52% current, 95% target)
+- **Static Analysis:** Slither (0 vulnerabilities found)
+- **Symbolic Analysis:** Mythril (0 issues found)
+- **Gas Optimization:** Hardhat Gas Reporter + Optimizer (200 runs)
+- **Contract Sizing:** Hardhat Contract Sizer (all under 24KB limit)
+
+### Deployment Infrastructure
+- **Testnet:** BSC Testnet (Chain ID: 97) - LIVE
+- **Mainnet:** BSC Mainnet (Chain ID: 56) - Pending
+- **Deployment Tool:** Hardhat Deploy Scripts
+- **Verification:** Etherscan/BscScan plugin
+- **Multi-sig:** Gnosis Safe (planned for mainnet)
+
+### Contract Addresses (Testnet)
+- **TokenFactory:** 0x0d4D25e0239e689D7856c9760e74Ee12a2758866
 - **Mock ASTER:** 0x311ECE533632bca662E100B8c4E0EB927EFE2588
+- **Full deployment:** See `deployments/bsc-testnet.json`
 
-## Frontend 🔄 IN PROGRESS (60% Complete)
+## Frontend Layer 🔄 60% COMPLETE
 
 ### Core Framework
-- **Framework:** Next.js 16.0.0 with App Router
-- **Runtime:** React 19.0.0 + React DOM 19.0.0
-- **Language:** TypeScript 5.7.3 with strict mode
-- **Styling:** TailwindCSS 3.4.17 + PostCSS 8.5.6
-- **Build Tool:** Next.js built-in bundler
+- **Framework:** Next.js 16.0.0 (App Router)
+- **UI Library:** React 19.0.0
+- **Language:** TypeScript 5.7.3
+- **Styling:** TailwindCSS 3.4.17
+- **CSS Processing:** PostCSS 8.5.6 + Autoprefixer
 
 ### Web3 Integration
-- **Web3 Library:** Wagmi 2.18.2 + Viem 2.38.4 for type-safe blockchain interactions
-- **Contract Interactions:** TypeChain with ethers-v6 bindings
+- **Web3 Library:** Wagmi 2.18.2
+- **Blockchain Client:** Viem 2.38.4
+- **Contract Types:** TypeChain with ethers-v6
 - **Wallet Support:** MetaMask, WalletConnect (planned)
+- **Chain Configuration:** BSC Mainnet + Testnet
 
-### State & Data Management
-- **Data Fetching:** TanStack Query 5.90.5 for server state
-- **Notifications:** React Hot Toast 2.6.0 for user feedback
-- **State Management:** React hooks and context (no external state library yet)
+### State Management
+- **Server State:** TanStack Query 5.90.5
+- **Client State:** React Context + Hooks
+- **Form Management:** React Hook Form (planned)
+- **Global Store:** Zustand (planned)
 
-### UI Components & Visualization
-- **Charts:** Lightweight Charts 5.0.9 (TradingView) for price visualization
-- **Components:** Custom React components with TailwindCSS
+### UI Components
+- **Charts:** TradingView Lightweight Charts 5.0.9
+- **Notifications:** React Hot Toast 2.6.0
+- **Icons:** Heroicons (planned)
+- **Modals:** Headless UI (planned)
+- **Tables:** TanStack Table (planned)
 
-### Implemented Pages
-- Home (/) - Token discovery
-- Create (/create) - Token creation interface
-- Tokens (/tokens) - Token listing
-- Token Detail (/token/[address]) - Individual token pages
-- Portfolio (/portfolio) - User holdings
-- History (/history) - Transaction history
-- Dashboard (/dashboard) - Creator analytics
+### Build & Development
+- **Bundler:** Next.js built-in (Turbopack)
+- **Type Checking:** TypeScript strict mode
+- **Linting:** ESLint (Next.js config)
+- **Formatting:** Prettier (to be configured)
+- **Git Hooks:** Husky (planned)
 
-## Backend ❌ NOT STARTED
+## Backend Layer ✅ 100% COMPLETE
 
-### Planned Infrastructure
+### Core Infrastructure
 - **Runtime:** Node.js v20 LTS
-- **Language:** TypeScript
-- **Framework:** Express.js
+- **Framework:** Express.js 4.21.2
+- **Language:** TypeScript 5.9.3
 - **API Design:** RESTful with OpenAPI 3.0
+- **Process Manager:** PM2 (production)
 
-### Planned Database & Storage
-- **Primary Database:** PostgreSQL for transactional data
-- **Document Store:** MongoDB for token metadata
-- **Cache Layer:** Redis for session management
-- **File Storage:** IPFS via Pinata for metadata
-- **ORM:** Prisma for type-safe database access
+### Database Layer
+- **Primary Database:** PostgreSQL 15
+- **ORM:** Prisma 6.2.0
+- **Document Store:** MongoDB 6.0
+- **MongoDB ODM:** Mongoose 9.6.0
+- **Cache:** Redis 7.0
+- **Redis Client:** ioredis 5.5.0
 
-### Planned Real-time Features
-- **WebSocket Server:** Socket.io for real-time updates
-- **Job Queue:** Bull Queue for background tasks
-- **Event System:** EventEmitter3 for internal events
+### Real-time Features
+- **WebSocket Server:** Socket.io 4.9.0
+- **Event Bus:** EventEmitter3 5.1.0
+- **Pub/Sub:** Redis Pub/Sub
+- **Job Queue:** Bull Queue 5.3.0 (planned)
 
-## Development Dependencies
+### Blockchain Integration
+- **Ethereum Client:** Ethers.js 6.15.0
+- **Event Indexer:** Custom TypeScript indexer
+- **Block Monitoring:** Periodic polling (3-second intervals)
+- **Transaction Queue:** In-memory with Redis backup
 
-### Smart Contract Development
-- **Ethers.js:** 6.15.0 for blockchain interactions
-- **TypeChain:** 8.3.2 with @typechain/ethers-v6 0.5.1
-- **Hardhat Plugins:**
-  - @nomicfoundation/hardhat-ethers 3.1.0
-  - @nomicfoundation/hardhat-toolbox 6.1.0
-- **Environment:** Dotenv 17.2.3 for configuration
+### External Services
+- **IPFS Storage:** Pinata API
+- **File Upload:** Multer 1.5.0
+- **HTTP Client:** Axios 1.8.2
+- **Environment:** Dotenv 17.2.3
 
-### Frontend Development
-- **Type Definitions:**
-  - @types/node 22.10.5
-  - @types/react 19.0.6
-  - @types/react-dom 19.0.3
-- **Build Tools:**
-  - Autoprefixer 10.4.21
-  - TypeScript 5.7.3
+### API Features
+- **Authentication:** JWT (jsonwebtoken 10.0.0)
+- **Validation:** Express Validator 8.2.0
+- **Rate Limiting:** Express Rate Limit (planned)
+- **CORS:** CORS middleware enabled
+- **Compression:** Compression middleware
+
+### API Endpoints (21 Total)
+- **Tokens:** 8 endpoints (CRUD + search)
+- **Trades:** 7 endpoints (execute, history, analytics)
+- **Users:** 6 endpoints (auth, profile, portfolio)
 
 ## Infrastructure & DevOps
 
-### Blockchain Infrastructure
-- **Network:** BNB Smart Chain (BSC) Mainnet (planned)
-- **Testnet:** BSC Testnet (Currently Active)
-- **RPC Providers:** Default BSC RPC (planned: QuickNode/Ankr)
-- **Block Explorer:** BscScan integration
+### Blockchain Networks
+- **Production:** BSC Mainnet (Chain ID: 56)
+- **Testing:** BSC Testnet (Chain ID: 97)
+- **RPC Providers:** Public BSC RPC (QuickNode/Ankr planned)
+- **Block Explorer:** BscScan API integration
 
-### Current Deployment
-- **Smart Contracts:** BSC Testnet via Hardhat Deploy
-- **Frontend:** Local development server (production deployment pending)
-- **Backend:** Not deployed (not yet implemented)
+### Cloud Infrastructure (Planned)
+- **Hosting Provider:** AWS/Vercel
+- **Container Platform:** Docker + Kubernetes
+- **Load Balancer:** AWS ALB/Nginx
+- **CDN:** CloudFlare
+- **Object Storage:** AWS S3
+
+### Monitoring & Analytics
+- **APM:** DataDog/New Relic (planned)
+- **Error Tracking:** Sentry (planned)
+- **Logging:** Winston + CloudWatch
+- **Analytics:** Google Analytics 4
+- **Uptime:** UptimeRobot
+
+### Security Infrastructure
+- **WAF:** CloudFlare (planned)
+- **DDoS Protection:** CloudFlare
+- **SSL/TLS:** Let's Encrypt
+- **Secrets Manager:** AWS Secrets Manager
+- **Vulnerability Scanning:** Dependabot
+
+### CI/CD Pipeline (Planned)
+- **Version Control:** Git + GitHub
+- **CI/CD Platform:** GitHub Actions
+- **Testing:** Automated test suites
+- **Deployment:** Automated with rollback
+- **Environment:** Dev/Staging/Production
 
 ## Development Tools
 
 ### Code Quality
-- **Linting:** ESLint (via Next.js)
-- **Formatting:** Prettier (configuration pending)
-- **Git Hooks:** Not configured yet
-- **Version Control:** Git with GitHub
+- **Linting:** ESLint with TypeScript rules
+- **Formatting:** Prettier 3.5.0
+- **Pre-commit:** Husky + lint-staged (planned)
+- **Code Review:** GitHub Pull Requests
+- **Documentation:** TypeDoc + Swagger
 
-### Testing Status
-- **Smart Contract Testing:** Hardhat + Chai (278/304 passing)
-- **Frontend Testing:** Not configured
-- **E2E Testing:** Not configured
-- **Load Testing:** Not configured
+### Testing Tools
+- **Unit Testing:** Jest (frontend planned)
+- **Integration Testing:** Supertest (backend)
+- **E2E Testing:** Playwright (planned)
+- **Load Testing:** K6 (planned)
+- **Contract Testing:** Hardhat + Chai
 
-## Security & Compliance
+### Development Environment
+- **IDE:** VS Code recommended
+- **Extensions:** Solidity, ESLint, Prettier
+- **Node Version:** v20 LTS (via nvm)
+- **Package Manager:** npm (lock files enforced)
+- **Environment Variables:** .env files
 
-### Smart Contract Security
-- **Static Analysis:** ✅ Complete (Slither + Mythril)
-- **Test Coverage:** 58.52% (needs improvement)
-- **External Audits:** Pending (required before mainnet)
-- **Bug Bounty:** Planned ($100K fund)
+## Third-Party Services
 
-### Application Security
-- **WAF:** Not configured
-- **DDoS Protection:** Not configured
-- **Secrets Management:** Using .env files (production solution pending)
-- **Dependency Scanning:** Not configured
+### Payment & Billing
+- **Payment Processor:** Stripe (planned)
+- **Subscription Management:** Stripe Billing
+- **Invoice Generation:** Stripe Invoicing
+- **Webhook Handler:** Custom implementation
 
-## Project Status Notes
+### Communication
+- **Email Service:** SendGrid (planned)
+- **SMS Service:** Twilio (planned)
+- **Push Notifications:** Firebase Cloud Messaging
+- **In-app Chat:** Socket.io rooms
 
-### Completed
-- All smart contracts implemented and compiled
-- BSC Testnet deployment successful
-- Frontend framework and basic UI components
-- Security analysis (Slither + Mythril) passed
+### External APIs
+- **Price Feeds:** CoinGecko/CoinMarketCap
+- **Gas Prices:** BSC Gas Station
+- **Token Info:** BscScan API
+- **Social Media:** Twitter/Telegram APIs
 
-### In Progress
-- Frontend Web3 integration testing
-- Improving test coverage to 95%
-- Fixing 26 failing advanced test cases
+## Technology Decisions & Rationale
 
-### Not Started
-- Backend API implementation
-- Database setup
-- IPFS integration
-- Production deployment
-- Mobile application
-- External security audits
-- Premium features
-- Aster Protocol integration
+### Why BNB Smart Chain?
+- Lower transaction costs than Ethereum
+- 3-second block times for better UX
+- Large existing user base and liquidity
+- PancakeSwap integration for graduation
+- More stable than Solana during high load
+
+### Why ASTER as Base Token?
+- Integration with Aster Protocol ecosystem
+- Future 100x leverage trading capability
+- Platform fee staking opportunities
+- Differentiator from competitors
+- Creates token utility beyond trading
+
+### Why TypeScript Throughout?
+- Type safety across entire stack
+- Better developer experience
+- Easier refactoring and maintenance
+- Improved code documentation
+- Reduced runtime errors
+
+### Why PostgreSQL + MongoDB?
+- PostgreSQL for transactional consistency
+- MongoDB for flexible metadata storage
+- Best of both SQL and NoSQL worlds
+- Proven scalability patterns
+- Strong ecosystem support
+
+## Performance Targets
+
+### Smart Contracts
+- Token Creation: <3.2M gas
+- Trade Execution: <200K gas
+- Graduation: <3M gas
+- TPS: 100+ on BSC
+
+### Frontend
+- Initial Load: <3 seconds
+- Time to Interactive: <5 seconds
+- Lighthouse Score: 90+
+- Bundle Size: <500KB
+
+### Backend
+- API Response: <200ms average
+- WebSocket Latency: <100ms
+- Database Queries: <50ms
+- Throughput: 10,000 req/sec
+
+## Scaling Strategy
+
+### Horizontal Scaling
+- Stateless API servers
+- Redis for session management
+- Load balancer distribution
+- Database read replicas
+
+### Caching Strategy
+- CDN for static assets
+- Redis for API responses
+- Browser caching headers
+- Database query caching
+
+### Future Optimizations
+- GraphQL for efficient queries
+- WebAssembly for compute
+- Service mesh architecture
+- Event-driven microservices

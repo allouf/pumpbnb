@@ -74,22 +74,25 @@ contract BondingCurve is ReentrancyGuard {
      * @param _creator Creator address
      * @param _config PlatformConfig address
      * @param _virtualAsterReserve Virtual ASTER reserve amount
+     * @param _asterToken ASTER token address (configurable for testnet)
      */
     constructor(
         address _token,
         address _creator,
         address _config,
-        uint256 _virtualAsterReserve
+        uint256 _virtualAsterReserve,
+        address _asterToken
     ) {
         require(_token != address(0), "Invalid token");
         require(_creator != address(0), "Invalid creator");
         require(_config != address(0), "Invalid config");
         require(_virtualAsterReserve > 0, "Invalid virtual reserve");
+        require(_asterToken != address(0), "Invalid ASTER token");
 
         token = PumpToken(_token);
         creator = _creator;
         config = PlatformConfig(_config);
-        asterToken = IASTER(Constants.ASTER_TOKEN);
+        asterToken = IASTER(_asterToken);
         virtualAsterReserve = _virtualAsterReserve;
 
         // Initialize real token reserve with bonding curve allocation

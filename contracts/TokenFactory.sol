@@ -105,12 +105,13 @@ contract TokenFactory is ReentrancyGuard, AccessControl {
         PumpToken token = new PumpToken(name, symbol, uri, msg.sender, address(0));
         tokenAddress = address(token);
 
-        // Deploy bonding curve with token address
+        // Deploy bonding curve with token address and ASTER token from config
         BondingCurve curve = new BondingCurve(
             tokenAddress,
             msg.sender,
             address(config),
-            virtualAsterReserve
+            virtualAsterReserve,
+            config.asterToken()
         );
         bondingCurveAddress = address(curve);
 

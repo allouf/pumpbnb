@@ -41,6 +41,9 @@ contract PlatformConfig is AccessControl, Pausable {
     /// @notice ASTER amount required to trigger graduation
     uint256 public graduationThreshold;
 
+    /// @notice ASTER token address (configurable for testnet)
+    address public asterToken;
+
     /// @notice Emitted when bonding curve fee is updated
     event BondingCurveFeeUpdated(
         uint256 totalFee,
@@ -63,6 +66,9 @@ contract PlatformConfig is AccessControl, Pausable {
     /// @notice Emitted when graduation threshold is updated
     event GraduationThresholdUpdated(uint256 indexed oldThreshold, uint256 indexed newThreshold);
 
+    /// @notice Emitted when ASTER token address is updated
+    event AsterTokenUpdated(address indexed oldToken, address indexed newToken);
+
     /// @notice Emitted when contract is paused
     event ContractPaused(address indexed pausedBy);
 
@@ -74,11 +80,13 @@ contract PlatformConfig is AccessControl, Pausable {
      * @param _protocolFeeRecipient Address to receive protocol fees
      * @param _admin Address to grant admin role
      * @param _pauser Address to grant pauser role
+     * @param _asterToken ASTER token address (use Mock ASTER on testnet, real ASTER on mainnet)
      */
-    constructor(address _protocolFeeRecipient, address _admin, address _pauser) {
+    constructor(address _protocolFeeRecipient, address _admin, address _pauser, address _asterToken) {
         require(_protocolFeeRecipient != address(0), "Invalid fee recipient");
         require(_admin != address(0), "Invalid admin");
         require(_pauser != address(0), "Invalid pauser");
+        require(_asterToken != address(0), "Invalid ASTER token");
 
         // Set default fees
         bondingCurveFee = Constants.DEFAULT_BONDING_CURVE_FEE;
@@ -91,6 +99,7 @@ contract PlatformConfig is AccessControl, Pausable {
 
         protocolFeeRecipient = _protocolFeeRecipient;
         graduationThreshold = Constants.DEFAULT_GRADUATION_THRESHOLD;
+        asterToken = _asterToken;
 
         // Grant roles
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
@@ -162,6 +171,18 @@ contract PlatformConfig is AccessControl, Pausable {
         graduationThreshold = _newThreshold;
 
         emit GraduationThresholdUpdated(oldThreshold, _newThreshold);
+    }
+
+    /**
+     * @notice Update ASTER token address
+     * @param _newToken New ASTER token address
+     */
+    function setAsterToken(address _newToken) external onlyRole(ADMIN_ROLE) {
+        require(_newToken != address(0), "Invalid token");
+        address oldToken = asterToken;
+        asterToken = _newToken;
+
+        emit AsterTokenUpdated(oldToken, _newToken);
     }
 
     /**

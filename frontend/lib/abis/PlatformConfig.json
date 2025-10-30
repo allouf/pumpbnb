@@ -1,652 +1,711 @@
-[
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_protocolFeeRecipient",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_admin",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_pauser",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [],
-    "name": "AccessControlBadConfirmation",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "neededRole",
-        "type": "bytes32"
-      }
-    ],
-    "name": "AccessControlUnauthorizedAccount",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "EnforcedPause",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ExpectedPause",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "totalFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "creatorFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "protocolFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "updatedBy",
-        "type": "address"
-      }
-    ],
-    "name": "BondingCurveFeeUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "pausedBy",
-        "type": "address"
-      }
-    ],
-    "name": "ContractPaused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "unpausedBy",
-        "type": "address"
-      }
-    ],
-    "name": "ContractUnpaused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "oldThreshold",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "newThreshold",
-        "type": "uint256"
-      }
-    ],
-    "name": "GraduationThresholdUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "Paused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "totalFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "creatorFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "protocolFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "updatedBy",
-        "type": "address"
-      }
-    ],
-    "name": "PostGraduationFeeUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldRecipient",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newRecipient",
-        "type": "address"
-      }
-    ],
-    "name": "ProtocolFeeRecipientUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "previousAdminRole",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "newAdminRole",
-        "type": "bytes32"
-      }
-    ],
-    "name": "RoleAdminChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
-    ],
-    "name": "RoleGranted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
-    ],
-    "name": "RoleRevoked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "Unpaused",
-    "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PAUSER_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "bondingCurveCreatorFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "bondingCurveFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "bondingCurveProtocolFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleAdmin",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "graduationThreshold",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "grantRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "hasRole",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "isPaused",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "pause",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "paused",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "postGraduationCreatorFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "postGraduationFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "postGraduationProtocolFee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "protocolFeeRecipient",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "callerConfirmation",
-        "type": "address"
-      }
-    ],
-    "name": "renounceRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "revokeRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_totalFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_creatorFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_protocolFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setBondingCurveFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_newThreshold",
-        "type": "uint256"
-      }
-    ],
-    "name": "setGraduationThreshold",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_totalFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_creatorFee",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_protocolFee",
-        "type": "uint256"
-      }
-    ],
-    "name": "setPostGraduationFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_newRecipient",
-        "type": "address"
-      }
-    ],
-    "name": "setProtocolFeeRecipient",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes4",
-        "name": "interfaceId",
-        "type": "bytes4"
-      }
-    ],
-    "name": "supportsInterface",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "unpause",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-]
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "PlatformConfig",
+  "sourceName": "contracts/PlatformConfig.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_protocolFeeRecipient",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_admin",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_pauser",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_asterToken",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "AccessControlBadConfirmation",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "neededRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AccessControlUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EnforcedPause",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ExpectedPause",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldToken",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newToken",
+          "type": "address"
+        }
+      ],
+      "name": "AsterTokenUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "totalFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "creatorFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "protocolFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "updatedBy",
+          "type": "address"
+        }
+      ],
+      "name": "BondingCurveFeeUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "pausedBy",
+          "type": "address"
+        }
+      ],
+      "name": "ContractPaused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "unpausedBy",
+          "type": "address"
+        }
+      ],
+      "name": "ContractUnpaused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "oldThreshold",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "newThreshold",
+          "type": "uint256"
+        }
+      ],
+      "name": "GraduationThresholdUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "totalFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "creatorFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "protocolFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "updatedBy",
+          "type": "address"
+        }
+      ],
+      "name": "PostGraduationFeeUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldRecipient",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "ProtocolFeeRecipientUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "DEFAULT_ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "PAUSER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "asterToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "bondingCurveCreatorFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "bondingCurveFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "bondingCurveProtocolFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "graduationThreshold",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isPaused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "postGraduationCreatorFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "postGraduationFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "postGraduationProtocolFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "protocolFeeRecipient",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "callerConfirmation",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newToken",
+          "type": "address"
+        }
+      ],
+      "name": "setAsterToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_totalFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_creatorFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_protocolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setBondingCurveFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_newThreshold",
+          "type": "uint256"
+        }
+      ],
+      "name": "setGraduationThreshold",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_totalFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_creatorFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_protocolFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setPostGraduationFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "setProtocolFeeRecipient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60806040523480156200001157600080fd5b506040516200104238038062001042833981016040819052620000349162000312565b6001600160a01b038416620000905760405162461bcd60e51b815260206004820152601560248201527f496e76616c69642066656520726563697069656e74000000000000000000000060448201526064015b60405180910390fd5b6001600160a01b038316620000d85760405162461bcd60e51b815260206004820152600d60248201526c24b73b30b634b21030b236b4b760991b604482015260640162000087565b6001600160a01b038216620001215760405162461bcd60e51b815260206004820152600e60248201526d24b73b30b634b2103830bab9b2b960911b604482015260640162000087565b6001600160a01b038116620001795760405162461bcd60e51b815260206004820152601360248201527f496e76616c696420415354455220746f6b656e00000000000000000000000000604482015260640162000087565b6064600255601e60038190556046600455600555600f6006819055600755600880546001600160a01b038087166001600160a01b03199283161790925568056bc75e2d63100000600955600a805492841692909116919091179055620001e160008462000246565b506200020e7fa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c217758462000246565b506200023b7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a8362000246565b50505050506200036f565b6000828152602081815260408083206001600160a01b038516845290915281205460ff16620002eb576000838152602081815260408083206001600160a01b03861684529091529020805460ff19166001179055620002a23390565b6001600160a01b0316826001600160a01b0316847f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a4506001620002ef565b5060005b92915050565b80516001600160a01b03811681146200030d57600080fd5b919050565b600080600080608085870312156200032957600080fd5b6200033485620002f5565b93506200034460208601620002f5565b92506200035460408601620002f5565b91506200036460608601620002f5565b905092959194509250565b610cc3806200037f6000396000f3fe608060405234801561001057600080fd5b50600436106101a95760003560e01c806375b238fc116100f9578063a429544211610097578063d547741f11610071578063d547741f14610338578063dde217961461034b578063e521cb921461035e578063e63ab1e91461037157600080fd5b8063a429544214610314578063b187bd2614610327578063b53323781461032f57600080fd5b80638b0bc501116100d35780638b0bc501146102dd57806391d14854146102e6578063a126f216146102f9578063a217fddf1461030c57600080fd5b806375b238fc146102b757806378bf2fc3146102cc5780638456cb59146102d557600080fd5b80635227efff116101665780635c975abb116101405780635c975abb1461026557806364df049e14610270578063684c55e91461029b5780636bab6305146102ae57600080fd5b80635227efff1461024057806352f5b3ef146102495780635377ca041461025c57600080fd5b806301ffc9a7146101ae5780630cb21076146101d6578063248a9ca3146101ed5780632f2ff15d1461021057806336568abe146102255780633f4ba83a14610238575b600080fd5b6101c16101bc366004610b73565b610398565b60405190151581526020015b60405180910390f35b6101df60055481565b6040519081526020016101cd565b6101df6101fb366004610ba4565b60009081526020819052604090206001015490565b61022361021e366004610bd9565b6103cf565b005b610223610233366004610bd9565b6103fa565b610223610432565b6101df60045481565b610223610257366004610ba4565b610492565b6101df60065481565b60015460ff166101c1565b600854610283906001600160a01b031681565b6040516001600160a01b0390911681526020016101cd565b6102236102a9366004610c05565b61052d565b6101df60025481565b6101df600080516020610c6e83398151915281565b6101df60075481565b610223610633565b6101df60095481565b6101c16102f4366004610bd9565b610693565b610223610307366004610c05565b6106bc565b6101df600081565b600a54610283906001600160a01b031681565b6101c16107b8565b6101df60035481565b610223610346366004610bd9565b6107cb565b610223610359366004610c31565b6107f0565b61022361036c366004610c31565b6108a1565b6101df7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a81565b60006001600160e01b03198216637965db0b60e01b14806103c957506301ffc9a760e01b6001600160e01b03198316145b92915050565b6000828152602081905260409020600101546103ea81610956565b6103f48383610963565b50505050565b6001600160a01b03811633146104235760405163334bd91960e11b815260040160405180910390fd5b61042d82826109f5565b505050565b7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a61045c81610956565b610464610a60565b60405133907f5b65b0c1363b3003db9bcc5e1fd8805a6d6bf5bf6dc9d3431ee4494cd7d1176690600090a250565b600080516020610c6e8339815191526104aa81610956565b600082116104f35760405162461bcd60e51b8152602060048201526011602482015270125b9d985b1a59081d1a1c995cda1bdb19607a1b60448201526064015b60405180910390fd5b6009805490839055604051839082907f74fa33832976c63d8bc0ee8ecb7180955e8222b437b61c2d88aa8acdbc0ba1bc90600090a3505050565b600080516020610c6e83398151915261054581610956565b6101f484111561058d5760405162461bcd60e51b81526020600482015260136024820152724665652065786365656473206d6178696d756d60681b60448201526064016104ea565b836105988385610c4c565b146105da5760405162461bcd60e51b815260206004820152601260248201527108ccaca40e6e0d8d2e840dad2e6dac2e8c6d60731b60448201526064016104ea565b600584905560068390556007829055604080518581526020810185905290810183905233907fdaeef25e3bd21d1d14ded4418fff82d81d62bb4dafb6f5986fbde029fa8b8ba2906060015b60405180910390a250505050565b7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a61065d81610956565b610665610ab2565b60405133907f81990fd9a5c552b8e3677917d8a03c07678f0d2cb68f88b634aca2022e9bd19f90600090a250565b6000918252602082815260408084206001600160a01b0393909316845291905290205460ff1690565b600080516020610c6e8339815191526106d481610956565b6101f484111561071c5760405162461bcd60e51b81526020600482015260136024820152724665652065786365656473206d6178696d756d60681b60448201526064016104ea565b836107278385610c4c565b146107695760405162461bcd60e51b815260206004820152601260248201527108ccaca40e6e0d8d2e840dad2e6dac2e8c6d60731b60448201526064016104ea565b600284905560038390556004829055604080518581526020810185905290810183905233907f8dc34abc5af4f7b9aa7cc65eb108c3990faff03deeeedac3dd9a21a1130cfc8d90606001610625565b60006107c660015460ff1690565b905090565b6000828152602081905260409020600101546107e681610956565b6103f483836109f5565b600080516020610c6e83398151915261080881610956565b6001600160a01b03821661084e5760405162461bcd60e51b815260206004820152600d60248201526c24b73b30b634b2103a37b5b2b760991b60448201526064016104ea565b600a80546001600160a01b038481166001600160a01b0319831681179093556040519116919082907f64af028551943a1e339bc68e8744632a61f043bf34298daf500c77469346eeb490600090a3505050565b600080516020610c6e8339815191526108b981610956565b6001600160a01b0382166109035760405162461bcd60e51b8152602060048201526011602482015270125b9d985b1a59081c9958da5c1a595b9d607a1b60448201526064016104ea565b600880546001600160a01b038481166001600160a01b0319831681179093556040519116919082907fd3890fc76afcfc31cba1dcf2c27b50e2541e4d75039c981855b5b5e03682aea090600090a3505050565b6109608133610aed565b50565b600061096f8383610693565b6109ed576000838152602081815260408083206001600160a01b03861684529091529020805460ff191660011790556109a53390565b6001600160a01b0316826001600160a01b0316847f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a45060016103c9565b5060006103c9565b6000610a018383610693565b156109ed576000838152602081815260408083206001600160a01b0386168085529252808320805460ff1916905551339286917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a45060016103c9565b610a68610b2a565b6001805460ff191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa335b6040516001600160a01b03909116815260200160405180910390a1565b610aba610b4f565b6001805460ff1916811790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a25833610a95565b610af78282610693565b610b265760405163e2517d3f60e01b81526001600160a01b0382166004820152602481018390526044016104ea565b5050565b60015460ff16610b4d57604051638dfc202b60e01b815260040160405180910390fd5b565b60015460ff1615610b4d5760405163d93c066560e01b815260040160405180910390fd5b600060208284031215610b8557600080fd5b81356001600160e01b031981168114610b9d57600080fd5b9392505050565b600060208284031215610bb657600080fd5b5035919050565b80356001600160a01b0381168114610bd457600080fd5b919050565b60008060408385031215610bec57600080fd5b82359150610bfc60208401610bbd565b90509250929050565b600080600060608486031215610c1a57600080fd5b505081359360208301359350604090920135919050565b600060208284031215610c4357600080fd5b610b9d82610bbd565b808201808211156103c957634e487b7160e01b600052601160045260246000fdfea49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775a264697066735822122025427aba55cdfed377dabcaf21e33d5c7ccac2ded43fda5863214b4a558f7c5064736f6c63430008140033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101a95760003560e01c806375b238fc116100f9578063a429544211610097578063d547741f11610071578063d547741f14610338578063dde217961461034b578063e521cb921461035e578063e63ab1e91461037157600080fd5b8063a429544214610314578063b187bd2614610327578063b53323781461032f57600080fd5b80638b0bc501116100d35780638b0bc501146102dd57806391d14854146102e6578063a126f216146102f9578063a217fddf1461030c57600080fd5b806375b238fc146102b757806378bf2fc3146102cc5780638456cb59146102d557600080fd5b80635227efff116101665780635c975abb116101405780635c975abb1461026557806364df049e14610270578063684c55e91461029b5780636bab6305146102ae57600080fd5b80635227efff1461024057806352f5b3ef146102495780635377ca041461025c57600080fd5b806301ffc9a7146101ae5780630cb21076146101d6578063248a9ca3146101ed5780632f2ff15d1461021057806336568abe146102255780633f4ba83a14610238575b600080fd5b6101c16101bc366004610b73565b610398565b60405190151581526020015b60405180910390f35b6101df60055481565b6040519081526020016101cd565b6101df6101fb366004610ba4565b60009081526020819052604090206001015490565b61022361021e366004610bd9565b6103cf565b005b610223610233366004610bd9565b6103fa565b610223610432565b6101df60045481565b610223610257366004610ba4565b610492565b6101df60065481565b60015460ff166101c1565b600854610283906001600160a01b031681565b6040516001600160a01b0390911681526020016101cd565b6102236102a9366004610c05565b61052d565b6101df60025481565b6101df600080516020610c6e83398151915281565b6101df60075481565b610223610633565b6101df60095481565b6101c16102f4366004610bd9565b610693565b610223610307366004610c05565b6106bc565b6101df600081565b600a54610283906001600160a01b031681565b6101c16107b8565b6101df60035481565b610223610346366004610bd9565b6107cb565b610223610359366004610c31565b6107f0565b61022361036c366004610c31565b6108a1565b6101df7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a81565b60006001600160e01b03198216637965db0b60e01b14806103c957506301ffc9a760e01b6001600160e01b03198316145b92915050565b6000828152602081905260409020600101546103ea81610956565b6103f48383610963565b50505050565b6001600160a01b03811633146104235760405163334bd91960e11b815260040160405180910390fd5b61042d82826109f5565b505050565b7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a61045c81610956565b610464610a60565b60405133907f5b65b0c1363b3003db9bcc5e1fd8805a6d6bf5bf6dc9d3431ee4494cd7d1176690600090a250565b600080516020610c6e8339815191526104aa81610956565b600082116104f35760405162461bcd60e51b8152602060048201526011602482015270125b9d985b1a59081d1a1c995cda1bdb19607a1b60448201526064015b60405180910390fd5b6009805490839055604051839082907f74fa33832976c63d8bc0ee8ecb7180955e8222b437b61c2d88aa8acdbc0ba1bc90600090a3505050565b600080516020610c6e83398151915261054581610956565b6101f484111561058d5760405162461bcd60e51b81526020600482015260136024820152724665652065786365656473206d6178696d756d60681b60448201526064016104ea565b836105988385610c4c565b146105da5760405162461bcd60e51b815260206004820152601260248201527108ccaca40e6e0d8d2e840dad2e6dac2e8c6d60731b60448201526064016104ea565b600584905560068390556007829055604080518581526020810185905290810183905233907fdaeef25e3bd21d1d14ded4418fff82d81d62bb4dafb6f5986fbde029fa8b8ba2906060015b60405180910390a250505050565b7f65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a61065d81610956565b610665610ab2565b60405133907f81990fd9a5c552b8e3677917d8a03c07678f0d2cb68f88b634aca2022e9bd19f90600090a250565b6000918252602082815260408084206001600160a01b0393909316845291905290205460ff1690565b600080516020610c6e8339815191526106d481610956565b6101f484111561071c5760405162461bcd60e51b81526020600482015260136024820152724665652065786365656473206d6178696d756d60681b60448201526064016104ea565b836107278385610c4c565b146107695760405162461bcd60e51b815260206004820152601260248201527108ccaca40e6e0d8d2e840dad2e6dac2e8c6d60731b60448201526064016104ea565b600284905560038390556004829055604080518581526020810185905290810183905233907f8dc34abc5af4f7b9aa7cc65eb108c3990faff03deeeedac3dd9a21a1130cfc8d90606001610625565b60006107c660015460ff1690565b905090565b6000828152602081905260409020600101546107e681610956565b6103f483836109f5565b600080516020610c6e83398151915261080881610956565b6001600160a01b03821661084e5760405162461bcd60e51b815260206004820152600d60248201526c24b73b30b634b2103a37b5b2b760991b60448201526064016104ea565b600a80546001600160a01b038481166001600160a01b0319831681179093556040519116919082907f64af028551943a1e339bc68e8744632a61f043bf34298daf500c77469346eeb490600090a3505050565b600080516020610c6e8339815191526108b981610956565b6001600160a01b0382166109035760405162461bcd60e51b8152602060048201526011602482015270125b9d985b1a59081c9958da5c1a595b9d607a1b60448201526064016104ea565b600880546001600160a01b038481166001600160a01b0319831681179093556040519116919082907fd3890fc76afcfc31cba1dcf2c27b50e2541e4d75039c981855b5b5e03682aea090600090a3505050565b6109608133610aed565b50565b600061096f8383610693565b6109ed576000838152602081815260408083206001600160a01b03861684529091529020805460ff191660011790556109a53390565b6001600160a01b0316826001600160a01b0316847f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a45060016103c9565b5060006103c9565b6000610a018383610693565b156109ed576000838152602081815260408083206001600160a01b0386168085529252808320805460ff1916905551339286917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a45060016103c9565b610a68610b2a565b6001805460ff191690557f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa335b6040516001600160a01b03909116815260200160405180910390a1565b610aba610b4f565b6001805460ff1916811790557f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a25833610a95565b610af78282610693565b610b265760405163e2517d3f60e01b81526001600160a01b0382166004820152602481018390526044016104ea565b5050565b60015460ff16610b4d57604051638dfc202b60e01b815260040160405180910390fd5b565b60015460ff1615610b4d5760405163d93c066560e01b815260040160405180910390fd5b600060208284031215610b8557600080fd5b81356001600160e01b031981168114610b9d57600080fd5b9392505050565b600060208284031215610bb657600080fd5b5035919050565b80356001600160a01b0381168114610bd457600080fd5b919050565b60008060408385031215610bec57600080fd5b82359150610bfc60208401610bbd565b90509250929050565b600080600060608486031215610c1a57600080fd5b505081359360208301359350604090920135919050565b600060208284031215610c4357600080fd5b610b9d82610bbd565b808201808211156103c957634e487b7160e01b600052601160045260246000fdfea49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775a264697066735822122025427aba55cdfed377dabcaf21e33d5c7ccac2ded43fda5863214b4a558f7c5064736f6c63430008140033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

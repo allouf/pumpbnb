@@ -101,12 +101,14 @@ async function main() {
   const platformConfig = await PlatformConfig.deploy(
     deployer.address, // protocol fee recipient
     deployer.address, // admin
-    deployer.address  // pauser
+    deployer.address, // pauser
+    mockAsterAddress  // ASTER token (Mock ASTER on testnet)
   );
   await platformConfig.waitForDeployment();
   const platformConfigAddress = await platformConfig.getAddress();
 
   console.log(`✅ PlatformConfig deployed to: ${platformConfigAddress}`);
+  console.log(`   Using ASTER token: ${mockAsterAddress}`);
   deploymentAddresses.contracts.PlatformConfig = platformConfigAddress;
 
   // Step 3: Deploy GraduationManager
@@ -137,19 +139,8 @@ async function main() {
   console.log(`✅ TokenFactory deployed to: ${tokenFactoryAddress}`);
   deploymentAddresses.contracts.TokenFactory = tokenFactoryAddress;
 
-  // Step 5: Configure contracts
-  console.log("\n⚙️  Step 5: Configuring Contracts...");
-  console.log("-".repeat(60));
-
-  // Update Constants in TokenFactory to use Mock ASTER
-  console.log("   Updating ASTER address in contracts...");
-  // Note: Since Constants is a library, we need to update it before deployment
-  // For testnet, we'll need to use the mock ASTER address
-  console.log(`   ⚠️  IMPORTANT: Update Constants.sol ASTER address to: ${mockAsterAddress}`);
-  console.log(`   Then redeploy TokenFactory and GraduationManager`);
-
-  // Step 6: Create a sample token for testing
-  console.log("\n📦 Step 6: Creating Sample Token for Testing...");
+  // Step 5: Create a sample token for testing
+  console.log("\n📦 Step 5: Creating Sample Token for Testing...");
   console.log("-".repeat(60));
 
   try {
