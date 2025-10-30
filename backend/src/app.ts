@@ -8,6 +8,7 @@ import { apiLimiter } from './middleware/rateLimit';
 import logger from './utils/logger';
 
 // Import routes
+import configRoutes from './routes/config.routes';
 import tokenRoutes from './routes/token.routes';
 import tradeRoutes from './routes/trade.routes';
 import userRoutes from './routes/user.routes';
@@ -53,6 +54,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // API routes
+app.use('/api/config', configRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/users', userRoutes);
