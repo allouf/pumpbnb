@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import config from '../config';
 import logger from '../utils/logger';
 import { prisma } from './database.service';
+import { ipfsService } from './ipfs.service';
 import TokenFactoryABI from '../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
 // import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 // import GraduationManagerABI from '../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
@@ -205,14 +206,40 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
     const block = await provider.getBlock(event.blockNumber);
     const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
 
+    // Fetch metadata URI from token contract
+    let metadataURI = '';
+    let description = '';
+    let imageUrl = '';
+
+    try {
+      const PumpTokenABI = ['function metadataURI() view returns (string)'];
+      const tokenContract = new ethers.Contract(tokenAddress, PumpTokenABI, provider);
+      metadataURI = await tokenContract.metadataURI();
+      logger.info(`Metadata URI for ${tokenAddress}: ${metadataURI}`);
+
+      // Fetch metadata from IPFS if available
+      if (metadataURI && metadataURI.startsWith('ipfs://')) {
+        try {
+          const metadata = await ipfsService.fetchMetadata(metadataURI);
+          description = metadata.description || '';
+          imageUrl = metadata.image || '';
+          logger.info(`Fetched IPFS metadata for ${tokenAddress}`);
+        } catch (ipfsError) {
+          logger.warn(`Failed to fetch IPFS metadata for ${tokenAddress}:`, ipfsError);
+        }
+      }
+    } catch (contractError) {
+      logger.warn(`Failed to read metadataURI from token ${tokenAddress}:`, contractError);
+    }
+
     // Store token in database
     await prisma.token.create({
       data: {
         address: tokenAddress.toLowerCase(),
         name,
         symbol,
-        description: '', // Will be updated from IPFS metadata
-        imageUrl: '', // Will be updated from IPFS metadata
+        description,
+        imageUrl,
         creator: creator.toLowerCase(),
         totalSupply: '1000000000000000000000000000', // 1 billion with 18 decimals
         bondingCurve: bondingCurve.toLowerCase(),
@@ -236,7 +263,7 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
       },
     });
 
-    logger.info(`Token ${tokenAddress} indexed successfully`);
+    logger.info(`Token ${tokenAddress} indexed successfully with metadata`);
   } catch (error) {
     logger.error(`Error processing TokenCreated event:`, error);
   }

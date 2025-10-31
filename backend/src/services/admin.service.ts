@@ -74,14 +74,40 @@ class AdminService {
       const block = await provider.getBlock(eventLog.blockNumber);
       const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
 
+      // Fetch metadata URI from token contract
+      let description = '';
+      let imageUrl = '';
+
+      try {
+        const PumpTokenABI = ['function metadataURI() view returns (string)'];
+        const tokenContract = new ethers.Contract(token, PumpTokenABI, provider);
+        const metadataURI = await tokenContract.metadataURI();
+        logger.info(`Metadata URI for ${token}: ${metadataURI}`);
+
+        // Fetch metadata from IPFS if available
+        if (metadataURI && metadataURI.startsWith('ipfs://')) {
+          try {
+            const ipfsService = (await import('./ipfs.service')).ipfsService;
+            const metadata = await ipfsService.fetchMetadata(metadataURI);
+            description = metadata.description || '';
+            imageUrl = metadata.image || '';
+            logger.info(`Fetched IPFS metadata for ${token}`);
+          } catch (ipfsError) {
+            logger.warn(`Failed to fetch IPFS metadata for ${token}:`, ipfsError);
+          }
+        }
+      } catch (contractError) {
+        logger.warn(`Failed to read metadataURI from token ${token}:`, contractError);
+      }
+
       // Store token in database
       const newToken = await prisma.token.create({
         data: {
           address: token.toLowerCase(),
           name,
           symbol,
-          description: '',
-          imageUrl: '',
+          description,
+          imageUrl,
           creator: creator.toLowerCase(),
           totalSupply: '1000000000000000000000000000',
           bondingCurve: bondingCurve.toLowerCase(),

@@ -112,6 +112,37 @@ export class IPFSService {
   }
 
   /**
+   * Fetch metadata from IPFS URI (handles both ipfs:// and direct CIDs)
+   */
+  async fetchMetadata(uri: string): Promise<TokenMetadata> {
+    try {
+      // Extract CID from IPFS URI
+      let cid = uri;
+      if (uri.startsWith('ipfs://')) {
+        cid = uri.replace('ipfs://', '');
+      }
+
+      // Try Pinata gateway first
+      try {
+        const response = await axios.get<TokenMetadata>(`${PINATA_GATEWAY_URL}/${cid}`, {
+          timeout: 10000, // 10 second timeout
+        });
+        return response.data;
+      } catch (pinataError) {
+        // Fallback to public IPFS gateway
+        logger.warn(`Pinata gateway failed for ${cid}, trying public gateway`);
+        const response = await axios.get<TokenMetadata>(`https://ipfs.io/ipfs/${cid}`, {
+          timeout: 15000, // 15 second timeout for public gateway
+        });
+        return response.data;
+      }
+    } catch (error) {
+      logger.error(`Error fetching metadata from URI (${uri}):`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get gateway URL for IPFS hash
    */
   getGatewayUrl(ipfsHash: string): string {
