@@ -39,13 +39,18 @@ export default function TokenPage({ params }: { params: { address: string } }) {
     functionName: 'symbol',
   })
 
+  // Type-safe handling of data
+  const bondingCurve = bondingCurveAddress as string | undefined
+  const name = tokenName as string | undefined
+  const symbol = tokenSymbol as string | undefined
+
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
-    address: bondingCurveAddress as `0x${string}` | undefined,
+    address: bondingCurve as `0x${string}` | undefined,
     abi: BondingCurveABI,
     functionName: 'getReserves',
     query: {
-      enabled: !!bondingCurveAddress,
+      enabled: !!bondingCurve,
     },
   })
 
@@ -62,10 +67,10 @@ export default function TokenPage({ params }: { params: { address: string } }) {
             <div className="bg-secondary-light p-6 rounded-xl mb-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <TokenAvatar symbol={tokenSymbol as string || 'TOKEN'} size="xl" />
+                  <TokenAvatar symbol={symbol || 'TOKEN'} size="xl" />
                   <div>
-                    <h1 className="text-4xl font-bold mb-1">{tokenName as string || 'Loading...'}</h1>
-                    <p className="text-gray-400 text-xl">${tokenSymbol as string || '...'}</p>
+                    <h1 className="text-4xl font-bold mb-1">{name || 'Loading...'}</h1>
+                    <p className="text-gray-400 text-xl">${symbol || '...'}</p>
                   </div>
                 </div>
                 <LikeButton tokenAddress={params.address} />
@@ -105,10 +110,10 @@ export default function TokenPage({ params }: { params: { address: string } }) {
             </div>
 
             {/* Price Chart */}
-            {bondingCurveAddress && (
+            {bondingCurve && (
               <PriceChart
-                bondingCurveAddress={bondingCurveAddress as string}
-                tokenSymbol={tokenSymbol as string || 'TOKEN'}
+                bondingCurveAddress={bondingCurve}
+                tokenSymbol={symbol || 'TOKEN'}
               />
             )}
 
@@ -120,10 +125,10 @@ export default function TokenPage({ params }: { params: { address: string } }) {
 
           {/* Trading Panel */}
           <div className="lg:col-span-1">
-            {bondingCurveAddress ? (
+            {bondingCurve ? (
               <TradingPanel
-                bondingCurveAddress={bondingCurveAddress as string}
-                tokenSymbol={tokenSymbol as string || 'TOKEN'}
+                bondingCurveAddress={bondingCurve}
+                tokenSymbol={symbol || 'TOKEN'}
               />
             ) : (
               <div className="bg-secondary-light p-6 rounded-xl">
