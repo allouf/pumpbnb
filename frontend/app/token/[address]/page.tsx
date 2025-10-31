@@ -3,57 +3,24 @@
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
-import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
-import PumpTokenABIImport from '@/lib/abis/PumpToken.json'
-import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
-const PumpTokenABI = PumpTokenABIImport.abi as Abi
-const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
 import { LikeButton } from '@/components/LikeButton'
 import { CommentsSection } from '@/components/CommentsSection'
+import { useTokenData } from '@/lib/hooks/useTokenData'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
-  // Fetch bonding curve address from TokenFactory
-  const { data: bondingCurveAddress, error: bondingCurveError, isLoading: bondingCurveLoading } = useReadContract({
-    address: CONTRACTS.TokenFactory as `0x${string}`,
-    abi: TokenFactoryABI,
-    functionName: 'tokenToBondingCurve',
-    args: [params.address],
-  })
+  // Fetch token data from backend API (includes bondingCurve address, name, symbol)
+  const { tokenData, isLoading: isLoadingToken, error: tokenError } = useTokenData(params.address)
 
-  // Read token info
-  const { data: tokenName, error: nameError } = useReadContract({
-    address: params.address as `0x${string}`,
-    abi: PumpTokenABI,
-    functionName: 'name',
-  })
-
-  const { data: tokenSymbol, error: symbolError } = useReadContract({
-    address: params.address as `0x${string}`,
-    abi: PumpTokenABI,
-    functionName: 'symbol',
-  })
-
-  // Type-safe handling of data
-  const bondingCurve = bondingCurveAddress as string | undefined
-  const name = tokenName as string | undefined
-  const symbol = tokenSymbol as string | undefined
-
-  // Debug logging
-  console.log('Token Address:', params.address)
-  console.log('TokenFactory Address:', CONTRACTS.TokenFactory)
-  console.log('Bonding Curve Address:', bondingCurve)
-  console.log('Bonding Curve Loading:', bondingCurveLoading)
-  console.log('Bonding Curve Error:', bondingCurveError)
-  console.log('Token Name:', name)
-  console.log('Token Symbol:', symbol)
-  console.log('Name Error:', nameError)
-  console.log('Symbol Error:', symbolError)
+  // Extract values from API data
+  const bondingCurve = tokenData?.bondingCurve
+  const name = tokenData?.name
+  const symbol = tokenData?.symbol
 
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
@@ -69,6 +36,40 @@ export default function TokenPage({ params }: { params: { address: string } }) {
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const progress = reservesData ? Number(reservesData[0]) / 100 : 0
   const marketCap = reservesData ? formatUnits(reservesData[0], 18) : '0'
+
+  // Show loading state
+  if (isLoadingToken) {
+    return (
+      <div className="min-h-screen py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-gray-400 text-lg">Loading token data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (tokenError || !tokenData) {
+    return (
+      <div className="min-h-screen py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-2">Token Not Found</h2>
+          <p className="text-gray-400 mb-6">
+            {tokenError?.message || 'This token does not exist or could not be loaded.'}
+          </p>
+          <a
+            href="/tokens"
+            className="inline-block bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition"
+          >
+            Browse Tokens
+          </a>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4">
