@@ -128,7 +128,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
         writeContract({
           address: bondingCurveAddress as `0x${string}`,
           abi: BondingCurveABI,
-          functionName: 'buy',
+          functionName: 'buyWithAster',
           args: [amountBigInt, minOutput],
         }, {
           onSuccess: () => {
@@ -142,7 +142,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
         writeContract({
           address: bondingCurveAddress as `0x${string}`,
           abi: BondingCurveABI,
-          functionName: 'sell',
+          functionName: 'sellForAster',
           args: [amountBigInt, minOutput],
         }, {
           onSuccess: () => {
