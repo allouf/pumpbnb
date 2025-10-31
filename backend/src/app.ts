@@ -13,6 +13,7 @@ import tokenRoutes from './routes/token.routes';
 import tradeRoutes from './routes/trade.routes';
 import userRoutes from './routes/user.routes';
 import ipfsRoutes from './routes/ipfs.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app: Application = express();
 
@@ -59,6 +60,7 @@ app.use('/api/tokens', tokenRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ipfs', ipfsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
