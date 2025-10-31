@@ -15,6 +15,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "index-token": "ts-node scripts/index-token.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
