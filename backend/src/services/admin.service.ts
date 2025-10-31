@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import config from '../config';
 import logger from '../utils/logger';
 import { prisma } from './database.service';
 import { provider, tokenFactoryContract } from './indexer.service';

@@ -41,7 +41,7 @@ export class AdminController {
    * GET /api/admin/indexer-status
    * Get current indexer status
    */
-  getIndexerStatus = asyncHandler(async (req: Request, res: Response) => {
+  getIndexerStatus = asyncHandler(async (_req: Request, res: Response) => {
     const status = await adminService.getIndexerStatus();
 
     res.json({
