@@ -471,16 +471,18 @@ export default function CreateTokenPage() {
 
               {error && (
                 <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-                  <p className="text-red-500 text-sm">
-                    Error: {error.message}
+                  <p className="text-red-500 text-sm break-words overflow-wrap-anywhere">
+                    {error.message.includes('User rejected') || error.message.includes('User denied')
+                      ? 'Transaction cancelled - You rejected the transaction'
+                      : `Error: ${error.message}`}
                   </p>
                 </div>
               )}
 
               {isSuccess && (
                 <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
-                  <p className="text-green-500 text-sm">
-                    Token created successfully! Transaction: {hash}
+                  <p className="text-green-500 text-sm break-words">
+                    Token created successfully! Redirecting to tokens page...
                   </p>
                 </div>
               )}
