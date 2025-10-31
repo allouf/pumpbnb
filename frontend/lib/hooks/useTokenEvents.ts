@@ -1,6 +1,9 @@
 import { useWatchContractEvent } from 'wagmi'
+import type { Abi } from 'viem'
 import { CONTRACTS } from '@/lib/contracts'
-import TokenFactoryABI from '@/lib/abis/TokenFactory.json'
+import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
+
+const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 
 export interface TokenCreatedEvent {
   token: string
