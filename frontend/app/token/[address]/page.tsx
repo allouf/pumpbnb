@@ -18,21 +18,25 @@ import { LikeButton } from '@/components/LikeButton'
 import { CommentsSection } from '@/components/CommentsSection'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
+  console.log('=== TOKEN PAGE LOADED ===')
+  console.log('Token Address:', params.address)
+  console.log('TokenFactory Address:', CONTRACTS.TokenFactory)
+
   // Read directly from smart contracts - simple and reliable
-  const { data: bondingCurveAddress, isLoading: loadingBC } = useReadContract({
+  const { data: bondingCurveAddress, isLoading: loadingBC, error: errorBC } = useReadContract({
     address: CONTRACTS.TokenFactory as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
     args: [params.address],
   })
 
-  const { data: tokenName, isLoading: loadingName } = useReadContract({
+  const { data: tokenName, isLoading: loadingName, error: errorName } = useReadContract({
     address: params.address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'name',
   })
 
-  const { data: tokenSymbol, isLoading: loadingSymbol } = useReadContract({
+  const { data: tokenSymbol, isLoading: loadingSymbol, error: errorSymbol } = useReadContract({
     address: params.address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'symbol',
@@ -42,6 +46,12 @@ export default function TokenPage({ params }: { params: { address: string } }) {
   const bondingCurve = bondingCurveAddress as string | undefined
   const name = tokenName as string | undefined
   const symbol = tokenSymbol as string | undefined
+
+  // Debug logging
+  console.log('=== CONTRACT READ STATUS ===')
+  console.log('Bonding Curve - Loading:', loadingBC, 'Data:', bondingCurve, 'Error:', errorBC)
+  console.log('Token Name - Loading:', loadingName, 'Data:', name, 'Error:', errorName)
+  console.log('Token Symbol - Loading:', loadingSymbol, 'Data:', symbol, 'Error:', errorSymbol)
 
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
