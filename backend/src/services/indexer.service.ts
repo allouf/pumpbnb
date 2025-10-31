@@ -45,13 +45,27 @@ export async function startBlockchainIndexer(): Promise<void> {
 
 async function getLatestIndexedBlock(): Promise<number> {
   try {
-    // Get the latest trade block
+    // Check IndexerState first (most reliable source)
+    const indexerState = await prisma.indexerState.findFirst({
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    if (indexerState) {
+      logger.info(`Resuming from saved indexer state: block ${indexerState.lastIndexedBlock}`);
+      return indexerState.lastIndexedBlock + 1;
+    }
+
+    // Fallback: check actual indexed data
+    const latestToken = await prisma.token.findFirst({
+      orderBy: { blockNumber: 'desc' },
+      select: { blockNumber: true },
+    });
+
     const latestTrade = await prisma.trade.findFirst({
       orderBy: { blockNumber: 'desc' },
       select: { blockNumber: true },
     });
 
-    // Try to get graduation event block, but handle if table doesn't exist
     let latestGraduation = null;
     try {
       latestGraduation = await prisma.graduationEvent.findFirst({
@@ -59,26 +73,28 @@ async function getLatestIndexedBlock(): Promise<number> {
         select: { blockNumber: true },
       });
     } catch (graduationError) {
-      // Table might not exist yet (migration not run), that's OK
       logger.warn('graduation_events table not found, will be created on migration');
     }
 
     const latestBlock = Math.max(
+      latestToken?.blockNumber || 0,
       latestTrade?.blockNumber || 0,
       latestGraduation?.blockNumber || 0
     );
 
-    // If no events indexed, start from deployment block or recent block
+    // If no events indexed, start from deployment block (Oct 30, 2025)
     if (latestBlock === 0) {
       const currentBlock = await provider.getBlockNumber();
-      // Start from 1000 blocks ago to catch recent events
-      return Math.max(0, currentBlock - 1000);
+      // Start from 10000 blocks ago to catch recent events (last ~8 hours on BSC)
+      const startBlock = Math.max(0, currentBlock - 10000);
+      logger.info(`No indexed data found, starting from ${startBlock} (last 10000 blocks)`);
+      return startBlock;
     }
 
+    logger.info(`Resuming from block ${latestBlock + 1} based on indexed data`);
     return latestBlock + 1;
   } catch (error) {
     logger.error('Error getting latest indexed block:', error);
-    // Return current block so we start fresh
     const currentBlock = await provider.getBlockNumber();
     return currentBlock;
   }
@@ -132,10 +148,37 @@ async function pollForNewEvents(): Promise<void> {
       }
     }
 
-    // Update last indexed block
+    // Update last indexed block in memory
     lastIndexedBlock = toBlock;
+
+    // Save indexer state to database every 100 blocks
+    if (toBlock % 100 === 0) {
+      await saveIndexerState(toBlock);
+    }
   } catch (error) {
     logger.error('Error polling for new events:', error);
+  }
+}
+
+async function saveIndexerState(blockNumber: number): Promise<void> {
+  try {
+    // Upsert indexer state (create or update)
+    const existing = await prisma.indexerState.findFirst();
+
+    if (existing) {
+      await prisma.indexerState.update({
+        where: { id: existing.id },
+        data: { lastIndexedBlock: blockNumber },
+      });
+    } else {
+      await prisma.indexerState.create({
+        data: { lastIndexedBlock: blockNumber },
+      });
+    }
+
+    logger.info(`Saved indexer state: block ${blockNumber}`);
+  } catch (error) {
+    logger.error('Error saving indexer state:', error);
   }
 }
 
@@ -174,6 +217,7 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
         totalSupply: '1000000000000000000000000000', // 1 billion with 18 decimals
         bondingCurve: bondingCurve.toLowerCase(),
         createdAt: timestamp,
+        blockNumber: event.blockNumber,
         isGraduated: false,
       },
     });

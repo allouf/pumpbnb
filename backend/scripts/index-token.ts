@@ -88,6 +88,7 @@ async function indexToken(tokenAddress: string): Promise<void> {
         totalSupply: '1000000000000000000000000000', // 1 billion with 18 decimals
         bondingCurve: bondingCurve.toLowerCase(),
         createdAt: timestamp,
+        blockNumber: eventLog.blockNumber,
         isGraduated: false,
       },
     });
