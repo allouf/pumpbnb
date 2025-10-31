@@ -41,7 +41,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
   const [slippage, setSlippage] = useState(SLIPPAGE_PRESETS.MEDIUM)
 
   // Read bonding curve reserves
-  const { data: reserves } = useReadContract({
+  const { data: reserves, refetch: refetchReserves } = useReadContract({
     address: bondingCurveAddress as `0x${string}`,
     abi: BondingCurveABI,
     functionName: 'getReserves',
@@ -82,8 +82,12 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
       toast.success('Transaction successful!')
       setAmount('')
       refetchAllowance()
+      // Refetch reserves to update market cap and progress
+      refetchReserves()
+      // Reload page after 2 seconds to update chart
+      setTimeout(() => window.location.reload(), 2000)
     }
-  }, [isSuccess, refetchAllowance])
+  }, [isSuccess, refetchAllowance, refetchReserves])
 
   // Handle transaction errors
   useEffect(() => {

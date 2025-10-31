@@ -75,12 +75,14 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
   console.log('Metadata - Description:', description ? 'Available' : 'None', 'Image:', imageUrl ? 'Available' : 'None')
 
   // Read bonding curve state (only if we have the bonding curve address)
+  // Poll every 10 seconds to catch new trades
   const { data: reserves } = useReadContract({
     address: bondingCurve as `0x${string}` | undefined,
     abi: BondingCurveABI,
     functionName: 'getReserves',
     query: {
       enabled: !!bondingCurve,
+      refetchInterval: 10000, // Refetch every 10 seconds
     },
   })
 

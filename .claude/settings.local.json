@@ -59,7 +59,11 @@
       "Bash(cp:*)",
       "Bash(timeout 120 npx hardhat run:*)",
       "Bash(timeout 60 npx hardhat:*)",
-      "Bash(timeout 180 npx hardhat:*)"
+      "Bash(timeout 180 npx hardhat:*)",
+      "WebFetch(domain:testnet.bscscan.com)",
+      "Bash(npm run index-token:*)",
+      "Bash(timeout 15 npx ts-node:*)",
+      "Bash(timeout 20 npx ts-node:*)"
     ],
     "deny": [],
     "ask": []
