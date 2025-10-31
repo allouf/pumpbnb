@@ -30,7 +30,7 @@ Thumbs.db
 *~
 
 # Prisma
-prisma/migrations/
+# prisma/migrations/ - DO NOT IGNORE - migrations must be committed!
 
 # Testing
 coverage/
