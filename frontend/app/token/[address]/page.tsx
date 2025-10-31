@@ -3,9 +3,14 @@
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
+import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
+import PumpTokenABIImport from '@/lib/abis/PumpToken.json'
+import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
+const PumpTokenABI = PumpTokenABIImport.abi as Abi
+const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
@@ -14,13 +19,42 @@ import { CommentsSection } from '@/components/CommentsSection'
 import { useTokenData } from '@/lib/hooks/useTokenData'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
-  // Fetch token data from backend API (includes bondingCurve address, name, symbol)
+  // Try to fetch token data from backend API first
   const { tokenData, isLoading: isLoadingToken, error: tokenError } = useTokenData(params.address)
 
-  // Extract values from API data
-  const bondingCurve = tokenData?.bondingCurve
-  const name = tokenData?.name
-  const symbol = tokenData?.symbol
+  // Fallback: Read from smart contracts if API fails
+  const { data: bondingCurveAddress } = useReadContract({
+    address: CONTRACTS.TokenFactory as `0x${string}`,
+    abi: TokenFactoryABI,
+    functionName: 'tokenToBondingCurve',
+    args: [params.address],
+    query: {
+      enabled: !!tokenError || !tokenData, // Only query if API failed
+    },
+  })
+
+  const { data: tokenName } = useReadContract({
+    address: params.address as `0x${string}`,
+    abi: PumpTokenABI,
+    functionName: 'name',
+    query: {
+      enabled: !!tokenError || !tokenData,
+    },
+  })
+
+  const { data: tokenSymbol } = useReadContract({
+    address: params.address as `0x${string}`,
+    abi: PumpTokenABI,
+    functionName: 'symbol',
+    query: {
+      enabled: !!tokenError || !tokenData,
+    },
+  })
+
+  // Use API data if available, otherwise use contract data
+  const bondingCurve = tokenData?.bondingCurve || (bondingCurveAddress as string)
+  const name = tokenData?.name || (tokenName as string)
+  const symbol = tokenData?.symbol || (tokenSymbol as string)
 
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
@@ -37,8 +71,9 @@ export default function TokenPage({ params }: { params: { address: string } }) {
   const progress = reservesData ? Number(reservesData[0]) / 100 : 0
   const marketCap = reservesData ? formatUnits(reservesData[0], 18) : '0'
 
-  // Show loading state
-  if (isLoadingToken) {
+  // Show loading state only if API is loading AND no contract data yet
+  const isLoading = isLoadingToken && !bondingCurve && !name && !symbol
+  if (isLoading) {
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="text-center">
@@ -49,15 +84,15 @@ export default function TokenPage({ params }: { params: { address: string } }) {
     )
   }
 
-  // Show error state
-  if (tokenError || !tokenData) {
+  // Show error state only if both API AND contract reads failed
+  if (!bondingCurve && !name && !symbol) {
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold mb-2">Token Not Found</h2>
           <p className="text-gray-400 mb-6">
-            {tokenError?.message || 'This token does not exist or could not be loaded.'}
+            Unable to load token data. Please check the token address and try again.
           </p>
           <a
             href="/tokens"
