@@ -6,7 +6,10 @@ import { useTokenList } from '@/lib/hooks/useTokenList'
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents'
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
-import BondingCurveABI from '@/lib/abis/BondingCurve.json'
+import type { Abi } from 'viem'
+import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
+
+const BondingCurveABI = BondingCurveABIImport.abi as Abi
 import { TokenAvatar } from '@/components/TokenAvatar'
 
 function TokenCard({ token }: { token: any }) {

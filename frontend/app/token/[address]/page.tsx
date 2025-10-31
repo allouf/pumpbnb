@@ -2,8 +2,12 @@
 
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
-import BondingCurveABI from '@/lib/abis/BondingCurve.json'
-import PumpTokenABI from '@/lib/abis/PumpToken.json'
+import type { Abi } from 'viem'
+import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
+import PumpTokenABIImport from '@/lib/abis/PumpToken.json'
+
+const BondingCurveABI = BondingCurveABIImport.abi as Abi
+const PumpTokenABI = PumpTokenABIImport.abi as Abi
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'

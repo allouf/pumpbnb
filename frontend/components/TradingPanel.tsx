@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
+import type { Abi } from 'viem'
 import toast from 'react-hot-toast'
 import { SlippageSettings } from './SlippageSettings'
 import { calculateExpectedOutput, calculateMinOutput, calculatePriceImpact, SLIPPAGE_PRESETS } from '@/lib/utils/trading'
 import { CONTRACTS } from '@/lib/contracts'
-import BondingCurveABI from '@/lib/abis/BondingCurve.json'
+import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
+
+const BondingCurveABI = BondingCurveABIImport.abi as Abi
 
 const ERC20_ABI = [
   {
