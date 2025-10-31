@@ -19,7 +19,7 @@ import { CommentsSection } from '@/components/CommentsSection'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
   // Fetch bonding curve address from TokenFactory
-  const { data: bondingCurveAddress } = useReadContract({
+  const { data: bondingCurveAddress, error: bondingCurveError, isLoading: bondingCurveLoading } = useReadContract({
     address: CONTRACTS.TokenFactory as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
@@ -27,13 +27,13 @@ export default function TokenPage({ params }: { params: { address: string } }) {
   })
 
   // Read token info
-  const { data: tokenName } = useReadContract({
+  const { data: tokenName, error: nameError } = useReadContract({
     address: params.address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'name',
   })
 
-  const { data: tokenSymbol } = useReadContract({
+  const { data: tokenSymbol, error: symbolError } = useReadContract({
     address: params.address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'symbol',
@@ -43,6 +43,17 @@ export default function TokenPage({ params }: { params: { address: string } }) {
   const bondingCurve = bondingCurveAddress as string | undefined
   const name = tokenName as string | undefined
   const symbol = tokenSymbol as string | undefined
+
+  // Debug logging
+  console.log('Token Address:', params.address)
+  console.log('TokenFactory Address:', CONTRACTS.TokenFactory)
+  console.log('Bonding Curve Address:', bondingCurve)
+  console.log('Bonding Curve Loading:', bondingCurveLoading)
+  console.log('Bonding Curve Error:', bondingCurveError)
+  console.log('Token Name:', name)
+  console.log('Token Symbol:', symbol)
+  console.log('Name Error:', nameError)
+  console.log('Symbol Error:', symbolError)
 
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
