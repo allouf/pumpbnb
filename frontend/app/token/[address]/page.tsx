@@ -3,11 +3,14 @@
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
+import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
 import PumpTokenABIImport from '@/lib/abis/PumpToken.json'
+import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 const PumpTokenABI = PumpTokenABIImport.abi as Abi
+const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
@@ -15,8 +18,13 @@ import { LikeButton } from '@/components/LikeButton'
 import { CommentsSection } from '@/components/CommentsSection'
 
 export default function TokenPage({ params }: { params: { address: string } }) {
-  // Sample bonding curve address - in production, fetch this from TokenFactory events
-  const bondingCurveAddress = '0xCefD1ff0849AcDe7ebE6f0Ee26c96Bc17B490da9'
+  // Fetch bonding curve address from TokenFactory
+  const { data: bondingCurveAddress } = useReadContract({
+    address: CONTRACTS.TokenFactory as `0x${string}`,
+    abi: TokenFactoryABI,
+    functionName: 'tokenToBondingCurve',
+    args: [params.address],
+  })
 
   // Read token info
   const { data: tokenName } = useReadContract({
@@ -31,11 +39,14 @@ export default function TokenPage({ params }: { params: { address: string } }) {
     functionName: 'symbol',
   })
 
-  // Read bonding curve state
+  // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
-    address: bondingCurveAddress as `0x${string}`,
+    address: bondingCurveAddress as `0x${string}` | undefined,
     abi: BondingCurveABI,
     functionName: 'getReserves',
+    query: {
+      enabled: !!bondingCurveAddress,
+    },
   })
 
   // Type-safe handling of reserves data
@@ -94,10 +105,12 @@ export default function TokenPage({ params }: { params: { address: string } }) {
             </div>
 
             {/* Price Chart */}
-            <PriceChart
-              bondingCurveAddress={bondingCurveAddress}
-              tokenSymbol={tokenSymbol as string || 'TOKEN'}
-            />
+            {bondingCurveAddress && (
+              <PriceChart
+                bondingCurveAddress={bondingCurveAddress as string}
+                tokenSymbol={tokenSymbol as string || 'TOKEN'}
+              />
+            )}
 
             {/* Comments Section */}
             <div className="mt-6">
@@ -107,10 +120,16 @@ export default function TokenPage({ params }: { params: { address: string } }) {
 
           {/* Trading Panel */}
           <div className="lg:col-span-1">
-            <TradingPanel
-              bondingCurveAddress={bondingCurveAddress}
-              tokenSymbol={tokenSymbol as string || 'TOKEN'}
-            />
+            {bondingCurveAddress ? (
+              <TradingPanel
+                bondingCurveAddress={bondingCurveAddress as string}
+                tokenSymbol={tokenSymbol as string || 'TOKEN'}
+              />
+            ) : (
+              <div className="bg-secondary-light p-6 rounded-xl">
+                <p className="text-gray-400 text-center">Loading trading panel...</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
