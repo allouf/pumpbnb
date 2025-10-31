@@ -29,14 +29,20 @@ export function useTokenData(tokenAddress: string) {
       try {
         setIsLoading(true)
 
+        console.log('Fetching token from API:', `${API_URL}/api/tokens/${tokenAddress}`)
+
         // Fetch token data from backend API
         const response = await fetch(`${API_URL}/api/tokens/${tokenAddress}`)
+
+        console.log('API Response status:', response.status, response.statusText)
 
         if (!response.ok) {
           throw new Error(`Failed to fetch token: ${response.statusText}`)
         }
 
         const data = await response.json()
+
+        console.log('API Response data:', data)
 
         if (!data.success) {
           throw new Error(data.message || 'Failed to fetch token')
