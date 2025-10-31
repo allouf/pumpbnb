@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePublicClient } from 'wagmi'
-import { formatUnits } from 'viem'
+import { formatUnits, type Abi } from 'viem'
 import BondingCurveABI from '@/lib/abis/BondingCurve.json'
 
 export interface Transaction {
@@ -40,7 +40,7 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Fetch Buy events
         const buyLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
-          abi: BondingCurveABI,
+          abi: BondingCurveABI as Abi,
           eventName: 'Buy',
           fromBlock,
           toBlock: 'latest',
@@ -49,7 +49,7 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Fetch Sell events
         const sellLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
-          abi: BondingCurveABI,
+          abi: BondingCurveABI as Abi,
           eventName: 'Sell',
           fromBlock,
           toBlock: 'latest',
