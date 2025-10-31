@@ -5,8 +5,9 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagm
 import { useRouter } from 'next/navigation'
 import { CONTRACTS } from '@/lib/contracts'
 import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
+import type { Abi } from 'viem'
 
-const TokenFactoryABI = TokenFactoryABIImport.abi as const
+const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
