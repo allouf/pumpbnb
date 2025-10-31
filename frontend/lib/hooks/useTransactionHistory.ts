@@ -35,7 +35,8 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         setIsLoading(true)
 
         const currentBlock = await publicClient.getBlockNumber()
-        const fromBlock = currentBlock - BigInt(10000) // Last ~10,000 blocks
+        // Reduce block range to 2000 blocks (~2 hours on BSC testnet) to avoid RPC limits
+        const fromBlock = currentBlock - BigInt(2000)
 
         // Fetch Buy events
         const buyLogs = await publicClient.getContractEvents({
