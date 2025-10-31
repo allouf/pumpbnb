@@ -4,7 +4,9 @@ import { useState, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { useRouter } from 'next/navigation'
 import { CONTRACTS } from '@/lib/contracts'
-import TokenFactoryABI from '@/lib/abis/TokenFactory.json'
+import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
+
+const TokenFactoryABI = TokenFactoryABIImport.abi as const
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
