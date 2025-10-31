@@ -1,5 +1,6 @@
 'use client'
 
+import { use } from 'react'
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
@@ -17,9 +18,12 @@ import { TradingPanel } from '@/components/TradingPanel'
 import { LikeButton } from '@/components/LikeButton'
 import { CommentsSection } from '@/components/CommentsSection'
 
-export default function TokenPage({ params }: { params: { address: string } }) {
+export default function TokenPage({ params }: { params: Promise<{ address: string }> }) {
+  // Unwrap params Promise using React's use() hook (Next.js 15+)
+  const { address } = use(params)
+
   console.log('=== TOKEN PAGE LOADED ===')
-  console.log('Token Address:', params.address)
+  console.log('Token Address:', address)
   console.log('TokenFactory Address:', CONTRACTS.TokenFactory)
 
   // Read directly from smart contracts - simple and reliable
@@ -27,17 +31,17 @@ export default function TokenPage({ params }: { params: { address: string } }) {
     address: CONTRACTS.TokenFactory as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
-    args: [params.address],
+    args: [address],
   })
 
   const { data: tokenName, isLoading: loadingName, error: errorName } = useReadContract({
-    address: params.address as `0x${string}`,
+    address: address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'name',
   })
 
   const { data: tokenSymbol, isLoading: loadingSymbol, error: errorSymbol } = useReadContract({
-    address: params.address as `0x${string}`,
+    address: address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'symbol',
   })
@@ -117,7 +121,7 @@ export default function TokenPage({ params }: { params: { address: string } }) {
                     <p className="text-gray-400 text-xl">${symbol || '...'}</p>
                   </div>
                 </div>
-                <LikeButton tokenAddress={params.address} />
+                <LikeButton tokenAddress={address} />
               </div>
 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -163,7 +167,7 @@ export default function TokenPage({ params }: { params: { address: string } }) {
 
             {/* Comments Section */}
             <div className="mt-6">
-              <CommentsSection tokenAddress={params.address} />
+              <CommentsSection tokenAddress={address} />
             </div>
           </div>
 
