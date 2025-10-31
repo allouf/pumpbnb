@@ -3,11 +3,13 @@
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useUserPortfolio } from '@/lib/hooks/useUserPortfolio'
+import { useAsterBalance } from '@/lib/hooks/useAsterBalance'
 import { TokenAvatar } from '@/components/TokenAvatar'
 
 export default function PortfolioPage() {
   const { address, isConnected } = useAccount()
   const { holdings, totalValueFormatted, isLoading, error } = useUserPortfolio()
+  const { formatted: asterBalance, isLoading: asterLoading } = useAsterBalance()
 
   if (!isConnected) {
     return (
@@ -38,12 +40,27 @@ export default function PortfolioPage() {
           </p>
         </div>
 
-        {/* Total Value Card */}
-        <div className="bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl p-6 mb-8">
+        {/* ASTER Balance Card */}
+        <div className="bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl p-6 mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400 mb-1">Total Portfolio Value</p>
+              <p className="text-sm text-gray-400 mb-1">ASTER Balance</p>
               <p className="text-4xl font-bold text-primary">
+                {asterLoading ? '...' : parseFloat(asterBalance).toLocaleString()} ASTER
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+              <span className="text-2xl">💰</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Token Holdings Value Card */}
+        <div className="bg-secondary-light border border-gray-700 rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400 mb-1">Token Holdings Value</p>
+              <p className="text-2xl font-bold">
                 {isLoading ? '...' : parseFloat(totalValueFormatted).toFixed(4)} ASTER
               </p>
             </div>
