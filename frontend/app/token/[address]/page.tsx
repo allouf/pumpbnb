@@ -88,8 +88,10 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
 
   // Type-safe handling of reserves data
   const reservesData = reserves as readonly [bigint, bigint] | undefined
-  const progress = reservesData ? Number(reservesData[0]) / 100 : 0
-  const marketCap = reservesData ? formatUnits(reservesData[0], 18) : '0'
+  // Convert ASTER reserves from wei to ASTER, then calculate progress percentage
+  const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
+  const progress = (asterReserves / 100) * 100 // Progress out of 100 ASTER
+  const marketCap = asterReserves.toFixed(2)
 
   // Show loading state while data is being fetched
   const isLoading = apiLoading || loadingBC || loadingName || loadingSymbol

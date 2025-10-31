@@ -22,8 +22,10 @@ function TokenCard({ token }: { token: any }) {
 
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? reservesData[0] : BigInt(0)
-  const progress = Number(asterReserves) / 100 // Progress to 100 ASTER
-  const marketCap = formatUnits(asterReserves, 18)
+  // Convert to ASTER and calculate progress percentage
+  const asterAmount = Number(formatUnits(asterReserves, 18))
+  const progress = asterAmount // Already out of 100, so this IS the percentage
+  const marketCap = asterAmount.toFixed(2)
 
   return (
     <Link
