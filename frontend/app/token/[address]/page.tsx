@@ -17,6 +17,7 @@ import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
 import { LikeButton } from '@/components/LikeButton'
 import { CommentsSection } from '@/components/CommentsSection'
+import { useTokenData } from '@/lib/hooks/useTokenData'
 
 export default function TokenPage({ params }: { params: Promise<{ address: string }> }) {
   // Unwrap params Promise using React's use() hook (Next.js 15+)
@@ -24,38 +25,54 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
 
   console.log('=== TOKEN PAGE LOADED ===')
   console.log('Token Address:', address)
-  console.log('TokenFactory Address:', CONTRACTS.TokenFactory)
 
-  // Read directly from smart contracts - simple and reliable
+  // Strategy: Try backend API first (fast + metadata), fallback to blockchain
+  const { tokenData: apiData, isLoading: apiLoading, error: apiError } = useTokenData(address)
+
+  // Blockchain fallback - only used if API fails or returns no data
   const { data: bondingCurveAddress, isLoading: loadingBC, error: errorBC } = useReadContract({
     address: CONTRACTS.TokenFactory as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
     args: [address],
+    query: {
+      enabled: !apiData, // Only query blockchain if API data not available
+    },
   })
 
   const { data: tokenName, isLoading: loadingName, error: errorName } = useReadContract({
     address: address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'name',
+    query: {
+      enabled: !apiData, // Only query blockchain if API data not available
+    },
   })
 
   const { data: tokenSymbol, isLoading: loadingSymbol, error: errorSymbol } = useReadContract({
     address: address as `0x${string}`,
     abi: PumpTokenABI,
     functionName: 'symbol',
+    query: {
+      enabled: !apiData, // Only query blockchain if API data not available
+    },
   })
 
-  // Extract values with proper typing
-  const bondingCurve = bondingCurveAddress as string | undefined
-  const name = tokenName as string | undefined
-  const symbol = tokenSymbol as string | undefined
+  // Merge API data with blockchain fallback
+  const bondingCurve = apiData?.bondingCurve || (bondingCurveAddress as string | undefined)
+  const name = apiData?.name || (tokenName as string | undefined)
+  const symbol = apiData?.symbol || (tokenSymbol as string | undefined)
+  const description = apiData?.description
+  const imageUrl = apiData?.imageUrl
+  const creator = apiData?.creator
+  const createdAt = apiData?.createdAt
 
   // Debug logging
-  console.log('=== CONTRACT READ STATUS ===')
-  console.log('Bonding Curve - Loading:', loadingBC, 'Data:', bondingCurve, 'Error:', errorBC)
-  console.log('Token Name - Loading:', loadingName, 'Data:', name, 'Error:', errorName)
-  console.log('Token Symbol - Loading:', loadingSymbol, 'Data:', symbol, 'Error:', errorSymbol)
+  console.log('=== DATA SOURCE STATUS ===')
+  console.log('API - Loading:', apiLoading, 'Data:', apiData ? 'Available' : 'None', 'Error:', apiError?.message)
+  console.log('Blockchain - Loading:', loadingBC || loadingName || loadingSymbol)
+  console.log('Final Data - Name:', name, 'Symbol:', symbol, 'Bonding Curve:', bondingCurve)
+  console.log('Metadata - Description:', description ? 'Available' : 'None', 'Image:', imageUrl ? 'Available' : 'None')
 
   // Read bonding curve state (only if we have the bonding curve address)
   const { data: reserves } = useReadContract({
@@ -73,28 +90,35 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
   const marketCap = reservesData ? formatUnits(reservesData[0], 18) : '0'
 
   // Show loading state while data is being fetched
-  const isLoading = loadingBC || loadingName || loadingSymbol
+  const isLoading = apiLoading || loadingBC || loadingName || loadingSymbol
   if (isLoading) {
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading token data...</p>
+          <p className="text-gray-400 text-lg">
+            {apiLoading ? 'Loading from database...' : 'Loading from blockchain...'}
+          </p>
         </div>
       </div>
     )
   }
 
-  // Show error state if contract reads failed
+  // Show error state if both API and contract reads failed
   if (!bondingCurve || !name || !symbol) {
     return (
       <div className="min-h-screen py-12 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold mb-2">Token Not Found</h2>
-          <p className="text-gray-400 mb-6">
-            Unable to load token data from blockchain. This token may not exist.
+          <p className="text-gray-400 mb-4">
+            Unable to load token data. This token may not exist or hasn't been indexed yet.
           </p>
+          {apiError && !errorBC && (
+            <p className="text-sm text-yellow-500 mb-6">
+              ℹ️ Backend indexer may be catching up. Try again in a few moments.
+            </p>
+          )}
           <a
             href="/tokens"
             className="inline-block bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition"
@@ -115,7 +139,15 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
             <div className="bg-secondary-light p-6 rounded-xl mb-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <TokenAvatar symbol={symbol || 'TOKEN'} size="xl" />
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                      alt={name || 'Token'}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <TokenAvatar symbol={symbol || 'TOKEN'} size="xl" />
+                  )}
                   <div>
                     <h1 className="text-4xl font-bold mb-1">{name || 'Loading...'}</h1>
                     <p className="text-gray-400 text-xl">${symbol || '...'}</p>
@@ -123,6 +155,20 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
                 </div>
                 <LikeButton tokenAddress={address} />
               </div>
+
+              {description && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">About</h3>
+                  <p className="text-gray-300">{description}</p>
+                </div>
+              )}
+
+              {creator && (
+                <div className="mb-6 p-3 bg-secondary rounded-lg">
+                  <p className="text-sm text-gray-400 mb-1">Created by</p>
+                  <p className="text-sm font-mono text-primary break-all">{creator}</p>
+                </div>
+              )}
 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-secondary p-4 rounded-lg">

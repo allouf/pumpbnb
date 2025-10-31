@@ -32,7 +32,15 @@ function TokenCard({ token }: { token: any }) {
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <TokenAvatar symbol={token.symbol} size="md" />
+          {token.imageUrl ? (
+            <img
+              src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+              alt={token.name}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <TokenAvatar symbol={token.symbol} size="md" />
+          )}
           <div>
             <h3 className="text-xl font-bold">{token.name}</h3>
             <p className="text-gray-400">${token.symbol}</p>
