@@ -40,7 +40,7 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Fetch Buy events
         const buyLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
-          abi: BondingCurveABI as Abi,
+          abi: BondingCurveABI.abi as Abi,
           eventName: 'Buy',
           fromBlock,
           toBlock: 'latest',
@@ -49,7 +49,7 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Fetch Sell events
         const sellLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
-          abi: BondingCurveABI as Abi,
+          abi: BondingCurveABI.abi as Abi,
           eventName: 'Sell',
           fromBlock,
           toBlock: 'latest',
