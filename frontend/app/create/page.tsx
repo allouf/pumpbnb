@@ -191,8 +191,24 @@ export default function CreateTokenPage() {
     }
   }
 
-  // Redirect to token page on success
+  // Index token immediately and redirect on success
   if (isSuccess && hash) {
+    // Trigger immediate indexing in the background
+    fetch(`${API_URL}/api/indexer/index-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ txHash: hash }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Token indexed immediately:', data)
+      })
+      .catch(error => {
+        console.error('Failed to index token immediately:', error)
+        // Don't block user flow - background indexer will catch it later
+      })
+
+    // Redirect to tokens page
     setTimeout(() => {
       router.push('/tokens')
     }, 2000)
