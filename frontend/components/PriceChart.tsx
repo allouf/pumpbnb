@@ -15,8 +15,19 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   const seriesRef = useRef<any>(null)
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
+  console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
+
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || transactions.length === 0) return
+    if (!chartContainerRef.current || isLoading || transactions.length === 0) {
+      console.log('[PriceChart] Skipping chart render:', {
+        hasContainer: !!chartContainerRef.current,
+        isLoading,
+        transactionCount: transactions.length
+      })
+      return
+    }
+
+    console.log('[PriceChart] Creating chart with transactions:', transactions)
 
     // Create chart
     const chart = createChart(chartContainerRef.current, {

@@ -27,9 +27,12 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
   useEffect(() => {
     async function fetchTransactions() {
       if (!publicClient || !bondingCurveAddress) {
+        console.log('[useTransactionHistory] Missing publicClient or bondingCurveAddress')
         setIsLoading(false)
         return
       }
+
+      console.log('[useTransactionHistory] Starting transaction fetch...')
 
       try {
         setIsLoading(true)
@@ -64,11 +67,18 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         console.log(`[useTransactionHistory] Found ${sellLogs.length} Sell events`)
 
         // Process Buy transactions
-        const buyTransactions: Transaction[] = buyLogs.map((log: any) => {
+        const buyTransactions: Transaction[] = buyLogs.map((log: any, index: number) => {
+          console.log(`[useTransactionHistory] Processing Buy event ${index + 1}:`, log.args)
+
           const buyer = log.args.buyer as string
           // Contract emits: Buy(buyer, asterIn, tokensOut, creatorFee, protocolFee, timestamp)
           const asterAmount = log.args.asterIn as bigint
           const tokenAmount = log.args.tokensOut as bigint
+
+          console.log(`[useTransactionHistory]   Buyer: ${buyer}`)
+          console.log(`[useTransactionHistory]   ASTER In: ${formatUnits(asterAmount, 18)}`)
+          console.log(`[useTransactionHistory]   Tokens Out: ${formatUnits(tokenAmount, 18)}`)
+          console.log(`[useTransactionHistory]   Block: ${log.blockNumber}`)
 
           return {
             hash: log.transactionHash,
@@ -109,20 +119,24 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         const allTransactions = [...buyTransactions, ...sellTransactions]
 
         // Fetch block timestamps
+        console.log(`[useTransactionHistory] Fetching timestamps for ${allTransactions.length} transactions...`)
         const transactionsWithTimestamps = await Promise.all(
-          allTransactions.map(async (tx) => {
+          allTransactions.map(async (tx, index) => {
             try {
               const block = await publicClient.getBlock({ blockNumber: tx.blockNumber })
+              const timestamp = Number(block.timestamp)
+              console.log(`[useTransactionHistory]   Transaction ${index + 1}: Block ${tx.blockNumber}, Timestamp: ${timestamp}`)
               return {
                 ...tx,
-                timestamp: Number(block.timestamp),
+                timestamp,
               }
             } catch (err) {
-              console.error('Error fetching block:', err)
+              console.error(`[useTransactionHistory] Error fetching block ${tx.blockNumber}:`, err)
               return tx
             }
           })
         )
+        console.log(`[useTransactionHistory] Timestamps fetched successfully`)
 
         // Filter by user if provided
         const filteredTransactions = userAddress
