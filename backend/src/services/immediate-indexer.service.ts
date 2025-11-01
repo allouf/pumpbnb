@@ -105,6 +105,8 @@ export async function indexTokenFromTransaction(request: IndexTokenRequest): Pro
     if (metadataURI && metadataURI.startsWith('ipfs://')) {
       try {
         ipfsHash = metadataURI.replace('ipfs://', '');
+        logger.info(`[Immediate Indexer] Fetching metadata from IPFS: ${ipfsHash}`);
+
         const metadata = await ipfsService.fetchMetadata(metadataURI);
 
         description = metadata.description || '';
@@ -118,10 +120,20 @@ export async function indexTokenFromTransaction(request: IndexTokenRequest): Pro
           discord = metadata.properties.social.discord || '';
         }
 
-        logger.info(`[Immediate Indexer] Fetched metadata for ${tokenAddress}`);
-      } catch (ipfsError) {
-        logger.warn(`[Immediate Indexer] Failed to fetch IPFS metadata:`, ipfsError);
+        logger.info(`[Immediate Indexer] Fetched metadata for ${tokenAddress}:`, {
+          description: description ? 'present' : 'empty',
+          imageUrl: imageUrl ? 'present' : 'empty',
+          ipfsHash,
+        });
+      } catch (ipfsError: any) {
+        logger.error(`[Immediate Indexer] Failed to fetch IPFS metadata for ${ipfsHash}:`, {
+          message: ipfsError.message,
+          code: ipfsError.code,
+          response: ipfsError.response?.status,
+        });
       }
+    } else {
+      logger.warn(`[Immediate Indexer] No metadata URI or invalid format: ${metadataURI}`);
     }
 
     // Store token in database
