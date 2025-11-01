@@ -65,7 +65,8 @@
       "Bash(timeout 15 npx ts-node:*)",
       "Bash(timeout 20 npx ts-node:*)",
       "Bash(timeout 15 node:*)",
-      "Bash(timeout 20 node:*)"
+      "Bash(timeout 20 node:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

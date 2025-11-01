@@ -9,6 +9,7 @@ import { SlippageSettings } from './SlippageSettings'
 import { calculateExpectedOutput, calculateMinOutput, calculatePriceImpact, SLIPPAGE_PRESETS } from '@/lib/utils/trading'
 import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
+import { indexTrade } from '@/lib/api/indexer'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 
@@ -31,10 +32,11 @@ const ERC20_ABI = [
 
 interface TradingPanelProps {
   bondingCurveAddress: string
+  tokenAddress: string
   tokenSymbol: string
 }
 
-export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelProps) {
+export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }: TradingPanelProps) {
   const { address, isConnected } = useAccount()
   const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy')
   const [amount, setAmount] = useState('')
@@ -102,14 +104,25 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
 
   // Handle transaction success
   useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && hash) {
       toast.success('Transaction successful!')
+
+      // Immediately index the trade for instant chart updates
+      indexTrade({
+        txHash: hash,
+        tokenAddress: tokenAddress,
+      }).then(() => {
+        console.log('[TradingPanel] Trade indexed successfully')
+      }).catch((error) => {
+        console.error('[TradingPanel] Failed to index trade:', error)
+      })
+
       setAmount('')
       refetchAllowance()
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, refetchAllowance, refetchReserves])
+  }, [isSuccess, hash, tokenAddress, refetchAllowance, refetchReserves])
 
   // Handle transaction errors
   useEffect(() => {

@@ -35,7 +35,10 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
       console.log(`[useTransactionHistory] User filter: ${userAddress || 'none'}`)
 
       try {
-        setIsLoading(true)
+        // Only show loading on initial fetch, not on polls
+        if (transactions.length === 0) {
+          setIsLoading(true)
+        }
 
         const url = `${API_URL}/api/trades/${bondingCurveAddress}/history${userAddress ? `?userAddress=${userAddress}` : ''}`
         console.log(`[useTransactionHistory] Fetching: ${url}`)
@@ -79,7 +82,15 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
       }
     }
 
+    // Initial fetch
     fetchTransactions()
+
+    // Poll every 5 seconds for new trades
+    const pollInterval = setInterval(() => {
+      fetchTransactions()
+    }, 5000)
+
+    return () => clearInterval(pollInterval)
   }, [bondingCurveAddress, userAddress])
 
   return { transactions, isLoading, error }

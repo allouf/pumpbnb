@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { createChart, ColorType, IChartApi, AreaSeries, UTCTimestamp } from 'lightweight-charts'
+import { useEffect, useRef, useState } from 'react'
+import { createChart, ColorType, IChartApi, AreaSeries, HistogramSeries, UTCTimestamp, CrosshairMode } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 interface PriceChartProps {
@@ -12,7 +12,9 @@ interface PriceChartProps {
 export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const seriesRef = useRef<any>(null)
+  const priceSeriesRef = useRef<any>(null)
+  const volumeSeriesRef = useRef<any>(null)
+  const [hoveredData, setHoveredData] = useState<{price: number, volume: number, time: string} | null>(null)
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
   console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
@@ -29,7 +31,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
     console.log('[PriceChart] Creating chart with transactions:', transactions)
 
-    // Create chart
+    // Create chart with enhanced configuration
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#1E2329' },
@@ -40,60 +42,140 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         horzLines: { color: '#2B3139' },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400,
+      height: 500,
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: {
+          width: 1,
+          color: '#758696',
+          style: 3,
+          labelBackgroundColor: '#F0B90B',
+        },
+        horzLine: {
+          width: 1,
+          color: '#758696',
+          style: 3,
+          labelBackgroundColor: '#F0B90B',
+        },
+      },
       timeScale: {
         timeVisible: true,
-        secondsVisible: false,
+        secondsVisible: true,
+        borderColor: '#2B3139',
+        rightOffset: 5,
+      },
+      rightPriceScale: {
+        borderColor: '#2B3139',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.2,
+        },
       },
     })
 
     chartRef.current = chart
 
-    // Add area series using v5 API
-    const series = chart.addSeries(AreaSeries, {
+    // Add price series (Area chart) using v5 API
+    const priceSeries = chart.addSeries(AreaSeries, {
       lineColor: '#F0B90B',
       topColor: 'rgba(240, 185, 11, 0.4)',
       bottomColor: 'rgba(240, 185, 11, 0.0)',
       lineWidth: 2,
+      priceFormat: {
+        type: 'price',
+        precision: 6,
+        minMove: 0.000001,
+      },
     })
 
-    seriesRef.current = series
+    priceSeriesRef.current = priceSeries
 
-    // Process transactions into price points
-    // Price = ASTER amount / Token amount
-    const priceData = transactions
-      .filter(tx => tx.timestamp > 0) // Only transactions with timestamps
-      .map(tx => {
+    // Add volume series (Histogram) using v5 API
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: 'volume',
+    })
+
+    volumeSeriesRef.current = volumeSeries
+
+    // Configure volume scale
+    chart.priceScale('volume').applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    })
+
+    // Process transactions into price and volume data
+    const priceData: Array<{time: UTCTimestamp, value: number}> = []
+    const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
+
+    transactions
+      .filter(tx => tx.timestamp > 0)
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .forEach(tx => {
         const asterAmount = Number(tx.asterAmountFormatted)
         const tokenAmount = Number(tx.tokenAmountFormatted)
         const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        const time = Math.floor(tx.timestamp) as UTCTimestamp
 
         console.log('[PriceChart] Processing transaction:', {
           timestamp: tx.timestamp,
           asterAmount,
           tokenAmount,
           price,
+          type: tx.type,
         })
 
-        return {
-          time: Math.floor(tx.timestamp) as UTCTimestamp, // Cast to UTCTimestamp
+        priceData.push({
+          time,
           value: price,
-        }
+        })
+
+        volumeData.push({
+          time,
+          value: asterAmount,
+          color: tx.type === 'buy' ? '#26a69a' : '#ef5350',
+        })
       })
-      .sort((a, b) => a.time - b.time) // Sort by time ascending
 
     console.log('[PriceChart] Price data for chart:', priceData)
+    console.log('[PriceChart] Volume data for chart:', volumeData)
 
     // Set data
     if (priceData.length > 0) {
       try {
-        series.setData(priceData)
+        priceSeries.setData(priceData)
+        volumeSeries.setData(volumeData)
         chart.timeScale().fitContent()
         console.log('[PriceChart] Chart data set successfully')
       } catch (error) {
         console.error('[PriceChart] Error setting chart data:', error)
       }
     }
+
+    // Add crosshair move handler for tooltips
+    chart.subscribeCrosshairMove((param) => {
+      if (!param.time || !param.point) {
+        setHoveredData(null)
+        return
+      }
+
+      const priceData = param.seriesData.get(priceSeries) as any
+      const volumeData = param.seriesData.get(volumeSeries) as any
+
+      if (priceData && volumeData) {
+        const date = new Date((param.time as number) * 1000)
+        setHoveredData({
+          price: priceData.value || 0,
+          volume: volumeData.value || 0,
+          time: date.toLocaleString(),
+        })
+      }
+    })
 
     // Handle resize
     const handleResize = () => {
@@ -152,7 +234,44 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
           </span>
         </div>
       </div>
+
+      {/* Tooltip Display */}
+      {hoveredData && (
+        <div className="mb-4 p-3 bg-secondary rounded-lg">
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Time</p>
+              <p className="font-semibold text-white">{hoveredData.time}</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Price</p>
+              <p className="font-semibold text-primary">{hoveredData.price.toFixed(6)} ASTER</p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Volume</p>
+              <p className="font-semibold text-green-400">{hoveredData.volume.toFixed(2)} ASTER</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div ref={chartContainerRef} className="w-full" />
+
+      {/* Chart Legend */}
+      <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-primary rounded"></div>
+          <span>Price ({tokenSymbol}/ASTER)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-green-500 rounded"></div>
+          <span>Buy Volume</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-red-500 rounded"></div>
+          <span>Sell Volume</span>
+        </div>
+      </div>
     </div>
   )
 }

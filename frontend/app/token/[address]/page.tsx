@@ -227,6 +227,7 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
               <TradingPanel
                 bondingCurveAddress={bondingCurve}
                 tokenSymbol={symbol || 'TOKEN'}
+                tokenAddress={address}
               />
             ) : (
               <div className="bg-secondary-light p-6 rounded-xl">
