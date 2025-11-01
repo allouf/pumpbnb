@@ -8,7 +8,7 @@ const router = Router();
  * Get trading history for a token or bonding curve
  * Accepts either token address or bonding curve address
  */
-router.get('/:address/history', optionalAuth, async (req, res): Promise<void> => {
+router.get('/:address/history', optionalAuth, async (req, res) => {
   try {
     const { address } = req.params;
     const { limit = '100', userAddress } = req.query;
@@ -30,10 +30,11 @@ router.get('/:address/history', optionalAuth, async (req, res): Promise<void> =>
     });
 
     if (!token) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: 'Token not found',
       });
+      return;
     }
 
     // Query trades using the token address
