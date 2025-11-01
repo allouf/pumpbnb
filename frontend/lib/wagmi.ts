@@ -11,8 +11,8 @@ export const config = createConfig({
     injected(),
     metaMask({
       dappMetadata: {
-        name: 'PumpBNB',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://pumpbnb.com',
+        name: 'ASTER FUN',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://asterfun.com',
       },
       // Disable SDK during SSR
       enableAnalytics: false,

@@ -9,7 +9,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-8">
           <Link href="/" className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-primary">PumpBNB</h1>
+            <h1 className="text-2xl font-bold text-primary">ASTER FUN</h1>
           </Link>
           <nav className="hidden md:flex space-x-6">
             <Link href="/" className="hover:text-primary transition">

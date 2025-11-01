@@ -79,7 +79,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-gray-800 bg-secondary py-8">
         <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>PumpBNB - Built on BNB Smart Chain | Testnet v1.0</p>
+          <p>ASTER FUN - Built on BNB Smart Chain | Testnet v1.0</p>
           <p className="mt-2 text-sm">Smart contracts audited and deployed on BSC Testnet</p>
         </div>
       </footer>

@@ -19,7 +19,7 @@ export default function GlobalError({
             </div>
             <h2 className="text-2xl font-bold mb-2 text-red-500">Critical Error</h2>
             <p className="text-gray-400 mb-6">
-              PumpBNB encountered a critical error. Please reload the page.
+              ASTER FUN encountered a critical error. Please reload the page.
             </p>
             <button
               onClick={reset}
