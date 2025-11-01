@@ -2,13 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Optimize production builds
-  swcMinify: true,
-  compress: true,
 
   // Configure turbopack root to silence warning
-  turbopack: {
-    root: process.cwd(),
+  experimental: {
+    turbo: {
+      root: process.cwd(),
+    },
   },
 
   // Webpack configuration for production optimization
