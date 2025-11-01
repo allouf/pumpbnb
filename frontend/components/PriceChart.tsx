@@ -14,21 +14,22 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   const chartRef = useRef<IChartApi | null>(null)
   const priceSeriesRef = useRef<any>(null)
   const volumeSeriesRef = useRef<any>(null)
+  const chartCreatedRef = useRef(false) // Track if chart has been created
   const [hoveredData, setHoveredData] = useState<{price: number, volume: number, time: string} | null>(null)
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
   console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
 
-  // Create chart when container is ready and we have data
+  // Create chart when container is ready and we have data (only once!)
   useEffect(() => {
-    if (!chartContainerRef.current) {
-      console.log('[PriceChart] Container ref not ready, skipping chart creation')
+    // Skip if already created
+    if (chartCreatedRef.current) {
+      console.log('[PriceChart] Chart already created, skipping')
       return
     }
 
-    // Don't create chart if it already exists
-    if (chartRef.current) {
-      console.log('[PriceChart] Chart already exists, skipping creation')
+    if (!chartContainerRef.current) {
+      console.log('[PriceChart] Container ref not ready, skipping chart creation')
       return
     }
 
@@ -37,6 +38,9 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       console.log('[PriceChart] No transactions yet, waiting to create chart')
       return
     }
+
+    // Mark as created immediately to prevent double creation
+    chartCreatedRef.current = true
 
     console.log('[PriceChart] Creating chart instance (one-time setup)')
     console.log('[PriceChart] Container width:', chartContainerRef.current.clientWidth)
@@ -158,9 +162,13 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
     return () => {
       window.removeEventListener('resize', handleResize)
-      chart.remove()
+      // Only remove chart on unmount
+      if (chartRef.current) {
+        chartRef.current.remove()
+        chartCreatedRef.current = false
+      }
     }
-  }, [transactions.length]) // Re-run when we get transactions (but chart creation is guarded)
+  }, [transactions.length]) // Runs when we get data, but guarded by chartCreatedRef
 
   // Update chart data when transactions change
   useEffect(() => {
