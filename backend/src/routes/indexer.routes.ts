@@ -63,7 +63,14 @@ router.post('/index-trade', async (req: Request, res: Response): Promise<void> =
   try {
     const { txHash, tokenAddress } = req.body;
 
+    logger.info(`[API] 📥 Received trade index request:`, {
+      txHash,
+      tokenAddress,
+      body: req.body,
+    });
+
     if (!txHash || !tokenAddress) {
+      logger.error('[API] ❌ Missing required parameters');
       res.status(400).json({
         success: false,
         error: 'Transaction hash and token address are required',
@@ -71,15 +78,21 @@ router.post('/index-trade', async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    logger.info(`[API] Immediate trade index request for tx: ${txHash}`);
+    logger.info(`[API] ✅ Parameters validated, starting indexer...`);
 
     // Dynamically import to avoid circular dependency
     const { immediateTradeIndexerService } = await import('../services/immediate-trade-indexer.service');
-    
+
     // Index with retry logic (waits for confirmation)
     const trade = await immediateTradeIndexerService.indexTradeWithRetry({
       txHash,
       tokenAddress,
+    });
+
+    logger.info(`[API] ✅ Trade indexed successfully:`, {
+      tradeId: trade.id,
+      isBuy: trade.isBuy,
+      txHash,
     });
 
     res.json({
@@ -87,7 +100,11 @@ router.post('/index-trade', async (req: Request, res: Response): Promise<void> =
       data: trade,
     });
   } catch (error: any) {
-    logger.error('[API] Error indexing trade:', error);
+    logger.error('[API] ❌ Error indexing trade:', {
+      message: error.message,
+      stack: error.stack,
+      txHash: req.body.txHash,
+    });
 
     // Check if trade already exists
     if (error.message?.includes('already indexed')) {

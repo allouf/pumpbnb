@@ -105,16 +105,34 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   // Handle transaction success
   useEffect(() => {
     if (isSuccess && hash) {
+      console.log('[TradingPanel] ✅ Transaction successful!', {
+        hash,
+        tokenAddress,
+        activeTab,
+      })
+
       toast.success('Transaction successful!')
 
       // Immediately index the trade for instant chart updates
+      console.log('[TradingPanel] 📊 Starting immediate trade indexing...', {
+        txHash: hash,
+        tokenAddress,
+        tradeType: activeTab,
+      })
+
       indexTrade({
         txHash: hash,
         tokenAddress: tokenAddress,
-      }).then(() => {
-        console.log('[TradingPanel] Trade indexed successfully')
+      }).then((result) => {
+        console.log('[TradingPanel] ✅ Trade indexed successfully!', result)
       }).catch((error) => {
-        console.error('[TradingPanel] Failed to index trade:', error)
+        console.error('[TradingPanel] ❌ Failed to index trade:', {
+          error: error.message,
+          stack: error.stack,
+          txHash: hash,
+          tokenAddress,
+          tradeType: activeTab,
+        })
       })
 
       setAmount('')
@@ -122,7 +140,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, hash, tokenAddress, refetchAllowance, refetchReserves])
+  }, [isSuccess, hash, tokenAddress, refetchAllowance, refetchReserves, activeTab])
 
   // Handle transaction errors
   useEffect(() => {

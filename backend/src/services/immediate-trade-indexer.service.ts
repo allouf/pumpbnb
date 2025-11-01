@@ -31,16 +31,27 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
   try {
     const provider = getProvider();
 
-    logger.info(`[Immediate Trade Indexer] Processing transaction: ${request.txHash}`);
+    logger.info(`[Immediate Trade Indexer] 🔍 Processing transaction:`, {
+      txHash: request.txHash,
+      tokenAddress: request.tokenAddress,
+    });
 
     // Get transaction receipt
     const receipt = await provider.getTransactionReceipt(request.txHash);
 
     if (!receipt) {
+      logger.error(`[Immediate Trade Indexer] ❌ Transaction not found: ${request.txHash}`);
       throw new Error('Transaction not found or not confirmed yet');
     }
 
+    logger.info(`[Immediate Trade Indexer] 📄 Receipt received:`, {
+      status: receipt.status,
+      blockNumber: receipt.blockNumber,
+      logCount: receipt.logs.length,
+    });
+
     if (receipt.status !== 1) {
+      logger.error(`[Immediate Trade Indexer] ❌ Transaction failed (status ${receipt.status})`);
       throw new Error('Transaction failed');
     }
 
@@ -50,7 +61,10 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
     });
 
     if (existing) {
-      logger.info(`[Immediate Trade Indexer] Trade ${request.txHash} already indexed`);
+      logger.info(`[Immediate Trade Indexer] ℹ️ Trade already indexed:`, {
+        txHash: request.txHash,
+        isBuy: existing.isBuy,
+      });
       return existing;
     }
 
@@ -60,15 +74,31 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
     });
 
     if (!token) {
+      logger.error(`[Immediate Trade Indexer] ❌ Token not found: ${request.tokenAddress}`);
       throw new Error(`Token ${request.tokenAddress} not found`);
     }
+
+    logger.info(`[Immediate Trade Indexer] ✅ Token found:`, {
+      address: token.address,
+      bondingCurve: token.bondingCurve,
+      symbol: token.symbol,
+    });
 
     // Parse Buy or Sell event from logs
     const bondingCurveInterface = new ethers.Interface(BondingCurveABI.abi);
     let buyEvent: any = null;
     let sellEvent: any = null;
 
+    logger.info(`[Immediate Trade Indexer] 🔎 Parsing ${receipt.logs.length} logs...`);
+
     for (const log of receipt.logs) {
+      logger.info(`[Immediate Trade Indexer] 📋 Checking log:`, {
+        address: log.address,
+        bondingCurve: token.bondingCurve,
+        matches: log.address.toLowerCase() === token.bondingCurve.toLowerCase(),
+        topicCount: log.topics.length,
+      });
+
       // Skip if log is not from the bonding curve contract
       if (log.address.toLowerCase() !== token.bondingCurve.toLowerCase()) {
         continue;
@@ -80,22 +110,35 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
           data: log.data,
         });
 
+        logger.info(`[Immediate Trade Indexer] 📊 Parsed event:`, {
+          name: parsed?.name,
+          args: parsed?.args,
+        });
+
         if (parsed) {
           if (parsed.name === 'Buy') {
             buyEvent = parsed;
+            logger.info(`[Immediate Trade Indexer] ✅ Buy event found!`);
             break;
           } else if (parsed.name === 'Sell') {
             sellEvent = parsed;
+            logger.info(`[Immediate Trade Indexer] ✅ Sell event found!`);
             break;
           }
         }
-      } catch (e) {
+      } catch (e: any) {
+        logger.warn(`[Immediate Trade Indexer] ⚠️ Failed to parse log:`, e.message);
         // Skip logs that don't match Buy/Sell events
         continue;
       }
     }
 
     if (!buyEvent && !sellEvent) {
+      logger.error(`[Immediate Trade Indexer] ❌ No Buy or Sell event found in transaction!`, {
+        txHash: request.txHash,
+        logCount: receipt.logs.length,
+        bondingCurve: token.bondingCurve,
+      });
       throw new Error('Buy or Sell event not found in transaction');
     }
 
@@ -131,10 +174,19 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
 
     // Process Sell event
     if (sellEvent) {
+      logger.info(`[Immediate Trade Indexer] 💰 Processing Sell event...`);
+
       const seller = sellEvent.args.seller as string;
       const tokensIn = sellEvent.args.tokensIn.toString();
       const asterOut = sellEvent.args.asterOut.toString();
       const totalFee = (sellEvent.args.creatorFee + sellEvent.args.protocolFee).toString();
+
+      logger.info(`[Immediate Trade Indexer] 📊 Sell details:`, {
+        seller,
+        tokensIn: Number(tokensIn) / 1e18,
+        asterOut: Number(asterOut) / 1e18,
+        totalFee: Number(totalFee) / 1e18,
+      });
 
       const trade = await prisma.trade.create({
         data: {
@@ -150,7 +202,13 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
         },
       });
 
-      logger.info(`[Immediate Trade Indexer] Sell indexed: ${seller} sold ${Number(tokensIn) / 1e18} tokens for ${Number(asterOut) / 1e18} ASTER`);
+      logger.info(`[Immediate Trade Indexer] ✅ Sell indexed successfully:`, {
+        id: trade.id,
+        seller,
+        tokensIn: Number(tokensIn) / 1e18,
+        asterOut: Number(asterOut) / 1e18,
+        txHash: request.txHash,
+      });
 
       return trade;
     }

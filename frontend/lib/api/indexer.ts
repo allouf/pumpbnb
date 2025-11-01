@@ -23,6 +23,11 @@ export interface IndexTokenRequest {
  * This ensures the trade appears in the chart and trade history without waiting for background indexer
  */
 export async function indexTrade(request: IndexTradeRequest): Promise<any> {
+  console.log('[indexTrade] 📤 Sending request to backend...', {
+    url: `${API_BASE_URL}/api/indexer/index-trade`,
+    request,
+  })
+
   try {
     const response = await fetch(`${API_BASE_URL}/api/indexer/index-trade`, {
       method: 'POST',
@@ -32,15 +37,34 @@ export async function indexTrade(request: IndexTradeRequest): Promise<any> {
       body: JSON.stringify(request),
     })
 
+    console.log('[indexTrade] 📨 Response received:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+    })
+
     const data = await response.json()
 
+    console.log('[indexTrade] 📦 Response data:', data)
+
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to index trade')
+      const errorMsg = data.error || 'Failed to index trade'
+      console.error('[indexTrade] ❌ API error:', {
+        status: response.status,
+        error: errorMsg,
+        data,
+      })
+      throw new Error(errorMsg)
     }
 
+    console.log('[indexTrade] ✅ Trade indexed successfully!')
     return data
-  } catch (error) {
-    console.error('[Index Trade] Error:', error)
+  } catch (error: any) {
+    console.error('[indexTrade] ❌ Exception caught:', {
+      message: error.message,
+      stack: error.stack,
+      request,
+    })
     // Don't throw - indexing is non-critical for UX
     // The background indexer will pick it up eventually
     return null
