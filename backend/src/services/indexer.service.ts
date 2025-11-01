@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 import { prisma } from './database.service';
 import { ipfsService } from './ipfs.service';
 import TokenFactoryABI from '../../artifacts/contracts/TokenFactory.sol/TokenFactory.json';
-// import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
+import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 // import GraduationManagerABI from '../../artifacts/contracts/GraduationManager.sol/GraduationManager.json'; // TODO: Add graduation event listening
 
 let provider: ethers.JsonRpcProvider;
@@ -148,6 +148,9 @@ async function pollForNewEvents(): Promise<void> {
         await processTokenCreatedEvent(event);
       }
     }
+
+    // Query Buy/Sell events from all bonding curves
+    await indexTradeEvents(fromBlock, toBlock);
 
     // Update last indexed block in memory
     lastIndexedBlock = toBlock;
@@ -358,6 +361,156 @@ async function indexPastEvents(fromBlock: number): Promise<void> {
     logger.info('Past events indexing completed');
   } catch (error) {
     logger.error('Error indexing past events:', error);
+  }
+}
+
+/**
+ * Index Buy and Sell events from all bonding curves
+ */
+async function indexTradeEvents(fromBlock: number, toBlock: number): Promise<void> {
+  try {
+    // Get all tokens to query their bonding curves
+    const tokens = await prisma.token.findMany({
+      select: { address: true, bondingCurve: true },
+    });
+
+    if (tokens.length === 0) {
+      return;
+    }
+
+    logger.info(`Indexing trades for ${tokens.length} tokens from blocks ${fromBlock}-${toBlock}`);
+
+    for (const token of tokens) {
+      try {
+        const bondingCurve = new ethers.Contract(
+          token.bondingCurve,
+          BondingCurveABI.abi,
+          provider
+        );
+
+        // Query Buy events
+        const buyFilter = bondingCurve.filters.Buy();
+        const buyEvents = await bondingCurve.queryFilter(buyFilter, fromBlock, toBlock);
+
+        // Query Sell events
+        const sellFilter = bondingCurve.filters.Sell();
+        const sellEvents = await bondingCurve.queryFilter(sellFilter, fromBlock, toBlock);
+
+        if (buyEvents.length > 0 || sellEvents.length > 0) {
+          logger.info(`Found ${buyEvents.length} Buy and ${sellEvents.length} Sell events for ${token.address}`);
+        }
+
+        // Process Buy events
+        for (const event of buyEvents) {
+          await processBuyEvent(event, token.address);
+        }
+
+        // Process Sell events
+        for (const event of sellEvents) {
+          await processSellEvent(event, token.address);
+        }
+      } catch (error) {
+        logger.error(`Error indexing trades for token ${token.address}:`, error);
+      }
+    }
+  } catch (error) {
+    logger.error('Error in indexTradeEvents:', error);
+  }
+}
+
+/**
+ * Process a Buy event and save to database
+ */
+async function processBuyEvent(event: any, tokenAddress: string): Promise<void> {
+  try {
+    const args = event.args;
+    if (!args) return;
+
+    // Event Buy(address indexed buyer, uint256 asterIn, uint256 tokensOut, uint256 creatorFee, uint256 protocolFee, uint256 timestamp)
+    const buyer = args.buyer as string;
+    const asterIn = args.asterIn.toString();
+    const tokensOut = args.tokensOut.toString();
+    const totalFee = (args.creatorFee + args.protocolFee).toString();
+
+    // Check if already indexed
+    const existing = await prisma.trade.findUnique({
+      where: { txHash: event.transactionHash },
+    });
+
+    if (existing) {
+      return;
+    }
+
+    // Get block timestamp
+    const block = await provider.getBlock(event.blockNumber);
+    const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
+
+    // Save to database
+    await prisma.trade.create({
+      data: {
+        tokenAddress: tokenAddress.toLowerCase(),
+        trader: buyer.toLowerCase(),
+        isBuy: true,
+        amountIn: asterIn,
+        amountOut: tokensOut,
+        fee: totalFee,
+        timestamp,
+        txHash: event.transactionHash,
+        blockNumber: event.blockNumber,
+      },
+    });
+
+    logger.info(`Indexed Buy: ${buyer} bought ${Number(tokensOut) / 1e18} tokens for ${Number(asterIn) / 1e18} ASTER`);
+  } catch (error) {
+    logger.error('Error processing Buy event:', error);
+  }
+}
+
+/**
+ * Process a Sell event and save to database
+ */
+async function processSellEvent(event: any, tokenAddress: string): Promise<void> {
+  try {
+    const args = event.args;
+    if (!args) return;
+
+    // Event Sell(address indexed seller, uint256 tokensIn, uint256 asterOut, uint256 creatorFee, uint256 protocolFee, uint256 timestamp)
+    const seller = args.seller as string;
+    const tokensIn = args.tokensIn.toString();
+    const asterOut = args.asterOut.toString();
+    const totalFee = (args.creatorFee + args.protocolFee).toString();
+
+    // Check if already indexed
+    const existing = await prisma.trade.findUnique({
+      where: { txHash: event.transactionHash },
+    });
+
+    if (existing) {
+      return;
+    }
+
+    // Get block timestamp
+    const block = await provider.getBlock(event.blockNumber);
+    const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
+
+    // Save to database
+    await prisma.trade.create({
+      data: {
+        tokenAddress: tokenAddress.toLowerCase(),
+        trader: seller.toLowerCase(),
+        isBuy: false,
+        amountIn: tokensIn,
+        amountOut: asterOut,
+        fee: totalFee,
+        timestamp,
+        txHash: event.transactionHash,
+        blockNumber: event.blockNumber,
+      },
+    });
+
+    logger.info(`Indexed Sell: ${seller} sold ${Number(tokensIn) / 1e18} tokens for ${Number(asterOut) / 1e18} ASTER`);
+  } catch (error) {
+    logger.error('Error processing Sell event:', error);
   }
 }
 
