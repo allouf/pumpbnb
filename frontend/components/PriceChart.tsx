@@ -196,7 +196,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     }
   }, [transactions])
 
-  if (isLoading) {
+  // Only show loading if we're truly loading AND have no data yet
+  if (isLoading && transactions.length === 0) {
     return (
       <div className="bg-secondary-light rounded-xl p-6">
         <h2 className="text-xl font-bold mb-4">Price Chart</h2>
@@ -210,7 +211,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     )
   }
 
-  if (transactions.length === 0) {
+  // Show empty state only if not loading AND no transactions
+  if (!isLoading && transactions.length === 0) {
     return (
       <div className="bg-secondary-light rounded-xl p-6">
         <h2 className="text-xl font-bold mb-4">Price Chart</h2>
