@@ -47,6 +47,23 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
     functionName: 'getReserves',
   })
 
+  // Get actual buy/sell amounts from contract (includes virtual reserves and fees)
+  const { data: buyAmountData } = useReadContract({
+    address: bondingCurveAddress as `0x${string}`,
+    abi: BondingCurveABI,
+    functionName: 'getBuyAmount',
+    args: activeTab === 'buy' && amountBigInt > 0 ? [amountBigInt] : undefined,
+    query: { enabled: activeTab === 'buy' && amountBigInt > 0 },
+  })
+
+  const { data: sellAmountData } = useReadContract({
+    address: bondingCurveAddress as `0x${string}`,
+    abi: BondingCurveABI,
+    functionName: 'getSellAmount',
+    args: activeTab === 'sell' && amountBigInt > 0 ? [amountBigInt] : undefined,
+    query: { enabled: activeTab === 'sell' && amountBigInt > 0 },
+  })
+
   // Read ASTER allowance
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CONTRACTS.MockASTER as `0x${string}`,
@@ -62,13 +79,19 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
   const asterReserves = reservesData ? reservesData[0] : BigInt(0)
   const tokenReserves = reservesData ? reservesData[1] : BigInt(0)
 
-  // Calculate expected output and price impact
   const amountBigInt = amount ? parseUnits(amount, 18) : BigInt(0)
+
+  // Use contract's actual calculations (includes virtual reserves and correct fees)
+  const buyData = buyAmountData as readonly [bigint, bigint, bigint] | undefined
+  const sellData = sellAmountData as readonly [bigint, bigint, bigint] | undefined
+
   const expectedOutput = activeTab === 'buy'
-    ? calculateExpectedOutput(amountBigInt, asterReserves, tokenReserves)
-    : calculateExpectedOutput(amountBigInt, tokenReserves, asterReserves)
+    ? (buyData ? buyData[0] : BigInt(0)) // tokensOut from getBuyAmount
+    : (sellData ? sellData[0] : BigInt(0)) // asterOut from getSellAmount
 
   const minOutput = calculateMinOutput(expectedOutput, slippage)
+
+  // Simple price impact: compare expected output to naive calculation
   const priceImpact = activeTab === 'buy'
     ? calculatePriceImpact(amountBigInt, asterReserves, expectedOutput, tokenReserves)
     : calculatePriceImpact(amountBigInt, tokenReserves, expectedOutput, asterReserves)
@@ -215,7 +238,9 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
           <div className="flex justify-between">
             <span className="text-gray-400">Trading fee (1%):</span>
             <span className="font-semibold">
-              {amount ? (parseFloat(amount) * 0.01).toFixed(4) : '0'} {activeTab === 'buy' ? 'ASTER' : tokenSymbol}
+              {amount && (buyData || sellData)
+                ? formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18).slice(0, 8)
+                : '0'} {activeTab === 'buy' ? 'ASTER' : 'ASTER'}
             </span>
           </div>
         </div>
