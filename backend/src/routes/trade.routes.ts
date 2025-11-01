@@ -1,66 +1,49 @@
 import { Router } from 'express';
-import { tradeController } from '../controllers/trade.controller';
-import { validate, schemas } from '../middleware/validation';
+import { prisma } from '../services/database.service';
 import { optionalAuth } from '../middleware/auth';
-import Joi from 'joi';
 
 const router = Router();
 
-// Validation schemas - all allow unknown keys for body/query/params
-const getTradesSchema = Joi.object({
-  params: Joi.object({
-    tokenAddress: schemas.address,
-  }).unknown(true),
-  query: Joi.object({
-    page: Joi.number().integer().min(1).optional(),
-    limit: Joi.number().integer().min(1).max(100).optional(),
-    sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }).unknown(true),
-  body: Joi.any(),
-}).unknown(true);
+/**
+ * Get trading history for a bonding curve
+ */
+router.get('/:bondingCurve/history', optionalAuth, async (req, res) => {
+  try {
+    const { bondingCurve } = req.params;
+    const { limit = '100', userAddress } = req.query;
 
-const getChartSchema = Joi.object({
-  params: Joi.object({
-    tokenAddress: schemas.address,
-  }).unknown(true),
-  query: Joi.object({
-    interval: Joi.string().valid('1m', '5m', '15m', '1h', '4h', '1d').optional(),
-    limit: Joi.number().integer().min(1).max(1000).optional(),
-  }).unknown(true),
-  body: Joi.any(),
-}).unknown(true);
+    const trades = await prisma.trade.findMany({
+      where: {
+        bondingCurve: bondingCurve.toLowerCase(),
+        ...(userAddress && { user: (userAddress as string).toLowerCase() }),
+      },
+      orderBy: { timestamp: 'desc' },
+      take: parseInt(limit as string),
+      select: {
+        id: true,
+        user: true,
+        bondingCurve: true,
+        type: true,
+        tokenAmount: true,
+        asterAmount: true,
+        price: true,
+        timestamp: true,
+        transactionHash: true,
+        blockNumber: true,
+      },
+    });
 
-const estimateTradeSchema = Joi.object({
-  body: Joi.object({
-    tokenAddress: schemas.address,
-    amountIn: Joi.string().required(),
-    isBuy: Joi.boolean().required(),
-  }).unknown(true),
-  query: Joi.any(),
-  params: Joi.any(),
-}).unknown(true);
-
-const getUserTradesSchema = Joi.object({
-  params: Joi.object({
-    address: schemas.address,
-  }).unknown(true),
-  query: Joi.object({
-    page: Joi.number().integer().min(1).optional(),
-    limit: Joi.number().integer().min(1).max(100).optional(),
-    sortOrder: Joi.string().valid('asc', 'desc').optional(),
-  }).unknown(true),
-  body: Joi.any(),
-}).unknown(true);
-
-// Routes
-router.get('/:tokenAddress', validate(getTradesSchema), optionalAuth, tradeController.getTokenTrades);
-
-router.get('/:tokenAddress/chart', validate(getChartSchema), optionalAuth, tradeController.getChartData);
-
-router.get('/:tokenAddress/stats', validate(getTradesSchema), optionalAuth, tradeController.getTokenStats);
-
-router.post('/estimate', validate(estimateTradeSchema), tradeController.estimateTrade);
-
-router.get('/user/:address', validate(getUserTradesSchema), optionalAuth, tradeController.getUserTrades);
+    res.json({
+      success: true,
+      data: trades,
+    });
+  } catch (error) {
+    console.error('Error fetching trade history:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch trade history',
+    });
+  }
+});
 
 export default router;
