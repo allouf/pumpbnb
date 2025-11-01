@@ -40,6 +40,9 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState(SLIPPAGE_PRESETS.MEDIUM)
 
+  // Calculate amount early so we can use it in contract reads
+  const amountBigInt = amount ? parseUnits(amount, 18) : BigInt(0)
+
   // Read bonding curve reserves
   const { data: reserves, refetch: refetchReserves } = useReadContract({
     address: bondingCurveAddress as `0x${string}`,
@@ -78,8 +81,6 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? reservesData[0] : BigInt(0)
   const tokenReserves = reservesData ? reservesData[1] : BigInt(0)
-
-  const amountBigInt = amount ? parseUnits(amount, 18) : BigInt(0)
 
   // Use contract's actual calculations (includes virtual reserves and correct fees)
   const buyData = buyAmountData as readonly [bigint, bigint, bigint] | undefined
