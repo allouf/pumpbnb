@@ -69,9 +69,17 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     query: { enabled: activeTab === 'sell' && amountBigInt > 0 },
   })
 
-  // Read ASTER allowance
-  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+  // Read ASTER allowance (for buy)
+  const { data: asterAllowance, refetch: refetchAsterAllowance } = useReadContract({
     address: CONTRACTS.MockASTER as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: address && isConnected ? [address, bondingCurveAddress] : undefined,
+  })
+
+  // Read TOKEN allowance (for sell)
+  const { data: tokenAllowance, refetch: refetchTokenAllowance } = useReadContract({
+    address: tokenAddress as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'allowance',
     args: address && isConnected ? [address, bondingCurveAddress] : undefined,
@@ -79,6 +87,18 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
 
   const { data: hash, isPending, writeContract, error: writeError } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+
+  // Debug logging for transaction states
+  useEffect(() => {
+    console.log('[TradingPanel] 🔍 Transaction state changed:', {
+      hash,
+      isPending,
+      isConfirming,
+      isSuccess,
+      activeTab,
+      hasHash: !!hash,
+    })
+  }, [hash, isPending, isConfirming, isSuccess, activeTab])
 
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? reservesData[0] : BigInt(0)
@@ -99,8 +119,12 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     ? calculatePriceImpact(amountBigInt, asterReserves, expectedOutput, tokenReserves)
     : calculatePriceImpact(amountBigInt, tokenReserves, expectedOutput, asterReserves)
 
-  const currentAllowance = (allowance as bigint) || BigInt(0)
-  const needsApproval = activeTab === 'buy' && currentAllowance < amountBigInt
+  const currentAsterAllowance = (asterAllowance as bigint) || BigInt(0)
+  const currentTokenAllowance = (tokenAllowance as bigint) || BigInt(0)
+
+  const needsApproval = activeTab === 'buy'
+    ? currentAsterAllowance < amountBigInt
+    : currentTokenAllowance < amountBigInt
 
   // Handle transaction success
   useEffect(() => {
@@ -136,11 +160,12 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
       })
 
       setAmount('')
-      refetchAllowance()
+      refetchAsterAllowance()
+      refetchTokenAllowance()
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, hash, tokenAddress, refetchAllowance, refetchReserves, activeTab])
+  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab])
 
   // Handle transaction errors
   useEffect(() => {
@@ -151,22 +176,33 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
 
   const handleApprove = async () => {
     try {
-      const toastId = toast.loading('Requesting approval...')
+      const toastId = toast.loading(`Requesting ${activeTab === 'buy' ? 'ASTER' : tokenSymbol} approval...`)
+
+      const approveAddress = activeTab === 'buy' ? CONTRACTS.MockASTER : tokenAddress
+
+      console.log('[TradingPanel] 📝 Approving token:', {
+        activeTab,
+        approveAddress,
+        tokenSymbol,
+        spender: bondingCurveAddress,
+      })
+
       writeContract({
-        address: CONTRACTS.MockASTER as `0x${string}`,
+        address: approveAddress as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [bondingCurveAddress, parseUnits('1000000', 18)], // Approve 1M ASTER
+        args: [bondingCurveAddress, parseUnits('1000000', 18)], // Approve 1M tokens
       }, {
         onSuccess: () => {
-          toast.success('Approval granted!', { id: toastId })
+          toast.success(`${activeTab === 'buy' ? 'ASTER' : tokenSymbol} approval granted!`, { id: toastId })
         },
         onError: (error) => {
           toast.error('Approval failed', { id: toastId })
+          console.error('[TradingPanel] ❌ Approval failed:', error)
         },
       })
     } catch (err) {
-      console.error('Approve error:', err)
+      console.error('[TradingPanel] ❌ Approve error:', err)
     }
   }
 
@@ -296,7 +332,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             disabled={isPending || isConfirming}
             className="w-full bg-primary text-black py-3 rounded-lg font-bold hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPending || isConfirming ? 'Approving...' : 'Approve ASTER'}
+            {isPending || isConfirming ? 'Approving...' : `Approve ${activeTab === 'buy' ? 'ASTER' : tokenSymbol}`}
           </button>
         ) : (
           <button
