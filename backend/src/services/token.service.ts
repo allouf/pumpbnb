@@ -195,10 +195,10 @@ export class TokenService {
         data: {
           description: metadata.description,
           imageUrl: metadata.image,
-          website: metadata.website,
-          twitter: metadata.twitter,
-          telegram: metadata.telegram,
-          discord: metadata.discord,
+          website: metadata.properties?.social?.website || '',
+          twitter: metadata.properties?.social?.twitter || '',
+          telegram: metadata.properties?.social?.telegram || '',
+          discord: metadata.properties?.social?.discord || '',
           ipfsHash,
         },
       });
