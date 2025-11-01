@@ -8,21 +8,18 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Fetching tokens with IPFS hashes but empty imageUrls...');
+  console.log('Fetching ALL tokens with IPFS hashes...');
 
   const tokens = await prisma.token.findMany({
     where: {
       ipfsHash: {
         not: null,
+        not: '',
       },
-      OR: [
-        { imageUrl: '' },
-        { imageUrl: null },
-      ],
     },
   });
 
-  console.log(`Found ${tokens.length} tokens to fix`);
+  console.log(`Found ${tokens.length} tokens to check/fix`);
 
   for (const token of tokens) {
     try {

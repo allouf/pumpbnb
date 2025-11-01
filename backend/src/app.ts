@@ -15,6 +15,7 @@ import userRoutes from './routes/user.routes';
 import ipfsRoutes from './routes/ipfs.routes';
 import adminRoutes from './routes/admin.routes';
 import indexerRoutes from './routes/indexer.routes';
+import migrationRoutes from './routes/migration.routes';
 
 const app: Application = express();
 
@@ -63,6 +64,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/ipfs', ipfsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/indexer', indexerRoutes);
+app.use('/api/migrations', migrationRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
