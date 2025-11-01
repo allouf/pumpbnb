@@ -19,7 +19,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
   console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
 
-  // Create chart only once on mount
+  // Create chart when container is ready and we have data
   useEffect(() => {
     if (!chartContainerRef.current) {
       console.log('[PriceChart] Container ref not ready, skipping chart creation')
@@ -29,6 +29,12 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     // Don't create chart if it already exists
     if (chartRef.current) {
       console.log('[PriceChart] Chart already exists, skipping creation')
+      return
+    }
+
+    // Wait until we have transactions before creating the chart
+    if (transactions.length === 0) {
+      console.log('[PriceChart] No transactions yet, waiting to create chart')
       return
     }
 
@@ -154,7 +160,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       window.removeEventListener('resize', handleResize)
       chart.remove()
     }
-  }, []) // Only run once on mount
+  }, [transactions.length]) // Re-run when we get transactions (but chart creation is guarded)
 
   // Update chart data when transactions change
   useEffect(() => {
