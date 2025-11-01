@@ -49,8 +49,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
     chartRef.current = chart
 
-    // Add area series using addSeries
-    const series = chart.addSeries('Area' as any, {
+    // Add area series using addAreaSeries
+    const series = chart.addAreaSeries({
       lineColor: '#F0B90B',
       topColor: 'rgba(240, 185, 11, 0.4)',
       bottomColor: 'rgba(240, 185, 11, 0.0)',
@@ -87,7 +87,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     // Set data
     if (priceData.length > 0) {
       try {
-        series.setData(priceData as any)
+        series.setData(priceData)
         chart.timeScale().fitContent()
         console.log('[PriceChart] Chart data set successfully')
       } catch (error) {
