@@ -38,8 +38,8 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         setIsLoading(true)
 
         const currentBlock = await publicClient.getBlockNumber()
-        // Search last 50,000 blocks (~41 hours on BSC testnet) to catch more transactions
-        const fromBlock = currentBlock - BigInt(50000)
+        // Search last 5,000 blocks (~4 hours on BSC testnet) - reduced to avoid RPC limits
+        const fromBlock = currentBlock - BigInt(5000)
 
         console.log(`[useTransactionHistory] Searching blocks ${fromBlock} to ${currentBlock}`)
         console.log(`[useTransactionHistory] Bonding curve: ${bondingCurveAddress}`)
