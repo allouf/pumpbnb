@@ -110,7 +110,22 @@ export async function indexTokenFromTransaction(request: IndexTokenRequest): Pro
         const metadata = await ipfsService.fetchMetadata(metadataURI);
 
         description = metadata.description || '';
-        imageUrl = metadata.image || '';
+
+        // Handle image URL - it might be just a hash or a full URL
+        if (metadata.image) {
+          if (metadata.image.startsWith('ipfs://')) {
+            imageUrl = metadata.image;
+          } else if (metadata.image.startsWith('Qm') || metadata.image.startsWith('bafy')) {
+            // It's an IPFS hash, convert to ipfs:// URI
+            imageUrl = `ipfs://${metadata.image}`;
+          } else if (metadata.image.startsWith('http')) {
+            // Already a full URL
+            imageUrl = metadata.image;
+          } else {
+            // Unknown format, assume it's a hash
+            imageUrl = `ipfs://${metadata.image}`;
+          }
+        }
 
         // Extract social links
         if (metadata.properties?.social) {
@@ -122,7 +137,8 @@ export async function indexTokenFromTransaction(request: IndexTokenRequest): Pro
 
         logger.info(`[Immediate Indexer] Fetched metadata for ${tokenAddress}:`, {
           description: description ? 'present' : 'empty',
-          imageUrl: imageUrl ? 'present' : 'empty',
+          imageUrl: imageUrl ? imageUrl : 'empty',
+          rawImage: metadata.image,
           ipfsHash,
         });
       } catch (ipfsError: any) {
