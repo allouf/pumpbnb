@@ -67,8 +67,8 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       rightPriceScale: {
         borderColor: '#2B3139',
         scaleMargins: {
-          top: 0.1,
-          bottom: 0.2,
+          top: 0.05,
+          bottom: 0.35,
         },
       },
     })
@@ -80,11 +80,11 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       lineColor: '#F0B90B',
       topColor: 'rgba(240, 185, 11, 0.4)',
       bottomColor: 'rgba(240, 185, 11, 0.0)',
-      lineWidth: 2,
+      lineWidth: 3,
       priceFormat: {
         type: 'price',
-        precision: 6,
-        minMove: 0.000001,
+        precision: 8,
+        minMove: 0.00000001,
       },
     })
 
@@ -101,10 +101,10 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
     volumeSeriesRef.current = volumeSeries
 
-    // Configure volume scale
+    // Configure volume scale - keep it small at the bottom
     chart.priceScale('volume').applyOptions({
       scaleMargins: {
-        top: 0.8,
+        top: 0.85,
         bottom: 0,
       },
     })
@@ -245,11 +245,11 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
             </div>
             <div>
               <p className="text-gray-400 text-xs mb-1">Price</p>
-              <p className="font-semibold text-primary">{hoveredData.price.toFixed(6)} ASTER</p>
+              <p className="font-semibold text-primary">{hoveredData.price.toFixed(8)} ASTER</p>
             </div>
             <div>
               <p className="text-gray-400 text-xs mb-1">Volume</p>
-              <p className="font-semibold text-green-400">{hoveredData.volume.toFixed(2)} ASTER</p>
+              <p className="font-semibold text-green-400">{hoveredData.volume.toFixed(4)} ASTER</p>
             </div>
           </div>
         </div>
