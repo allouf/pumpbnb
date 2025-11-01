@@ -84,8 +84,6 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol }: TradingPanelP
       refetchAllowance()
       // Refetch reserves to update market cap and progress
       refetchReserves()
-      // Reload page after 2 seconds to update chart
-      setTimeout(() => window.location.reload(), 2000)
     }
   }, [isSuccess, refetchAllowance, refetchReserves])
 

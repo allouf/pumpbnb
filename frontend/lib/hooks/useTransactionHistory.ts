@@ -59,8 +59,9 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Process Buy transactions
         const buyTransactions: Transaction[] = buyLogs.map((log: any) => {
           const buyer = log.args.buyer as string
-          const asterAmount = log.args.asterAmount as bigint
-          const tokenAmount = log.args.tokenAmount as bigint
+          // Contract emits: Buy(buyer, asterIn, tokensOut, creatorFee, protocolFee, timestamp)
+          const asterAmount = log.args.asterIn as bigint
+          const tokenAmount = log.args.tokensOut as bigint
 
           return {
             hash: log.transactionHash,
@@ -79,8 +80,9 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Process Sell transactions
         const sellTransactions: Transaction[] = sellLogs.map((log: any) => {
           const seller = log.args.seller as string
-          const tokenAmount = log.args.tokenAmount as bigint
-          const asterAmount = log.args.asterAmount as bigint
+          // Contract emits: Sell(seller, tokensIn, asterOut, creatorFee, protocolFee, timestamp)
+          const tokenAmount = log.args.tokensIn as bigint
+          const asterAmount = log.args.asterOut as bigint
 
           return {
             hash: log.transactionHash,
