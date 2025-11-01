@@ -20,7 +20,7 @@ router.post('/index-token', async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    logger.info(\`[API] Immediate index request for tx: \${txHash}\`);
+    logger.info(`[API] Immediate index request for tx: ${txHash}`);
 
     // Index with retry logic (waits for confirmation)
     const token = await immediateIndexerService.indexTokenWithRetry({
@@ -71,7 +71,7 @@ router.post('/index-trade', async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    logger.info(\`[API] Immediate trade index request for tx: \${txHash}\`);
+    logger.info(`[API] Immediate trade index request for tx: ${txHash}`);
 
     // Dynamically import to avoid circular dependency
     const { immediateTradeIndexerService } = await import('../services/immediate-trade-indexer.service');
