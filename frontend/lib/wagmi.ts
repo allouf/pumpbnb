@@ -9,12 +9,20 @@ export const config = createConfig({
   chains: [bscTestnet],
   connectors: [
     injected(),
-    metaMask(),
+    metaMask({
+      dappMetadata: {
+        name: 'PumpBNB',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://pumpbnb.com',
+      },
+      // Disable SDK during SSR
+      enableAnalytics: false,
+    }),
     walletConnect({ projectId }),
   ],
   transports: {
     [bscTestnet.id]: http(),
   },
+  ssr: true, // Enable SSR support
 })
 
 declare module 'wagmi' {
