@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createChart, ColorType, IChartApi, AreaSeries } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, AreaSeries, UTCTimestamp } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 interface PriceChartProps {
@@ -76,7 +76,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         })
 
         return {
-          time: Math.floor(tx.timestamp), // Ensure integer timestamp
+          time: Math.floor(tx.timestamp) as UTCTimestamp, // Cast to UTCTimestamp
           value: price,
         }
       })
