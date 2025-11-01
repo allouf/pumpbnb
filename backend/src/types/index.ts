@@ -14,10 +14,16 @@ export interface TokenMetadata {
   symbol: string;
   description: string;
   image: string;
-  website?: string;
-  twitter?: string;
-  telegram?: string;
-  discord?: string;
+  external_url?: string;
+  attributes?: any[];
+  properties?: {
+    social?: {
+      website?: string;
+      twitter?: string;
+      telegram?: string;
+      discord?: string;
+    };
+  };
 }
 
 export interface Token {

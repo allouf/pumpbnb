@@ -213,6 +213,11 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
     let metadataURI = '';
     let description = '';
     let imageUrl = '';
+    let website = '';
+    let twitter = '';
+    let telegram = '';
+    let discord = '';
+    let ipfsHash = '';
 
     try {
       const PumpTokenABI = ['function metadataURI() view returns (string)'];
@@ -226,7 +231,19 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
           const metadata = await ipfsService.fetchMetadata(metadataURI);
           description = metadata.description || '';
           imageUrl = metadata.image || '';
-          logger.info(`Fetched IPFS metadata for ${tokenAddress}`);
+
+          // Extract IPFS hash from URI
+          ipfsHash = metadataURI.replace('ipfs://', '');
+
+          // Extract social links from metadata.properties.social
+          if (metadata.properties?.social) {
+            website = metadata.properties.social.website || '';
+            twitter = metadata.properties.social.twitter || '';
+            telegram = metadata.properties.social.telegram || '';
+            discord = metadata.properties.social.discord || '';
+          }
+
+          logger.info(`Fetched IPFS metadata for ${tokenAddress} with socials`);
         } catch (ipfsError) {
           logger.warn(`Failed to fetch IPFS metadata for ${tokenAddress}:`, ipfsError);
         }
@@ -249,6 +266,11 @@ async function processTokenCreatedEvent(event: any): Promise<void> {
         createdAt: timestamp,
         blockNumber: event.blockNumber,
         isGraduated: false,
+        ipfsHash,
+        website,
+        twitter,
+        telegram,
+        discord,
       },
     });
 
