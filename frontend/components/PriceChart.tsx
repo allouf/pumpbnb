@@ -22,10 +22,18 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   // Create chart only once on mount
   useEffect(() => {
     if (!chartContainerRef.current) {
+      console.log('[PriceChart] Container ref not ready, skipping chart creation')
+      return
+    }
+
+    // Don't create chart if it already exists
+    if (chartRef.current) {
+      console.log('[PriceChart] Chart already exists, skipping creation')
       return
     }
 
     console.log('[PriceChart] Creating chart instance (one-time setup)')
+    console.log('[PriceChart] Container width:', chartContainerRef.current.clientWidth)
 
     // Create chart with enhanced configuration
     const chart = createChart(chartContainerRef.current, {
@@ -70,6 +78,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     })
 
     chartRef.current = chart
+    console.log('[PriceChart] Chart instance created successfully')
 
     // Add price series (Area chart) using v5 API
     const priceSeries = chart.addSeries(AreaSeries, {
@@ -85,6 +94,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     })
 
     priceSeriesRef.current = priceSeries
+    console.log('[PriceChart] Price series added')
 
     // Add volume series (Histogram) using v5 API
     const volumeSeries = chart.addSeries(HistogramSeries, {
@@ -96,6 +106,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     })
 
     volumeSeriesRef.current = volumeSeries
+    console.log('[PriceChart] Volume series added')
 
     // Configure volume scale - keep it small at the bottom
     chart.priceScale('volume').applyOptions({
@@ -147,7 +158,19 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
   // Update chart data when transactions change
   useEffect(() => {
-    if (!priceSeriesRef.current || !volumeSeriesRef.current || transactions.length === 0) {
+    console.log('[PriceChart] Data update effect triggered:', {
+      hasPriceSeries: !!priceSeriesRef.current,
+      hasVolumeSeries: !!volumeSeriesRef.current,
+      transactionCount: transactions.length
+    })
+
+    if (!priceSeriesRef.current || !volumeSeriesRef.current) {
+      console.log('[PriceChart] Series not ready yet, skipping data update')
+      return
+    }
+
+    if (transactions.length === 0) {
+      console.log('[PriceChart] No transactions to display')
       return
     }
 
