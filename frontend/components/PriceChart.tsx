@@ -19,17 +19,13 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
 
   console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
 
+  // Create chart only once on mount
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || transactions.length === 0) {
-      console.log('[PriceChart] Skipping chart render:', {
-        hasContainer: !!chartContainerRef.current,
-        isLoading,
-        transactionCount: transactions.length
-      })
+    if (!chartContainerRef.current) {
       return
     }
 
-    console.log('[PriceChart] Creating chart with transactions:', transactions)
+    console.log('[PriceChart] Creating chart instance (one-time setup)')
 
     // Create chart with enhanced configuration
     const chart = createChart(chartContainerRef.current, {
@@ -109,54 +105,6 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       },
     })
 
-    // Process transactions into price and volume data
-    const priceData: Array<{time: UTCTimestamp, value: number}> = []
-    const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
-
-    transactions
-      .filter(tx => tx.timestamp > 0)
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .forEach(tx => {
-        const asterAmount = Number(tx.asterAmountFormatted)
-        const tokenAmount = Number(tx.tokenAmountFormatted)
-        const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        const time = Math.floor(tx.timestamp) as UTCTimestamp
-
-        console.log('[PriceChart] Processing transaction:', {
-          timestamp: tx.timestamp,
-          asterAmount,
-          tokenAmount,
-          price,
-          type: tx.type,
-        })
-
-        priceData.push({
-          time,
-          value: price,
-        })
-
-        volumeData.push({
-          time,
-          value: asterAmount,
-          color: tx.type === 'buy' ? '#26a69a' : '#ef5350',
-        })
-      })
-
-    console.log('[PriceChart] Price data for chart:', priceData)
-    console.log('[PriceChart] Volume data for chart:', volumeData)
-
-    // Set data
-    if (priceData.length > 0) {
-      try {
-        priceSeries.setData(priceData)
-        volumeSeries.setData(volumeData)
-        chart.timeScale().fitContent()
-        console.log('[PriceChart] Chart data set successfully')
-      } catch (error) {
-        console.error('[PriceChart] Error setting chart data:', error)
-      }
-    }
-
     // Add crosshair move handler for tooltips
     chart.subscribeCrosshairMove((param) => {
       if (!param.time || !param.point) {
@@ -190,7 +138,58 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       window.removeEventListener('resize', handleResize)
       chart.remove()
     }
-  }, [transactions, isLoading, bondingCurveAddress])
+  }, []) // Only run once on mount
+
+  // Update chart data when transactions change
+  useEffect(() => {
+    if (!priceSeriesRef.current || !volumeSeriesRef.current || transactions.length === 0) {
+      return
+    }
+
+    console.log('[PriceChart] Updating chart data with', transactions.length, 'transactions')
+
+    // Process transactions into price and volume data
+    const priceData: Array<{time: UTCTimestamp, value: number}> = []
+    const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
+
+    transactions
+      .filter(tx => tx.timestamp > 0)
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .forEach(tx => {
+        const asterAmount = Number(tx.asterAmountFormatted)
+        const tokenAmount = Number(tx.tokenAmountFormatted)
+        const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        const time = Math.floor(tx.timestamp) as UTCTimestamp
+
+        priceData.push({
+          time,
+          value: price,
+        })
+
+        volumeData.push({
+          time,
+          value: asterAmount,
+          color: tx.type === 'buy' ? '#26a69a' : '#ef5350',
+        })
+      })
+
+    // Update data smoothly without recreating chart
+    if (priceData.length > 0) {
+      try {
+        priceSeriesRef.current.setData(priceData)
+        volumeSeriesRef.current.setData(volumeData)
+
+        // Only fit content on initial load or significant changes
+        if (priceData.length <= 5) {
+          chartRef.current?.timeScale().fitContent()
+        }
+
+        console.log('[PriceChart] Chart data updated smoothly')
+      } catch (error) {
+        console.error('[PriceChart] Error updating chart data:', error)
+      }
+    }
+  }, [transactions])
 
   if (isLoading) {
     return (

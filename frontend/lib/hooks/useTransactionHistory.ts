@@ -50,7 +50,6 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         }
 
         const data = await response.json()
-        console.log(`[useTransactionHistory] API response:`, data)
 
         if (!data.success) {
           throw new Error(data.message || 'Failed to fetch trade history')
@@ -70,9 +69,15 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
           bondingCurve: trade.bondingCurve,
         }))
 
-        console.log(`[useTransactionHistory] Processed ${trades.length} trades`)
+        // Only update state if there are new trades (avoid unnecessary re-renders)
+        if (trades.length !== transactions.length ||
+            trades.some((trade: Transaction, index: number) => trade.hash !== transactions[index]?.hash)) {
+          console.log(`[useTransactionHistory] New trades detected: ${trades.length} (was ${transactions.length})`)
+          setTransactions(trades)
+        } else {
+          console.log(`[useTransactionHistory] No new trades, skipping update`)
+        }
 
-        setTransactions(trades)
         setError(null)
       } catch (err) {
         console.error('[useTransactionHistory] Error:', err)
