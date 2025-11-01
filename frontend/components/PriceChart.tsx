@@ -112,8 +112,13 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         return
       }
 
-      const priceData = param.seriesData.get(priceSeries) as any
-      const volumeData = param.seriesData.get(volumeSeries) as any
+      // Use refs to get current series (important for updates)
+      if (!priceSeriesRef.current || !volumeSeriesRef.current) {
+        return
+      }
+
+      const priceData = param.seriesData.get(priceSeriesRef.current) as any
+      const volumeData = param.seriesData.get(volumeSeriesRef.current) as any
 
       if (priceData && volumeData) {
         const date = new Date((param.time as number) * 1000)
@@ -234,23 +239,32 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         </div>
       </div>
 
-      {/* Tooltip Display */}
+      {/* Tooltip Display - Shows on hover */}
       {hoveredData && (
-        <div className="mb-4 p-3 bg-secondary rounded-lg">
-          <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="mb-4 p-4 bg-secondary rounded-lg border border-primary/30 shadow-lg">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-gray-400 text-xs mb-1">Time</p>
-              <p className="font-semibold text-white">{hoveredData.time}</p>
+              <p className="text-gray-400 text-xs mb-1 uppercase tracking-wide">Time</p>
+              <p className="font-semibold text-white text-sm">{hoveredData.time}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-xs mb-1">Price</p>
-              <p className="font-semibold text-primary">{hoveredData.price.toFixed(8)} ASTER</p>
+              <p className="text-gray-400 text-xs mb-1 uppercase tracking-wide">Price</p>
+              <p className="font-bold text-primary text-base">{hoveredData.price.toFixed(8)} ASTER</p>
             </div>
             <div>
-              <p className="text-gray-400 text-xs mb-1">Volume</p>
-              <p className="font-semibold text-green-400">{hoveredData.volume.toFixed(4)} ASTER</p>
+              <p className="text-gray-400 text-xs mb-1 uppercase tracking-wide">Volume</p>
+              <p className="font-semibold text-green-400 text-sm">{hoveredData.volume.toFixed(4)} ASTER</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Instruction hint when no hover */}
+      {!hoveredData && transactions.length > 0 && (
+        <div className="mb-4 p-3 bg-secondary/50 rounded-lg border border-gray-700/50">
+          <p className="text-gray-500 text-xs text-center">
+            💡 Hover over the chart to see detailed price and volume data
+          </p>
         </div>
       )}
 
