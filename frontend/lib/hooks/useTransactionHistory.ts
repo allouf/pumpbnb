@@ -38,6 +38,9 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         // Search last 50,000 blocks (~41 hours on BSC testnet) to catch more transactions
         const fromBlock = currentBlock - BigInt(50000)
 
+        console.log(`[useTransactionHistory] Searching blocks ${fromBlock} to ${currentBlock}`)
+        console.log(`[useTransactionHistory] Bonding curve: ${bondingCurveAddress}`)
+
         // Fetch Buy events
         const buyLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
@@ -47,6 +50,8 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
           toBlock: 'latest',
         })
 
+        console.log(`[useTransactionHistory] Found ${buyLogs.length} Buy events`)
+
         // Fetch Sell events
         const sellLogs = await publicClient.getContractEvents({
           address: bondingCurveAddress as `0x${string}`,
@@ -55,6 +60,8 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
           fromBlock,
           toBlock: 'latest',
         })
+
+        console.log(`[useTransactionHistory] Found ${sellLogs.length} Sell events`)
 
         // Process Buy transactions
         const buyTransactions: Transaction[] = buyLogs.map((log: any) => {
@@ -126,6 +133,9 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
 
         // Sort by most recent first
         filteredTransactions.sort((a, b) => b.timestamp - a.timestamp)
+
+        console.log(`[useTransactionHistory] Found ${filteredTransactions.length} transactions for bonding curve ${bondingCurveAddress}`)
+        console.log('[useTransactionHistory] Transactions:', filteredTransactions)
 
         setTransactions(filteredTransactions)
         setError(null)
