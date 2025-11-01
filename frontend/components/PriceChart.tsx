@@ -87,7 +87,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     // Set data
     if (priceData.length > 0) {
       try {
-        series.setData(priceData)
+        series.setData(priceData as any)
         chart.timeScale().fitContent()
         console.log('[PriceChart] Chart data set successfully')
       } catch (error) {
