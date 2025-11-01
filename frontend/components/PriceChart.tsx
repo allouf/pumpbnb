@@ -68,17 +68,31 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
         const tokenAmount = Number(tx.tokenAmountFormatted)
         const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
 
+        console.log('[PriceChart] Processing transaction:', {
+          timestamp: tx.timestamp,
+          asterAmount,
+          tokenAmount,
+          price,
+        })
+
         return {
-          time: tx.timestamp as any,
+          time: Math.floor(tx.timestamp), // Ensure integer timestamp
           value: price,
         }
       })
       .sort((a, b) => a.time - b.time) // Sort by time ascending
 
+    console.log('[PriceChart] Price data for chart:', priceData)
+
     // Set data
     if (priceData.length > 0) {
-      series.setData(priceData)
-      chart.timeScale().fitContent()
+      try {
+        series.setData(priceData)
+        chart.timeScale().fitContent()
+        console.log('[PriceChart] Chart data set successfully')
+      } catch (error) {
+        console.error('[PriceChart] Error setting chart data:', error)
+      }
     }
 
     // Handle resize
