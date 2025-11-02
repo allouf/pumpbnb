@@ -24,6 +24,7 @@ import tradersRoutes from './routes/traders.routes';
 import creatorsRoutes from './routes/creators.routes';
 import holdersRoutes from './routes/holders.routes';
 import commentsRoutes from './routes/comments.routes';
+import healthRoutes from './routes/health.routes';
 
 const app: Application = express();
 
@@ -55,14 +56,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Rate limiting
 app.use('/api', apiLimiter);
 
-// Health check
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
-});
+// Health check routes (detailed system status)
+app.use('/', healthRoutes);
 
 // API routes (existing)
 app.use('/api/config', configRoutes);

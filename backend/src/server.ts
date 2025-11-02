@@ -13,42 +13,65 @@ const server = http.createServer(app);
 
 async function startServer(): Promise<void> {
   try {
+    logger.info('');
+    logger.info('========================================');
+    logger.info('🚀 ASTER FUN Backend Server Starting...');
+    logger.info('========================================');
+    logger.info('');
+
     // Initialize database connections
-    logger.info('Initializing database connections...');
+    logger.info('📊 [1/7] Initializing database connections...');
     await initializeDatabase();
-    logger.info('Database connections established');
+    logger.info('✅ [1/7] Database connections established');
+    logger.info('');
 
     // Initialize WebSocket server
-    logger.info('Initializing WebSocket server...');
+    logger.info('🔌 [2/7] Initializing WebSocket server...');
     websocketService.initialize(server);
-    logger.info('WebSocket server initialized');
+    logger.info('✅ [2/7] WebSocket server initialized');
+    logger.info('');
 
     // Start blockchain indexer
-    logger.info('Starting blockchain indexer...');
+    logger.info('⛓️  [3/7] Starting blockchain indexer...');
+    logger.info(`    RPC: ${config.bscTestnetRpc}`);
     await startBlockchainIndexer();
-    logger.info('Blockchain indexer started');
+    logger.info('✅ [3/7] Blockchain indexer started');
+    logger.info('');
 
     // Start background services
-    logger.info('Starting background services...');
+    logger.info('⚙️  [4/7] Starting background services...');
 
     // Start OHLCV Aggregation Service
+    logger.info('    📈 Starting OHLCV Aggregation Service...');
     ohlcvAggregatorService.start();
-    logger.info('OHLCV Aggregation Service started');
+    logger.info('    ✅ OHLCV Aggregation Service started');
 
     // Start Holder Balance Updater Service
+    logger.info('    👥 Starting Holder Balance Updater Service...');
     holderUpdaterService.start();
-    logger.info('Holder Balance Updater Service started');
+    logger.info('    ✅ Holder Balance Updater Service started');
 
     // Start Cache Warming Service
+    logger.info('    🔥 Starting Cache Warming Service...');
     cacheWarmerService.start();
-    logger.info('Cache Warming Service started');
+    logger.info('    ✅ Cache Warming Service started');
 
-    logger.info('All background services started successfully');
+    logger.info('✅ [4/7] All background services started successfully');
+    logger.info('');
 
     // Start HTTP server
+    logger.info('🌐 [5/7] Starting HTTP server...');
     server.listen(config.port, config.host, () => {
-      logger.info(`Server running on http://${config.host}:${config.port}`);
-      logger.info(`Environment: ${config.nodeEnv}`);
+      logger.info('✅ [5/7] HTTP server started');
+      logger.info('');
+      logger.info('========================================');
+      logger.info(`🎉 Server Status: READY`);
+      logger.info(`📍 URL: http://${config.host}:${config.port}`);
+      logger.info(`🌍 Environment: ${config.nodeEnv}`);
+      logger.info(`📊 Health Check: http://${config.host}:${config.port}/health`);
+      logger.info(`📈 Detailed Status: http://${config.host}:${config.port}/health/details`);
+      logger.info('========================================');
+      logger.info('');
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
