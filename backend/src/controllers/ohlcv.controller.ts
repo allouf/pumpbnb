@@ -8,26 +8,28 @@ class OHLCVController {
    * GET /api/v2/tokens/:address/ohlcv
    * Get OHLCV chart data for a token
    */
-  async getOHLCVData(req: Request, res: Response, next: NextFunction) {
+  async getOHLCVData(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { timeframe = '1h', from, to } = req.query;
 
       if (!from || !to) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required parameters: from, to',
         });
+        return;
       }
 
       const fromDate = new Date(from as string);
       const toDate = new Date(to as string);
 
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid date format',
         });
+        return;
       }
 
       const data = await ohlcvService.getOHLCVData(
@@ -52,26 +54,28 @@ class OHLCVController {
    * GET /api/v2/tokens/:address/chart
    * Get chart data formatted for TradingView Lightweight Charts
    */
-  async getChartData(req: Request, res: Response, next: NextFunction) {
+  async getChartData(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { timeframe = '1h', from, to } = req.query;
 
       if (!from || !to) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required parameters: from, to',
         });
+        return;
       }
 
       const fromDate = new Date(from as string);
       const toDate = new Date(to as string);
 
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid date format',
         });
+        return;
       }
 
       const chartData = await ohlcvService.getChartData(
@@ -97,7 +101,7 @@ class OHLCVController {
    * GET /api/v2/tokens/:address/ohlcv/latest
    * Get latest candle for a token
    */
-  async getLatestCandle(req: Request, res: Response, next: NextFunction) {
+  async getLatestCandle(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { timeframe = '1h' } = req.query;
@@ -108,10 +112,11 @@ class OHLCVController {
       );
 
       if (!candle) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'No candle data found',
         });
+        return;
       }
 
       res.json({
@@ -129,16 +134,17 @@ class OHLCVController {
    * Manually trigger OHLCV aggregation from trades
    * (Admin/internal use)
    */
-  async aggregateOHLCV(req: Request, res: Response, next: NextFunction) {
+  async aggregateOHLCV(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { timeframe = '1h', from, to } = req.body;
 
       if (!from || !to) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required parameters: from, to',
         });
+        return;
       }
 
       const fromDate = new Date(from);

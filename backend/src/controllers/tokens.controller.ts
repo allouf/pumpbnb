@@ -7,17 +7,18 @@ class TokensController {
    * GET /api/v2/tokens/:address
    * Get complete token page data
    */
-  async getTokenPageData(req: Request, res: Response, next: NextFunction) {
+  async getTokenPageData(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
       const pageData = await tokensService.getTokenPageData(address);
 
       if (!pageData) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Token not found',
         });
+        return;
       }
 
       res.json({
@@ -34,17 +35,18 @@ class TokensController {
    * GET /api/v2/tokens/:address/info
    * Get token basic info
    */
-  async getTokenInfo(req: Request, res: Response, next: NextFunction) {
+  async getTokenInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
       const token = await tokensService.getToken(address);
 
       if (!token) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Token not found',
         });
+        return;
       }
 
       res.json({
@@ -61,17 +63,18 @@ class TokensController {
    * GET /api/v2/tokens/:address/stats
    * Get token statistics
    */
-  async getTokenStats(req: Request, res: Response, next: NextFunction) {
+  async getTokenStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
       const stats = await tokensService.getTokenStats(address);
 
       if (!stats) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Token stats not found',
         });
+        return;
       }
 
       res.json({
@@ -88,7 +91,7 @@ class TokensController {
    * GET /api/v2/tokens
    * Get all tokens with filtering and pagination
    */
-  async getTokens(req: Request, res: Response, next: NextFunction) {
+  async getTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const {
         page = '1',
@@ -122,15 +125,16 @@ class TokensController {
    * GET /api/v2/tokens/search
    * Search tokens by name, symbol, or address
    */
-  async searchTokens(req: Request, res: Response, next: NextFunction) {
+  async searchTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { q, limit = '10' } = req.query;
 
       if (!q || typeof q !== 'string') {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Query parameter "q" is required',
         });
+        return;
       }
 
       const tokens = await tokensService.searchTokens(
@@ -153,7 +157,7 @@ class TokensController {
    * GET /api/v2/tokens/trending
    * Get trending tokens
    */
-  async getTrendingTokens(req: Request, res: Response, next: NextFunction) {
+  async getTrendingTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { limit = '10' } = req.query;
 
@@ -176,7 +180,7 @@ class TokensController {
    * GET /api/v2/tokens/recent
    * Get recently created tokens
    */
-  async getRecentTokens(req: Request, res: Response, next: NextFunction) {
+  async getRecentTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { limit = '10' } = req.query;
 
@@ -199,7 +203,7 @@ class TokensController {
    * GET /api/v2/tokens/graduated
    * Get graduated tokens
    */
-  async getGraduatedTokens(req: Request, res: Response, next: NextFunction) {
+  async getGraduatedTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { page = '1', limit = '50' } = req.query;
 
@@ -222,7 +226,7 @@ class TokensController {
    * GET /api/v2/creators/:address/tokens
    * Get tokens created by a specific address
    */
-  async getTokensByCreator(req: Request, res: Response, next: NextFunction) {
+  async getTokensByCreator(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { page = '1', limit = '50' } = req.query;

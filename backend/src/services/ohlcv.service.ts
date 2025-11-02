@@ -1,4 +1,4 @@
-import { OHLCVData, Prisma } from '@prisma/client';
+import { OHLCVData } from '@prisma/client';
 import { prisma } from './db.service';
 import { cache, cacheKeys } from '../config/redis';
 import { Timeframe, ChartData } from '../types/tokenPage';

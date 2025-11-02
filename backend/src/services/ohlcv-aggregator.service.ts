@@ -183,8 +183,6 @@ export class OHLCVAggregatorService {
     candle: any
   ): Promise<void> {
     try {
-      const room = `token:${tokenAddress.toLowerCase()}`;
-
       const candleData = {
         tokenAddress,
         timeframe,

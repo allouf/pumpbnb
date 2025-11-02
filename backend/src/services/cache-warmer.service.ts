@@ -12,10 +12,7 @@
  */
 
 import { prisma } from './db.service';
-import { cache, cacheKeys } from '../config/redis';
-import { tradesService } from './trades.service';
-import { holdersService } from './holders.service';
-import { tokensService } from './tokens.service';
+import { cache, cacheKeys, redisClient } from '../config/redis';
 import logger from '../utils/logger';
 
 interface CacheWarmingConfig {
@@ -203,7 +200,7 @@ export class CacheWarmerService {
    * Warm token holders
    */
   private async warmTokenHolders(tokenAddress: string): Promise<void> {
-    const cacheKey = cacheKeys.tokenHolders(tokenAddress, this.config.holdersPerToken);
+    const cacheKey = cacheKeys.tokenHolders(tokenAddress);
 
     // Check if already cached
     const cached = await cache.get(cacheKey);
@@ -394,7 +391,7 @@ export class CacheWarmerService {
    */
   async clearAll(): Promise<void> {
     logger.warn('Clearing all cached data');
-    await cache.flushdb();
+    await redisClient.flushdb();
     logger.info('All cached data cleared');
   }
 
@@ -408,8 +405,8 @@ export class CacheWarmerService {
     misses: number;
     hitRate: number;
   }> {
-    const info = await cache.info('stats');
-    const keyspace = await cache.info('keyspace');
+    const info = await redisClient.info('stats');
+    const keyspace = await redisClient.info('keyspace');
 
     // Parse info string (Redis INFO command returns text)
     const stats = {

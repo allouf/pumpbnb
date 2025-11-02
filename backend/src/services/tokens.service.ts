@@ -47,12 +47,32 @@ class TokensService {
       take: 10,
     });
 
+    // If token.stats is null, we need to handle it - but type expects it to exist
+    // This should never happen if database is properly set up, but handle gracefully
+    if (!token.stats) {
+      return null;
+    }
+
     const pageData: TokenPageData = {
-      token,
-      stats: token.stats!,
-      recentTrades: token.trades,
+      token: {
+        ...token,
+        graduatedAt: token.graduatedAt ?? undefined,
+        ipfsHash: token.ipfsHash ?? undefined,
+        website: token.website ?? undefined,
+        twitter: token.twitter ?? undefined,
+        telegram: token.telegram ?? undefined,
+        discord: token.discord ?? undefined,
+      },
+      stats: token.stats,
+      recentTrades: token.trades.map(trade => ({
+        ...trade,
+        marketCap: trade.marketCap ?? undefined,
+      })),
       topHolders,
-      recentComments,
+      recentComments: recentComments.map(comment => ({
+        ...comment,
+        replyTo: comment.replyTo ?? undefined,
+      })),
     };
 
     // Cache for 5 minutes
@@ -161,7 +181,16 @@ class TokensService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: tokens,
+      data: tokens.map(token => ({
+        ...token,
+        graduatedAt: token.graduatedAt ?? undefined,
+        ipfsHash: token.ipfsHash ?? undefined,
+        website: token.website ?? undefined,
+        twitter: token.twitter ?? undefined,
+        telegram: token.telegram ?? undefined,
+        discord: token.discord ?? undefined,
+        stats: token.stats ?? undefined,
+      })) as (Token & { stats?: TokenStats })[],
       pagination: {
         page,
         limit,
@@ -219,7 +248,15 @@ class TokensService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: tokens,
+      data: tokens.map(token => ({
+        ...token,
+        graduatedAt: token.graduatedAt ?? undefined,
+        ipfsHash: token.ipfsHash ?? undefined,
+        website: token.website ?? undefined,
+        twitter: token.twitter ?? undefined,
+        telegram: token.telegram ?? undefined,
+        discord: token.discord ?? undefined,
+      })) as Token[],
       pagination: {
         page,
         limit,
@@ -291,7 +328,15 @@ class TokensService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: tokens,
+      data: tokens.map(token => ({
+        ...token,
+        graduatedAt: token.graduatedAt ?? undefined,
+        ipfsHash: token.ipfsHash ?? undefined,
+        website: token.website ?? undefined,
+        twitter: token.twitter ?? undefined,
+        telegram: token.telegram ?? undefined,
+        discord: token.discord ?? undefined,
+      })) as Token[],
       pagination: {
         page,
         limit,

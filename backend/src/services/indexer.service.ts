@@ -467,6 +467,9 @@ async function processBuyEvent(event: any, tokenAddress: string): Promise<void> 
     const block = await provider.getBlock(event.blockNumber);
     const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
 
+    // Calculate price (ASTER per token)
+    const price = (BigInt(asterIn) * BigInt(1e18)) / BigInt(tokensOut);
+
     // Save to database
     await prisma.trade.create({
       data: {
@@ -479,6 +482,9 @@ async function processBuyEvent(event: any, tokenAddress: string): Promise<void> 
         timestamp,
         txHash: event.transactionHash,
         blockNumber: event.blockNumber,
+        price: price.toString(),
+        asterAmount: asterIn,
+        tokenAmount: tokensOut,
       },
     });
 
@@ -515,6 +521,9 @@ async function processSellEvent(event: any, tokenAddress: string): Promise<void>
     const block = await provider.getBlock(event.blockNumber);
     const timestamp = block ? new Date(block.timestamp * 1000) : new Date();
 
+    // Calculate price (ASTER per token)
+    const price = (BigInt(asterOut) * BigInt(1e18)) / BigInt(tokensIn);
+
     // Save to database
     await prisma.trade.create({
       data: {
@@ -527,6 +536,9 @@ async function processSellEvent(event: any, tokenAddress: string): Promise<void>
         timestamp,
         txHash: event.transactionHash,
         blockNumber: event.blockNumber,
+        price: price.toString(),
+        asterAmount: asterOut,
+        tokenAmount: tokensIn,
       },
     });
 

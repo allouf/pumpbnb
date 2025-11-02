@@ -155,6 +155,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
       const tokensOut = buyEvent.args.tokensOut.toString();
       const totalFee = (buyEvent.args.creatorFee + buyEvent.args.protocolFee).toString();
 
+      // Calculate price (ASTER per token)
+      const price = (BigInt(asterIn) * BigInt(1e18)) / BigInt(tokensOut);
+
       const trade = await prisma.trade.create({
         data: {
           tokenAddress: request.tokenAddress.toLowerCase(),
@@ -166,6 +169,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
           timestamp,
           txHash: request.txHash,
           blockNumber: receipt.blockNumber,
+          price: price.toString(),
+          asterAmount: asterIn,
+          tokenAmount: tokensOut,
         },
       });
 
@@ -203,6 +209,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
         totalFee: Number(totalFee) / 1e18,
       });
 
+      // Calculate price (ASTER per token)
+      const price = (BigInt(asterOut) * BigInt(1e18)) / BigInt(tokensIn);
+
       const trade = await prisma.trade.create({
         data: {
           tokenAddress: request.tokenAddress.toLowerCase(),
@@ -214,6 +223,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
           timestamp,
           txHash: request.txHash,
           blockNumber: receipt.blockNumber,
+          price: price.toString(),
+          asterAmount: asterOut,
+          tokenAmount: tokensIn,
         },
       });
 

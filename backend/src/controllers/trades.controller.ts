@@ -8,7 +8,7 @@ class TradesController {
    * GET /api/tokens/:address/trades
    * Get trades for a specific token
    */
-  async getTokenTrades(req: Request, res: Response, next: NextFunction) {
+  async getTokenTrades(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const {
@@ -55,7 +55,7 @@ class TradesController {
    * GET /api/tokens/:address/trades/recent
    * Get recent trades for a token (cached, faster)
    */
-  async getRecentTrades(req: Request, res: Response, next: NextFunction) {
+  async getRecentTrades(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { limit = '20' } = req.query;
@@ -80,17 +80,18 @@ class TradesController {
    * GET /api/trades/:txHash
    * Get a single trade by transaction hash
    */
-  async getTradeByTxHash(req: Request, res: Response, next: NextFunction) {
+  async getTradeByTxHash(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { txHash } = req.params;
 
       const trade = await tradesService.getTradeByTxHash(txHash);
 
       if (!trade) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Trade not found',
         });
+        return;
       }
 
       res.json({
@@ -107,7 +108,7 @@ class TradesController {
    * GET /api/traders/:address/trades
    * Get all trades for a specific trader
    */
-  async getTraderTrades(req: Request, res: Response, next: NextFunction) {
+  async getTraderTrades(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const {
@@ -136,7 +137,7 @@ class TradesController {
    * GET /api/tokens/:address/trades/stats
    * Get trade statistics for a token
    */
-  async getTradeStats(req: Request, res: Response, next: NextFunction) {
+  async getTradeStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { timeWindow = '86400000' } = req.query; // Default 24h in ms

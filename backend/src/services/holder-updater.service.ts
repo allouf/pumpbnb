@@ -13,7 +13,7 @@
 
 import { prisma } from './db.service';
 import { websocketService } from './websocket.service';
-import { cache, cacheKeys } from '../config/redis';
+import { cache } from '../config/redis';
 import logger from '../utils/logger';
 import { EventEmitter } from 'events';
 

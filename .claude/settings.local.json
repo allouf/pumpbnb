@@ -71,7 +71,8 @@
       "Bash(if not exist \"F:\\BNB_PumpFun\\backend\\tsconfig.json\" echo.)",
       "Bash(\"F:\\BNB_PumpFun\\backend\\tsconfig.json\")",
       "Bash(nul)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

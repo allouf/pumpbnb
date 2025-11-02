@@ -9,7 +9,7 @@ class CommentsController {
    * GET /api/v2/tokens/:address/comments
    * Get comments for a specific token
    */
-  async getTokenComments(req: Request, res: Response, next: NextFunction) {
+  async getTokenComments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const {
@@ -46,7 +46,7 @@ class CommentsController {
    * GET /api/v2/tokens/:address/comments/recent
    * Get recent comments for a token (cached)
    */
-  async getRecentComments(req: Request, res: Response, next: NextFunction) {
+  async getRecentComments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { limit = '10' } = req.query;
@@ -71,7 +71,7 @@ class CommentsController {
    * GET /api/v2/tokens/:address/comments/stats
    * Get comment statistics for a token
    */
-  async getCommentStats(req: Request, res: Response, next: NextFunction) {
+  async getCommentStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
@@ -91,17 +91,18 @@ class CommentsController {
    * GET /api/v2/comments/:commentId
    * Get a single comment
    */
-  async getComment(req: Request, res: Response, next: NextFunction) {
+  async getComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
 
       const comment = await commentsService.getComment(commentId);
 
       if (!comment) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Comment not found',
         });
+        return;
       }
 
       res.json({
@@ -118,7 +119,7 @@ class CommentsController {
    * GET /api/v2/comments/:commentId/replies
    * Get replies for a comment
    */
-  async getReplies(req: Request, res: Response, next: NextFunction) {
+  async getReplies(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
 
@@ -139,23 +140,25 @@ class CommentsController {
    * POST /api/v2/tokens/:address/comments
    * Create a new comment
    */
-  async createComment(req: Request, res: Response, next: NextFunction) {
+  async createComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { userAddress, content, replyTo } = req.body;
 
       if (!userAddress || !content) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required fields: userAddress, content',
         });
+        return;
       }
 
       if (content.length > 1000) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Comment content too long (max 1000 characters)',
         });
+        return;
       }
 
       const comment = await commentsService.createComment({
@@ -167,7 +170,6 @@ class CommentsController {
 
       // Broadcast new comment via WebSocket
       websocketService.publishEvent('Comment', {
-        tokenAddress: address,
         ...comment,
       });
 
@@ -185,16 +187,17 @@ class CommentsController {
    * PUT /api/v2/comments/:commentId
    * Update a comment
    */
-  async updateComment(req: Request, res: Response, next: NextFunction) {
+  async updateComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userAddress, content } = req.body;
 
       if (!userAddress || !content) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required fields: userAddress, content',
         });
+        return;
       }
 
       const comment = await commentsService.updateComment(
@@ -217,10 +220,11 @@ class CommentsController {
     } catch (error) {
       logger.error('Error updating comment:', error);
       if (error instanceof Error && error.message.includes('Unauthorized')) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           error: error.message,
         });
+        return;
       }
       next(error);
     }
@@ -230,25 +234,27 @@ class CommentsController {
    * DELETE /api/v2/comments/:commentId
    * Delete a comment
    */
-  async deleteComment(req: Request, res: Response, next: NextFunction) {
+  async deleteComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userAddress } = req.body;
 
       if (!userAddress) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required field: userAddress',
         });
+        return;
       }
 
       // Get comment first to access tokenAddress
       const comment = await commentsService.getComment(commentId);
       if (!comment) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Comment not found',
         });
+        return;
       }
 
       await commentsService.deleteComment(commentId, userAddress);
@@ -266,10 +272,11 @@ class CommentsController {
     } catch (error) {
       logger.error('Error deleting comment:', error);
       if (error instanceof Error && error.message.includes('Unauthorized')) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           error: error.message,
         });
+        return;
       }
       next(error);
     }
@@ -279,16 +286,17 @@ class CommentsController {
    * POST /api/v2/comments/:commentId/like
    * Like a comment
    */
-  async likeComment(req: Request, res: Response, next: NextFunction) {
+  async likeComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userAddress } = req.body;
 
       if (!userAddress) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required field: userAddress',
         });
+        return;
       }
 
       await commentsService.likeComment(commentId, userAddress);
@@ -299,7 +307,7 @@ class CommentsController {
         websocketService.publishEvent('CommentLike', {
           tokenAddress: comment.tokenAddress,
           commentId,
-          likeCount: comment.likeCount,
+          likeCount: comment.likes,
         });
       }
 
@@ -310,10 +318,11 @@ class CommentsController {
     } catch (error) {
       logger.error('Error liking comment:', error);
       if (error instanceof Error && error.message.includes('Already liked')) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: error.message,
         });
+        return;
       }
       next(error);
     }
@@ -323,16 +332,17 @@ class CommentsController {
    * POST /api/v2/comments/:commentId/unlike
    * Unlike a comment
    */
-  async unlikeComment(req: Request, res: Response, next: NextFunction) {
+  async unlikeComment(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { commentId } = req.params;
       const { userAddress } = req.body;
 
       if (!userAddress) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Missing required field: userAddress',
         });
+        return;
       }
 
       await commentsService.unlikeComment(commentId, userAddress);
@@ -343,7 +353,7 @@ class CommentsController {
         websocketService.publishEvent('CommentLike', {
           tokenAddress: comment.tokenAddress,
           commentId,
-          likeCount: comment.likeCount,
+          likeCount: comment.likes,
         });
       }
 
@@ -354,10 +364,11 @@ class CommentsController {
     } catch (error) {
       logger.error('Error unliking comment:', error);
       if (error instanceof Error && error.message.includes('not liked')) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: error.message,
         });
+        return;
       }
       next(error);
     }

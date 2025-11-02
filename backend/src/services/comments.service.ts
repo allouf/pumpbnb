@@ -1,4 +1,4 @@
-import { Comment, CommentLike, Prisma } from '@prisma/client';
+import { Comment, Prisma } from '@prisma/client';
 import { prisma } from './db.service';
 import { cache, cacheKeys } from '../config/redis';
 import { PaginatedResponse, CommentFilter } from '../types/tokenPage';

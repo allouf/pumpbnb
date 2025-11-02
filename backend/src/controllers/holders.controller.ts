@@ -8,7 +8,7 @@ class HoldersController {
    * GET /api/v2/tokens/:address/holders
    * Get holders for a specific token
    */
-  async getTokenHolders(req: Request, res: Response, next: NextFunction) {
+  async getTokenHolders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const {
@@ -49,7 +49,7 @@ class HoldersController {
    * GET /api/v2/tokens/:address/holders/top
    * Get top holders for a token (cached)
    */
-  async getTopHolders(req: Request, res: Response, next: NextFunction) {
+  async getTopHolders(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { limit = '10' } = req.query;
@@ -74,7 +74,7 @@ class HoldersController {
    * GET /api/v2/tokens/:address/holders/count
    * Get holder count for a token
    */
-  async getHolderCount(req: Request, res: Response, next: NextFunction) {
+  async getHolderCount(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
@@ -94,7 +94,7 @@ class HoldersController {
    * GET /api/v2/tokens/:address/holders/stats
    * Get holder statistics
    */
-  async getHolderStats(req: Request, res: Response, next: NextFunction) {
+  async getHolderStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
 
@@ -114,17 +114,18 @@ class HoldersController {
    * GET /api/v2/tokens/:address/holders/:holderAddress
    * Get specific holder information
    */
-  async getHolder(req: Request, res: Response, next: NextFunction) {
+  async getHolder(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address, holderAddress } = req.params;
 
       const holder = await holdersService.getHolder(address, holderAddress);
 
       if (!holder) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           error: 'Holder not found',
         });
+        return;
       }
 
       res.json({
@@ -141,7 +142,7 @@ class HoldersController {
    * GET /api/v2/holders/:address/portfolio
    * Get all tokens held by a specific address
    */
-  async getHolderPortfolio(req: Request, res: Response, next: NextFunction) {
+  async getHolderPortfolio(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
       const { page = '1', limit = '50' } = req.query;
