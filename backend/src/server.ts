@@ -5,6 +5,9 @@ import logger from './utils/logger';
 import { initializeDatabase } from './services/database.service';
 import { startBlockchainIndexer } from './services/indexer.service';
 import { websocketService } from './services/websocket.service';
+import { ohlcvAggregatorService } from './services/ohlcv-aggregator.service';
+import { holderUpdaterService } from './services/holder-updater.service';
+import { cacheWarmerService } from './services/cache-warmer.service';
 
 const server = http.createServer(app);
 
@@ -25,6 +28,23 @@ async function startServer(): Promise<void> {
     await startBlockchainIndexer();
     logger.info('Blockchain indexer started');
 
+    // Start background services
+    logger.info('Starting background services...');
+
+    // Start OHLCV Aggregation Service
+    ohlcvAggregatorService.start();
+    logger.info('OHLCV Aggregation Service started');
+
+    // Start Holder Balance Updater Service
+    holderUpdaterService.start();
+    logger.info('Holder Balance Updater Service started');
+
+    // Start Cache Warming Service
+    cacheWarmerService.start();
+    logger.info('Cache Warming Service started');
+
+    logger.info('All background services started successfully');
+
     // Start HTTP server
     server.listen(config.port, config.host, () => {
       logger.info(`Server running on http://${config.host}:${config.port}`);
@@ -37,21 +57,31 @@ async function startServer(): Promise<void> {
 }
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
+const gracefulShutdown = async (signal: string) => {
+  logger.info(`${signal} signal received: shutting down gracefully`);
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
+  // Stop background services
+  logger.info('Stopping background services...');
+  ohlcvAggregatorService.stop();
+  holderUpdaterService.stop();
+  cacheWarmerService.stop();
+  logger.info('Background services stopped');
+
+  // Close HTTP server
   server.close(() => {
     logger.info('HTTP server closed');
     process.exit(0);
   });
-});
+
+  // Force close after 10 seconds
+  setTimeout(() => {
+    logger.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {

@@ -50,6 +50,10 @@ model Trade {
   timestamp       DateTime  @default(now())
   txHash          String    @unique
   blockNumber     Int
+  price           String    // Price at time of trade
+  marketCap       String?   // Market cap at time of trade
+  asterAmount     String    // ASTER amount (for base pair)
+  tokenAmount     String    // Token amount
 
   token           Token     @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
 
@@ -142,4 +146,99 @@ model IndexerState {
   updatedAt           DateTime  @updatedAt
 
   @@map("indexer_state")
+}
+
+// Token Page Features - New Models
+
+model TokenHolder {
+  id              String    @id @default(uuid())
+  tokenAddress    String
+  holderAddress   String
+  balance         String
+  percentage      Float
+  isCreator       Boolean   @default(false)
+  firstTxAt       DateTime  @default(now())
+  lastTxAt        DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([tokenAddress, holderAddress])
+  @@index([tokenAddress])
+  @@index([holderAddress])
+  @@index([percentage])
+  @@map("token_holders")
+}
+
+model Comment {
+  id              String    @id @default(uuid())
+  tokenAddress    String
+  userAddress     String
+  content         String
+  replyTo         String?
+  likes           Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([tokenAddress])
+  @@index([userAddress])
+  @@index([createdAt])
+  @@index([replyTo])
+  @@map("comments")
+}
+
+model CommentLike {
+  id              String    @id @default(uuid())
+  commentId       String
+  userAddress     String
+  createdAt       DateTime  @default(now())
+
+  @@unique([commentId, userAddress])
+  @@index([commentId])
+  @@index([userAddress])
+  @@map("comment_likes")
+}
+
+model UserFavorite {
+  id              String    @id @default(uuid())
+  userAddress     String
+  tokenAddress    String
+  timeframe       String    // "1m", "5m", "15m", "1h", etc.
+  createdAt       DateTime  @default(now())
+
+  @@unique([userAddress, tokenAddress, timeframe])
+  @@index([userAddress])
+  @@index([tokenAddress])
+  @@map("user_favorites")
+}
+
+model OHLCVData {
+  id              String    @id @default(uuid())
+  tokenAddress    String
+  timeframe       String    // "1m", "5m", "15m", "1h", "4h", "1d"
+  timestamp       DateTime
+  open            String
+  high            String
+  low             String
+  close           String
+  volume          String
+  trades          Int       @default(0)
+
+  @@unique([tokenAddress, timeframe, timestamp])
+  @@index([tokenAddress])
+  @@index([timeframe])
+  @@index([timestamp])
+  @@map("ohlcv_data")
+}
+
+model UserSession {
+  id              String    @id @default(uuid())
+  userAddress     String
+  nonce           String    @unique
+  signature       String?
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  lastActivityAt  DateTime  @default(now())
+
+  @@index([userAddress])
+  @@index([expiresAt])
+  @@map("user_sessions")
 }

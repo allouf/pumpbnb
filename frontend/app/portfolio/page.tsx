@@ -3,12 +3,15 @@
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useUserPortfolio } from '@/lib/hooks/useUserPortfolio'
+import { useUserPnL } from '@/lib/hooks/useUserPnL'
 import { useAsterBalance } from '@/lib/hooks/useAsterBalance'
 import { TokenAvatar } from '@/components/TokenAvatar'
+import { PortfolioHoldingCard } from '@/components/PortfolioHoldingCard'
 
 export default function PortfolioPage() {
   const { address, isConnected } = useAccount()
   const { holdings, totalValueFormatted, isLoading, error } = useUserPortfolio()
+  const { pnl, isLoading: pnlLoading } = useUserPnL()
   const { formatted: asterBalance, isLoading: asterLoading } = useAsterBalance()
 
   if (!isConnected) {
@@ -55,18 +58,93 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        {/* Token Holdings Value Card */}
+        {/* P&L Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          {/* Total P&L Card */}
+          <div className={`border rounded-xl p-6 ${
+            pnl && pnl.totalPnL >= 0n
+              ? 'bg-green-500/10 border-green-500/30'
+              : 'bg-red-500/10 border-red-500/30'
+          }`}>
+            <p className="text-sm text-gray-400 mb-1">Total P&L</p>
+            {pnlLoading ? (
+              <p className="text-2xl font-bold">...</p>
+            ) : pnl ? (
+              <>
+                <p className={`text-2xl font-bold ${
+                  pnl.totalPnL >= 0n ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {pnl.totalPnL >= 0n ? '+' : ''}{parseFloat(pnl.totalPnLFormatted).toFixed(4)} ASTER
+                </p>
+                <p className={`text-sm mt-1 ${
+                  pnl.profitLossPercent >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {pnl.profitLossPercent >= 0 ? '+' : ''}{pnl.profitLossPercent.toFixed(2)}%
+                </p>
+              </>
+            ) : (
+              <p className="text-2xl font-bold">0.0000 ASTER</p>
+            )}
+          </div>
+
+          {/* Realized P&L Card */}
+          <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
+            <p className="text-sm text-gray-400 mb-1">Realized P&L</p>
+            {pnlLoading ? (
+              <p className="text-2xl font-bold">...</p>
+            ) : pnl ? (
+              <p className={`text-2xl font-bold ${
+                pnl.realizedPnL >= 0n ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {pnl.realizedPnL >= 0n ? '+' : ''}{parseFloat(pnl.realizedPnLFormatted).toFixed(4)} ASTER
+              </p>
+            ) : (
+              <p className="text-2xl font-bold">0.0000 ASTER</p>
+            )}
+          </div>
+
+          {/* Unrealized P&L Card */}
+          <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
+            <p className="text-sm text-gray-400 mb-1">Unrealized P&L</p>
+            {pnlLoading ? (
+              <p className="text-2xl font-bold">...</p>
+            ) : pnl ? (
+              <p className={`text-2xl font-bold ${
+                pnl.unrealizedPnL >= 0n ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {pnl.unrealizedPnL >= 0n ? '+' : ''}{parseFloat(pnl.unrealizedPnLFormatted).toFixed(4)} ASTER
+              </p>
+            ) : (
+              <p className="text-2xl font-bold">0.0000 ASTER</p>
+            )}
+          </div>
+        </div>
+
+        {/* Trading Stats Card */}
         <div className="bg-secondary-light border border-gray-700 rounded-xl p-6 mb-8">
-          <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold mb-4">Trading Statistics</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-400 mb-1">Token Holdings Value</p>
-              <p className="text-2xl font-bold">
-                {isLoading ? '...' : parseFloat(totalValueFormatted).toFixed(4)} ASTER
+              <p className="text-xs text-gray-400 mb-1">Total Trades</p>
+              <p className="text-xl font-bold">
+                {pnlLoading ? '...' : pnl?.totalTrades || 0}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400 mb-1">Holdings</p>
-              <p className="text-2xl font-bold">{holdings.length}</p>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Total Buy Volume</p>
+              <p className="text-xl font-bold">
+                {pnlLoading ? '...' : pnl ? parseFloat(pnl.totalBuyVolumeFormatted).toFixed(2) : '0.00'} ASTER
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Total Sell Volume</p>
+              <p className="text-xl font-bold">
+                {pnlLoading ? '...' : pnl ? parseFloat(pnl.totalSellVolumeFormatted).toFixed(2) : '0.00'} ASTER
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1">Holdings</p>
+              <p className="text-xl font-bold">{holdings.length}</p>
             </div>
           </div>
         </div>
@@ -111,65 +189,9 @@ export default function PortfolioPage() {
 
         {/* Holdings Grid */}
         {!isLoading && holdings.length > 0 && (
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {holdings.map((holding) => (
-              <Link
-                key={holding.tokenAddress}
-                href={`/token/${holding.tokenAddress}`}
-                className="bg-secondary-light border border-gray-700 rounded-xl p-6 hover:border-primary transition-all group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <TokenAvatar symbol={holding.symbol} size="md" />
-                      <div>
-                        <h3 className="text-xl font-bold group-hover:text-primary transition">
-                          {holding.name}
-                        </h3>
-                        <p className="text-sm text-gray-400">{holding.symbol}</p>
-                      </div>
-                      {holding.isGraduated && (
-                        <span className="bg-green-500/20 text-green-500 px-3 py-1 rounded-full text-xs font-semibold">
-                          Graduated
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Balance</p>
-                        <p className="font-semibold">
-                          {parseFloat(holding.balanceFormatted).toFixed(2)} {holding.symbol}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Value</p>
-                        <p className="font-semibold text-primary">
-                          {parseFloat(holding.valueInAsterFormatted).toFixed(4)} ASTER
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Token Address</p>
-                        <p className="font-mono text-xs text-gray-400">
-                          {holding.tokenAddress.slice(0, 6)}...{holding.tokenAddress.slice(-4)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Bonding Curve</p>
-                        <p className="font-mono text-xs text-gray-400">
-                          {holding.bondingCurveAddress.slice(0, 6)}...{holding.bondingCurveAddress.slice(-4)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="ml-4">
-                    <svg className="w-6 h-6 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
+              <PortfolioHoldingCard key={holding.tokenAddress} holding={holding} />
             ))}
           </div>
         )}

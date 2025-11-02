@@ -66,7 +66,12 @@
       "Bash(timeout 20 npx ts-node:*)",
       "Bash(timeout 15 node:*)",
       "Bash(timeout 20 node:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npx prisma init)",
+      "Bash(if not exist \"F:\\BNB_PumpFun\\backend\\tsconfig.json\" echo.)",
+      "Bash(\"F:\\BNB_PumpFun\\backend\\tsconfig.json\")",
+      "Bash(nul)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

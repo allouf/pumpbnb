@@ -8,6 +8,8 @@ import { ethers } from 'ethers';
 import config from '../config';
 import logger from '../utils/logger';
 import { prisma } from './database.service';
+import { holderUpdaterService } from './holder-updater.service';
+import { ohlcvAggregatorService } from './ohlcv-aggregator.service';
 import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 
 let provider: ethers.JsonRpcProvider;
@@ -169,6 +171,19 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
 
       logger.info(`[Immediate Trade Indexer] Buy indexed: ${buyer} bought ${Number(tokensOut) / 1e18} tokens for ${Number(asterIn) / 1e18} ASTER`);
 
+      // Emit trade event for holder updater service
+      holderUpdaterService.emitTradeEvent({
+        tokenAddress: request.tokenAddress.toLowerCase(),
+        trader: buyer.toLowerCase(),
+        isBuy: true,
+        tokenAmount: tokensOut,
+        timestamp,
+      });
+
+      // Trigger OHLCV aggregation for this token (all timeframes)
+      ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())
+        .catch(err => logger.error('Failed to aggregate OHLCV after buy:', err));
+
       return trade;
     }
 
@@ -209,6 +224,19 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
         asterOut: Number(asterOut) / 1e18,
         txHash: request.txHash,
       });
+
+      // Emit trade event for holder updater service
+      holderUpdaterService.emitTradeEvent({
+        tokenAddress: request.tokenAddress.toLowerCase(),
+        trader: seller.toLowerCase(),
+        isBuy: false,
+        tokenAmount: tokensIn,
+        timestamp,
+      });
+
+      // Trigger OHLCV aggregation for this token (all timeframes)
+      ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())
+        .catch(err => logger.error('Failed to aggregate OHLCV after sell:', err));
 
       return trade;
     }

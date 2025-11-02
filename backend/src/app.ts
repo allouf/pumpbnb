@@ -17,6 +17,14 @@ import adminRoutes from './routes/admin.routes';
 import indexerRoutes from './routes/indexer.routes';
 import migrationRoutes from './routes/migration.routes';
 
+// Token Page Feature Routes
+import tokensV2Routes from './routes/tokens.routes';
+import tradesV2Routes from './routes/trades.routes';
+import tradersRoutes from './routes/traders.routes';
+import creatorsRoutes from './routes/creators.routes';
+import holdersRoutes from './routes/holders.routes';
+import commentsRoutes from './routes/comments.routes';
+
 const app: Application = express();
 
 // Trust proxy - required for Render to properly handle X-Forwarded-For header
@@ -56,7 +64,7 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// API routes
+// API routes (existing)
 app.use('/api/config', configRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/trades', tradeRoutes);
@@ -65,6 +73,14 @@ app.use('/api/ipfs', ipfsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/indexer', indexerRoutes);
 app.use('/api/migrations', migrationRoutes);
+
+// Token Page Feature Routes (enhanced endpoints)
+app.use('/api/v2/tokens', tokensV2Routes); // Token info + trades + holders + comments + ohlcv
+app.use('/api/v2/trades', tradesV2Routes); // Trade lookup by txHash
+app.use('/api/v2/traders', tradersRoutes); // Trader-specific endpoints
+app.use('/api/v2/creators', creatorsRoutes); // Creator-specific endpoints
+app.use('/api/v2/holders', holdersRoutes); // Holder portfolio endpoints
+app.use('/api/v2/comments', commentsRoutes); // Comment actions (like, edit, delete)
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

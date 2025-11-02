@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useTokenList } from '@/lib/hooks/useTokenList'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
+import { TransactionCard } from '@/components/TransactionCard'
 
 export default function HistoryPage() {
   const { address, isConnected } = useAccount()
@@ -20,6 +21,27 @@ export default function HistoryPage() {
   const filteredTransactions = filter === 'all'
     ? transactions
     : transactions.filter(tx => tx.type === filter)
+
+  // Calculate total volumes
+  const { totalBuyVolume, totalSellVolume, totalVolume } = useMemo(() => {
+    let buyVol = 0
+    let sellVol = 0
+
+    filteredTransactions.forEach(tx => {
+      const amount = parseFloat(tx.asterAmountFormatted)
+      if (tx.type === 'buy') {
+        buyVol += amount
+      } else {
+        sellVol += amount
+      }
+    })
+
+    return {
+      totalBuyVolume: buyVol,
+      totalSellVolume: sellVol,
+      totalVolume: buyVol + sellVol
+    }
+  }, [filteredTransactions])
 
   const formatTime = (timestamp: number) => {
     if (!timestamp) return 'Unknown'
@@ -155,93 +177,61 @@ export default function HistoryPage() {
         {!isLoading && filteredTransactions.length > 0 && (
           <div className="space-y-3">
             {filteredTransactions.map((tx) => (
-              <div
+              <TransactionCard
                 key={tx.hash}
-                className="bg-secondary-light border border-gray-700 rounded-xl p-6 hover:border-primary/50 transition"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                          tx.type === 'buy'
-                            ? 'bg-green-500/20 text-green-500'
-                            : 'bg-red-500/20 text-red-500'
-                        }`}
-                      >
-                        {tx.type === 'buy' ? '↑ BUY' : '↓ SELL'}
-                      </span>
-                      <span className="text-gray-400 text-sm">{formatTimeAgo(tx.timestamp)}</span>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Token Amount</p>
-                        <p className="font-semibold">
-                          {parseFloat(tx.tokenAmountFormatted).toFixed(4)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">ASTER Amount</p>
-                        <p className="font-semibold text-primary">
-                          {parseFloat(tx.asterAmountFormatted).toFixed(4)} ASTER
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 mb-1">Time</p>
-                        <p className="text-sm text-gray-300">{formatTime(tx.timestamp)}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 pt-3 border-t border-gray-700">
-                      <p className="text-xs text-gray-400">Transaction Hash</p>
-                      <a
-                        href={`https://testnet.bscscan.com/tx/${tx.hash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-mono text-primary hover:underline"
-                      >
-                        {tx.hash.slice(0, 10)}...{tx.hash.slice(-8)}
-                      </a>
-                    </div>
-                  </div>
-
-                  <a
-                    href={`https://testnet.bscscan.com/tx/${tx.hash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-4 text-gray-400 hover:text-primary transition"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
+                transaction={tx}
+                formatTime={formatTime}
+                formatTimeAgo={formatTimeAgo}
+              />
             ))}
           </div>
         )}
 
         {/* Stats Summary */}
         {!isLoading && filteredTransactions.length > 0 && (
-          <div className="mt-8 grid md:grid-cols-3 gap-4">
-            <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
-              <p className="text-sm text-gray-400 mb-1">Total Transactions</p>
-              <p className="text-3xl font-bold">{filteredTransactions.length}</p>
+          <>
+            {/* Transaction Count Stats */}
+            <div className="mt-8 grid md:grid-cols-3 gap-4">
+              <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Total Transactions</p>
+                <p className="text-3xl font-bold">{filteredTransactions.length}</p>
+              </div>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Total Buys</p>
+                <p className="text-3xl font-bold text-green-500">
+                  {filteredTransactions.filter(tx => tx.type === 'buy').length}
+                </p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Total Sells</p>
+                <p className="text-3xl font-bold text-red-500">
+                  {filteredTransactions.filter(tx => tx.type === 'sell').length}
+                </p>
+              </div>
             </div>
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
-              <p className="text-sm text-gray-400 mb-1">Total Buys</p>
-              <p className="text-3xl font-bold text-green-500">
-                {filteredTransactions.filter(tx => tx.type === 'buy').length}
-              </p>
+
+            {/* Volume Stats */}
+            <div className="mt-4 grid md:grid-cols-3 gap-4">
+              <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Total Volume</p>
+                <p className="text-2xl font-bold text-primary">
+                  {totalVolume.toFixed(4)} ASTER
+                </p>
+              </div>
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Buy Volume</p>
+                <p className="text-2xl font-bold text-green-500">
+                  {totalBuyVolume.toFixed(4)} ASTER
+                </p>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+                <p className="text-sm text-gray-400 mb-1">Sell Volume</p>
+                <p className="text-2xl font-bold text-red-500">
+                  {totalSellVolume.toFixed(4)} ASTER
+                </p>
+              </div>
             </div>
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-              <p className="text-sm text-gray-400 mb-1">Total Sells</p>
-              <p className="text-3xl font-bold text-red-500">
-                {filteredTransactions.filter(tx => tx.type === 'sell').length}
-              </p>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>

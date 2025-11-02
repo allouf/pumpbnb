@@ -136,6 +136,88 @@ export class WebSocketService {
   }
 
   /**
+   * Broadcast new comment
+   */
+  broadcastComment(tokenAddress: string, commentData: any): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('token:comment', commentData);
+    logger.info(`Broadcasted comment for token: ${tokenAddress}`);
+  }
+
+  /**
+   * Broadcast comment update
+   */
+  broadcastCommentUpdate(tokenAddress: string, commentId: string, updatedContent: string): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('comment:updated', {
+      commentId,
+      content: updatedContent,
+      updatedAt: new Date().toISOString(),
+    });
+    logger.info(`Broadcasted comment update for comment: ${commentId}`);
+  }
+
+  /**
+   * Broadcast comment deletion
+   */
+  broadcastCommentDelete(tokenAddress: string, commentId: string): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('comment:deleted', { commentId });
+    logger.info(`Broadcasted comment deletion for comment: ${commentId}`);
+  }
+
+  /**
+   * Broadcast comment like
+   */
+  broadcastCommentLike(tokenAddress: string, commentId: string, likeCount: number): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('comment:liked', {
+      commentId,
+      likeCount,
+    });
+  }
+
+  /**
+   * Broadcast holder update
+   */
+  broadcastHolderUpdate(tokenAddress: string, holderData: any): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('token:holder-update', holderData);
+    logger.info(`Broadcasted holder update for token: ${tokenAddress}`);
+  }
+
+  /**
+   * Broadcast holder stats update (concentration, distribution)
+   */
+  broadcastHolderStats(tokenAddress: string, statsData: any): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('token:holder-stats', statsData);
+  }
+
+  /**
+   * Broadcast OHLCV candle update
+   */
+  broadcastCandle(tokenAddress: string, candleData: any): void {
+    if (!this.io) return;
+
+    const room = `token:${tokenAddress.toLowerCase()}`;
+    this.io.to(room).emit('token:candle', candleData);
+    logger.debug(`Broadcasted candle for token: ${tokenAddress}`);
+  }
+
+  /**
    * Handle blockchain events from Redis pub/sub
    */
   private handleBlockchainEvent(event: any): void {
@@ -151,6 +233,27 @@ export class WebSocketService {
         break;
       case 'Graduation':
         this.broadcastGraduation(event.data.tokenAddress, event.data);
+        break;
+      case 'Comment':
+        this.broadcastComment(event.data.tokenAddress, event.data);
+        break;
+      case 'CommentUpdate':
+        this.broadcastCommentUpdate(event.data.tokenAddress, event.data.commentId, event.data.content);
+        break;
+      case 'CommentDelete':
+        this.broadcastCommentDelete(event.data.tokenAddress, event.data.commentId);
+        break;
+      case 'CommentLike':
+        this.broadcastCommentLike(event.data.tokenAddress, event.data.commentId, event.data.likeCount);
+        break;
+      case 'HolderUpdate':
+        this.broadcastHolderUpdate(event.data.tokenAddress, event.data);
+        break;
+      case 'HolderStats':
+        this.broadcastHolderStats(event.data.tokenAddress, event.data);
+        break;
+      case 'CandleUpdate':
+        this.broadcastCandle(event.data.tokenAddress, event.data);
         break;
       default:
         logger.warn(`Unknown blockchain event type: ${event.type}`);
