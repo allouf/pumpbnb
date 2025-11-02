@@ -14,7 +14,7 @@ const PumpTokenABI = PumpTokenABIImport.abi as Abi
 const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 
 import { TokenAvatar } from '@/components/TokenAvatar'
-import { ProfessionalPriceChart } from '@/components/ProfessionalPriceChart'
+import { PriceChart } from '@/components/PriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
 import { CommentsSection } from '@/components/CommentsSection'
 import { RecentTrades } from '@/components/RecentTrades'
@@ -230,9 +230,9 @@ export default function CompleteTokenPage({ params }: { params: Promise<{ addres
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Chart + Tabs */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Professional Price Chart */}
+            {/* Price Chart */}
             {bondingCurve && (
-              <ProfessionalPriceChart
+              <PriceChart
                 bondingCurveAddress={bondingCurve}
                 tokenSymbol={symbol}
               />

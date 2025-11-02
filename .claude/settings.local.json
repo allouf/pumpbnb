@@ -72,7 +72,8 @@
       "Bash(\"F:\\BNB_PumpFun\\backend\\tsconfig.json\")",
       "Bash(nul)",
       "Bash(dir:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(timeout 120 npm run build)"
     ],
     "deny": [],
     "ask": []

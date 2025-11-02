@@ -10,7 +10,7 @@ const router = Router();
 /**
  * Health check endpoint - provides detailed system status
  */
-router.get('/health', async (req: Request, res: Response): Promise<void> => {
+router.get('/health', async (_req: Request, res: Response): Promise<void> => {
   const healthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -105,7 +105,7 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
 /**
  * Detailed system info endpoint
  */
-router.get('/health/details', async (req: Request, res: Response): Promise<void> => {
+router.get('/health/details', async (_req: Request, res: Response): Promise<void> => {
   try {
     // Database stats
     const tokenCount = await prisma.token.count();
