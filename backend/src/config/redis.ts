@@ -1,9 +1,9 @@
 import Redis from 'ioredis';
 
-// Support both REDIS_URL (Render default) and individual env vars
-const redisConfig = process.env.REDIS_URL
-  ? process.env.REDIS_URL // Use connection string if available (Render format)
-  : {
+// Main Redis client for general caching
+export const redisClient = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL) // Use connection string if available (Render format)
+  : new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
@@ -13,14 +13,36 @@ const redisConfig = process.env.REDIS_URL
         return delay;
       },
       maxRetriesPerRequest: 3,
-    };
-
-// Main Redis client for general caching
-export const redisClient = new Redis(redisConfig);
+    });
 
 // Separate client for pub/sub (Socket.io adapter)
-export const redisPubClient = new Redis(redisConfig);
-export const redisSubClient = new Redis(redisConfig);
+export const redisPubClient = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL)
+  : new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      db: parseInt(process.env.REDIS_DB || '0'),
+      retryStrategy: (times: number) => {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      maxRetriesPerRequest: 3,
+    });
+
+export const redisSubClient = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL)
+  : new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      db: parseInt(process.env.REDIS_DB || '0'),
+      retryStrategy: (times: number) => {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      maxRetriesPerRequest: 3,
+    });
 
 // Handle connection events
 redisClient.on('connect', () => {
