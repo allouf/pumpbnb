@@ -50,7 +50,7 @@ model Trade {
   timestamp       DateTime  @default(now())
   txHash          String    @unique
   blockNumber     Int
-  price           String    // Price at time of trade
+  price           String?   // Price at time of trade (nullable for old records)
   marketCap       String?   // Market cap at time of trade
   asterAmount     String    // ASTER amount (for base pair)
   tokenAmount     String    // Token amount

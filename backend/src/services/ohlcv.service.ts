@@ -186,6 +186,11 @@ class OHLCVService {
     }>();
 
     trades.forEach((trade) => {
+      // Skip trades with null price (old records before price tracking was added)
+      if (!trade.price) {
+        return;
+      }
+
       const candleTime = Math.floor(trade.timestamp.getTime() / intervalMs) * intervalMs;
 
       const existing = candlesMap.get(candleTime);
