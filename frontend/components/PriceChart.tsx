@@ -18,7 +18,13 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
   const [hoveredData, setHoveredData] = useState<{price: number, volume: number, time: string} | null>(null)
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
-  console.log(`[PriceChart] Rendering with ${transactions.length} transactions, isLoading: ${isLoading}`)
+  console.log('[PriceChart] 📄 Component render:', {
+    bondingCurveAddress,
+    tokenSymbol,
+    transactionsCount: transactions.length,
+    isLoading,
+    chartCreated: chartCreatedRef.current
+  })
 
   // Create chart when container is ready and we have data (only once!)
   useEffect(() => {
@@ -91,29 +97,46 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     console.log('[PriceChart] Chart instance created successfully')
 
     // Add price series (Area chart) using v5 API
-    const priceSeries = chart.addAreaSeries({
-      lineColor: '#F0B90B',
-      topColor: 'rgba(240, 185, 11, 0.4)',
-      bottomColor: 'rgba(240, 185, 11, 0.0)',
-      lineWidth: 3,
-      priceFormat: {
-        type: 'price',
-        precision: 8,
-        minMove: 0.00000001,
-      },
-    })
-
-    priceSeriesRef.current = priceSeries
-    console.log('[PriceChart] Price series added')
+    console.log('[PriceChart] 📈 Adding area series...')
+    console.log('[PriceChart] Chart methods available:', Object.getOwnPropertyNames(chart).filter(name => name.includes('add')))
+    
+    try {
+      const priceSeries = chart.addAreaSeries({
+        lineColor: '#F0B90B',
+        topColor: 'rgba(240, 185, 11, 0.4)',
+        bottomColor: 'rgba(240, 185, 11, 0.0)',
+        lineWidth: 3,
+        priceFormat: {
+          type: 'price',
+          precision: 8,
+          minMove: 0.00000001,
+        },
+      })
+      console.log('[PriceChart] ✅ Area series created successfully')
+      priceSeriesRef.current = priceSeries
+    } catch (error) {
+      console.error('[PriceChart] ❌ Error creating area series:', error)
+      console.log('[PriceChart] Chart object:', chart)
+      console.log('[PriceChart] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
+      throw error
+    }
 
     // Add volume series (Histogram) using v5 API
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
+    console.log('[PriceChart] 📊 Adding histogram series...')
+    try {
+      const volumeSeries = chart.addHistogramSeries({
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+      })
+      console.log('[PriceChart] ✅ Histogram series created successfully')
+      volumeSeriesRef.current = volumeSeries
+    } catch (error) {
+      console.error('[PriceChart] ❌ Error creating histogram series:', error)
+      throw error
+    }
 
     volumeSeriesRef.current = volumeSeries
     console.log('[PriceChart] Volume series added')

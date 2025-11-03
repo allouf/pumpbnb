@@ -50,8 +50,14 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
         }
 
         const data = await response.json()
+        console.log('[useTransactionHistory] API Response received:', {
+          success: data.success,
+          dataLength: data.data?.length || 0,
+          bondingCurveAddress
+        })
 
         if (!data.success) {
+          console.error('[useTransactionHistory] API returned error:', data.message)
           throw new Error(data.message || 'Failed to fetch trade history')
         }
 

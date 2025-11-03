@@ -46,10 +46,27 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
   const { usdRate } = useUsdPrice()
+  
+  console.log('[CandlestickChart] 📄 Component render:', {
+    bondingCurveAddress,
+    tokenSymbol,
+    transactionsCount: transactions.length,
+    isLoading,
+    usdRate
+  })
 
   // Aggregate transactions into OHLCV candles
   const candles = useMemo(() => {
-    if (transactions.length === 0) return []
+    console.log('[CandlestickChart] 📊 Processing candles data:', {
+      transactionsCount: transactions.length,
+      timeframe,
+      bondingCurveAddress
+    })
+    
+    if (transactions.length === 0) {
+      console.log('[CandlestickChart] ⚠️ No transactions to process')
+      return []
+    }
 
     // Get interval in seconds
     const intervals: Record<Timeframe, number> = {
@@ -168,15 +185,37 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
   // Create chart (one-time)
   useEffect(() => {
-    if (chartCreatedRef.current) return
-    if (!chartContainerRef.current) return
-    if (candles.length === 0) return
+    console.log('[CandlestickChart] 🔍 Chart creation effect triggered:', {
+      chartCreated: chartCreatedRef.current,
+      hasContainer: !!chartContainerRef.current,
+      candlesLength: candles.length,
+      bondingCurveAddress,
+      tokenSymbol
+    })
+    
+    if (chartCreatedRef.current) {
+      console.log('[CandlestickChart] ⚠️ Chart already created, skipping')
+      return
+    }
+    if (!chartContainerRef.current) {
+      console.log('[CandlestickChart] ⚠️ No chart container ref, skipping')
+      return
+    }
+    if (candles.length === 0) {
+      console.log('[CandlestickChart] ⚠️ No candles data, skipping')
+      return
+    }
 
+    console.log('[CandlestickChart] 🚀 Starting chart creation process...')
     chartCreatedRef.current = true
 
     const container = chartContainerRef.current
-    if (!container) return
+    if (!container) {
+      console.log('[CandlestickChart] ❌ Container lost after ref check')
+      return
+    }
 
+    console.log('[CandlestickChart] 📊 Creating chart instance...')
     const chart: any = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: '#0f0f0f' },
@@ -235,33 +274,52 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
       },
     })
 
+    console.log('[CandlestickChart] ✅ Chart instance created successfully')
     chartRef.current = chart
 
     // Add candlestick series using v5 API
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#10b981',
-      downColor: '#ef4444',
-      borderUpColor: '#10b981',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#10b981',
-      wickDownColor: '#ef4444',
-      priceFormat: {
-        type: 'price',
-        precision: 8,
-        minMove: 0.00000001,
-      },
-    })
-
-    candleSeriesRef.current = candleSeries
+    console.log('[CandlestickChart] 📈 Adding candlestick series...')
+    console.log('[CandlestickChart] Chart methods available:', Object.getOwnPropertyNames(chart).filter(name => name.includes('add')))
+    
+    try {
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderUpColor: '#10b981',
+        borderDownColor: '#ef4444',
+        wickUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+        priceFormat: {
+          type: 'price',
+          precision: 8,
+          minMove: 0.00000001,
+        },
+      })
+      console.log('[CandlestickChart] ✅ Candlestick series created successfully')
+      candleSeriesRef.current = candleSeries
+    } catch (error) {
+      console.error('[CandlestickChart] ❌ Error creating candlestick series:', error)
+      console.log('[CandlestickChart] Chart object:', chart)
+      console.log('[CandlestickChart] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
+      throw error
+    }
 
     // Add volume series using v5 API
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
+    console.log('[CandlestickChart] 📊 Adding volume series...')
+    try {
+      const volumeSeries = chart.addHistogramSeries({
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+      })
+      console.log('[CandlestickChart] ✅ Volume series created successfully')
+      volumeSeriesRef.current = volumeSeries
+    } catch (error) {
+      console.error('[CandlestickChart] ❌ Error creating volume series:', error)
+      throw error
+    }
 
     volumeSeriesRef.current = volumeSeries
 

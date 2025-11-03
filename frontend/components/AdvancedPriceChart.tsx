@@ -17,6 +17,23 @@ type PriceMode = 'ASTER' | 'USD'
 const ASTER_USD_PRICE = 1.22
 
 export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
+  // Global error handler
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('[AdvancedPriceChart] 🔥 Global error caught:', event.error)
+      if (event.error?.message?.includes('addCandlestickSeries') || 
+          event.error?.message?.includes('addHistogramSeries')) {
+        console.error('[AdvancedPriceChart] ❌ Chart API Error detected!', {
+          message: event.error.message,
+          stack: event.error.stack,
+          bondingCurveAddress,
+          tokenSymbol
+        })
+      }
+    }
+    window.addEventListener('error', handleError)
+    return () => window.removeEventListener('error', handleError)
+  }, [])
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<any>(null)
   const priceSeriesRef = useRef<any>(null)
@@ -28,6 +45,16 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
+  
+  console.log('[AdvancedPriceChart] 📄 Component render:', {
+    bondingCurveAddress,
+    tokenSymbol,
+    transactionsCount: transactions.length,
+    isLoading,
+    chartCreated: chartCreatedRef.current,
+    timeframe,
+    priceMode
+  })
 
   // Calculate statistics from transactions
   const stats = useMemo(() => {
@@ -116,12 +143,31 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
   // Create chart (one-time setup)
   useEffect(() => {
-    if (chartCreatedRef.current) return
-    if (!chartContainerRef.current) return
-    if (transactions.length === 0) return
+    console.log('[AdvancedPriceChart] 🔍 Chart creation effect triggered:', {
+      chartCreated: chartCreatedRef.current,
+      hasContainer: !!chartContainerRef.current,
+      transactionsLength: transactions.length,
+      bondingCurveAddress,
+      tokenSymbol
+    })
+    
+    if (chartCreatedRef.current) {
+      console.log('[AdvancedPriceChart] ⚠️ Chart already created, skipping')
+      return
+    }
+    if (!chartContainerRef.current) {
+      console.log('[AdvancedPriceChart] ⚠️ No chart container ref, skipping')
+      return
+    }
+    if (transactions.length === 0) {
+      console.log('[AdvancedPriceChart] ⚠️ No transactions data, skipping')
+      return
+    }
 
+    console.log('[AdvancedPriceChart] 🚀 Starting chart creation process...')
     chartCreatedRef.current = true
 
+    console.log('[AdvancedPriceChart] 📊 Creating chart instance...')
     const chart: any = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#1a1b1e' },
@@ -167,32 +213,51 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       },
     })
 
+    console.log('[AdvancedPriceChart] ✅ Chart instance created successfully')
     chartRef.current = chart
 
     // Add candlestick series
-    const priceSeries = chart.addCandlestickSeries({
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderVisible: false,
-      wickUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
-      priceFormat: {
-        type: 'price',
-        precision: 8,
-        minMove: 0.00000001,
-      },
-    })
-
-    priceSeriesRef.current = priceSeries
+    console.log('[AdvancedPriceChart] 📈 Adding candlestick series...')
+    console.log('[AdvancedPriceChart] Chart methods available:', Object.getOwnPropertyNames(chart).filter(name => name.includes('add')))
+    
+    try {
+      const priceSeries = chart.addCandlestickSeries({
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderVisible: false,
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+        priceFormat: {
+          type: 'price',
+          precision: 8,
+          minMove: 0.00000001,
+        },
+      })
+      console.log('[AdvancedPriceChart] ✅ Candlestick series created successfully')
+      priceSeriesRef.current = priceSeries
+    } catch (error) {
+      console.error('[AdvancedPriceChart] ❌ Error creating candlestick series:', error)
+      console.log('[AdvancedPriceChart] Chart object:', chart)
+      console.log('[AdvancedPriceChart] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
+      throw error
+    }
 
     // Add volume series (Histogram)
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
+    console.log('[AdvancedPriceChart] 📊 Adding volume histogram series...')
+    try {
+      const volumeSeries = chart.addHistogramSeries({
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+      })
+      console.log('[AdvancedPriceChart] ✅ Volume histogram series created successfully')
+      volumeSeriesRef.current = volumeSeries
+    } catch (error) {
+      console.error('[AdvancedPriceChart] ❌ Error creating volume histogram series:', error)
+      throw error
+    }
 
     volumeSeriesRef.current = volumeSeries
 
