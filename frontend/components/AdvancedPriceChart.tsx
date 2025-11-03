@@ -4,6 +4,15 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode, ISeriesApi, CandlestickData, HistogramData } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
+// Debug: Log the imported functions
+console.log('[AdvancedPriceChart] 📚 Import check:', {
+  createChart: typeof createChart,
+  ColorType: typeof ColorType,
+  IChartApi: typeof IChartApi,
+  UTCTimestamp: typeof UTCTimestamp,
+  CrosshairMode: typeof CrosshairMode
+})
+
 interface AdvancedPriceChartProps {
   bondingCurveAddress: string
   tokenSymbol: string
@@ -218,40 +227,91 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
     // Add candlestick series
     console.log('[AdvancedPriceChart] 📈 Adding candlestick series...')
-    console.log('[AdvancedPriceChart] Chart methods available:', Object.getOwnPropertyNames(chart).filter(name => name.includes('add')))
+    console.log('[AdvancedPriceChart] Chart object type:', typeof chart)
+    console.log('[AdvancedPriceChart] Chart object:', chart)
+    console.log('[AdvancedPriceChart] Chart constructor:', chart.constructor?.name)
+    
+    // Get all available methods
+    const allMethods = []
+    let obj = chart
+    while (obj) {
+      allMethods.push(...Object.getOwnPropertyNames(obj))
+      obj = Object.getPrototypeOf(obj)
+    }
+    const uniqueMethods = [...new Set(allMethods)]
+    console.log('[AdvancedPriceChart] All available methods:', uniqueMethods)
+    console.log('[AdvancedPriceChart] Methods containing "add":', uniqueMethods.filter(name => name.toLowerCase().includes('add')))
+    console.log('[AdvancedPriceChart] Methods containing "series":', uniqueMethods.filter(name => name.toLowerCase().includes('series')))
+    console.log('[AdvancedPriceChart] Methods containing "candlestick":', uniqueMethods.filter(name => name.toLowerCase().includes('candlestick')))
     
     try {
-      const priceSeries = chart.addCandlestickSeries({
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        borderVisible: false,
-        wickUpColor: '#26a69a',
-        wickDownColor: '#ef5350',
-        priceFormat: {
-          type: 'price',
-          precision: 8,
-          minMove: 0.00000001,
-        },
-      })
+      // Try different method names that might exist
+      let priceSeries
+      if (typeof chart.addCandlestickSeries === 'function') {
+        console.log('[AdvancedPriceChart] Using addCandlestickSeries')
+        priceSeries = chart.addCandlestickSeries({
+          upColor: '#26a69a',
+          downColor: '#ef5350',
+          borderVisible: false,
+          wickUpColor: '#26a69a',
+          wickDownColor: '#ef5350',
+          priceFormat: {
+            type: 'price',
+            precision: 8,
+            minMove: 0.00000001,
+          },
+        })
+      } else if (typeof chart.addSeries === 'function') {
+        console.log('[AdvancedPriceChart] Using addSeries with type parameter')
+        priceSeries = chart.addSeries('candlestick', {
+          upColor: '#26a69a',
+          downColor: '#ef5350',
+          borderVisible: false,
+          wickUpColor: '#26a69a',
+          wickDownColor: '#ef5350',
+          priceFormat: {
+            type: 'price',
+            precision: 8,
+            minMove: 0.00000001,
+          },
+        })
+      } else {
+        throw new Error('No suitable method found to add candlestick series')
+      }
+      
       console.log('[AdvancedPriceChart] ✅ Candlestick series created successfully')
       priceSeriesRef.current = priceSeries
     } catch (error) {
       console.error('[AdvancedPriceChart] ❌ Error creating candlestick series:', error)
-      console.log('[AdvancedPriceChart] Chart object:', chart)
-      console.log('[AdvancedPriceChart] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
       throw error
     }
 
     // Add volume series (Histogram)
     console.log('[AdvancedPriceChart] 📊 Adding volume histogram series...')
     try {
-      const volumeSeries = chart.addHistogramSeries({
-        color: '#26a69a',
-        priceFormat: {
-          type: 'volume',
-        },
-        priceScaleId: 'volume',
-      })
+      let volumeSeries
+      if (typeof chart.addHistogramSeries === 'function') {
+        console.log('[AdvancedPriceChart] Using addHistogramSeries')
+        volumeSeries = chart.addHistogramSeries({
+          color: '#26a69a',
+          priceFormat: {
+            type: 'volume',
+          },
+          priceScaleId: 'volume',
+        })
+      } else if (typeof chart.addSeries === 'function') {
+        console.log('[AdvancedPriceChart] Using addSeries with histogram type parameter')
+        volumeSeries = chart.addSeries('histogram', {
+          color: '#26a69a',
+          priceFormat: {
+            type: 'volume',
+          },
+          priceScaleId: 'volume',
+        })
+      } else {
+        throw new Error('No suitable method found to add histogram series')
+      }
+      
       console.log('[AdvancedPriceChart] ✅ Volume histogram series created successfully')
       volumeSeriesRef.current = volumeSeries
     } catch (error) {
