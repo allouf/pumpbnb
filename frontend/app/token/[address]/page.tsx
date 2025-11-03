@@ -5,4 +5,3 @@ export default async function CompleteTokenPage({ params }: { params: Promise<{ 
   
   return <TokenPageClient address={address} />
 }
-}
