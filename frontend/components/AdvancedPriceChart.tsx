@@ -13,6 +13,7 @@ type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 type PriceMode = 'ASTER' | 'USD'
 
 // Mock ASTER USD price - can be replaced with real API
+// TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
 export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
