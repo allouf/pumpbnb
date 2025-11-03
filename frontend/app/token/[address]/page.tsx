@@ -207,35 +207,55 @@ export default function CompleteTokenPage({ params }: { params: Promise<{ addres
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Progress to PancakeSwap</span>
-              <span className="font-semibold">{progress.toFixed(2)}%</span>
-            </div>
-            <div className="w-full bg-secondary rounded-full h-3">
-              <div
-                className="bg-gradient-to-r from-primary to-green-500 h-3 rounded-full transition-all"
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>0 ASTER</span>
-              <span>100 ASTER (Graduation)</span>
+          {/* Enhanced Progress Bars */}
+          <div className="mt-4">
+            {/* Import and use DualProgressBars here */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Progress to PancakeSwap</span>
+                <span className="font-semibold">{progress.toFixed(2)}%</span>
+              </div>
+              <div className="w-full bg-secondary rounded-full h-4 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-primary via-yellow-400 to-green-500 h-4 rounded-full transition-all duration-1000 ease-out"
+                  style={{ 
+                    width: `${Math.min(progress, 100)}%`,
+                    boxShadow: progress >= 100 
+                      ? '0 0 20px rgba(34, 197, 94, 0.5)' 
+                      : '0 0 15px rgba(255, 215, 0, 0.3)'
+                  }}
+                >
+                  {/* Animated sparkles for active progress */}
+                  {progress > 10 && (
+                    <div className="absolute inset-0 overflow-hidden">
+                      <div className="absolute top-1 left-1/4 w-1 h-1 bg-white rounded-full animate-ping" 
+                           style={{ animationDelay: '0s', animationDuration: '2s' }} />
+                      <div className="absolute top-2 right-1/3 w-0.5 h-0.5 bg-white rounded-full animate-ping"
+                           style={{ animationDelay: '0.5s', animationDuration: '2s' }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0 ASTER</span>
+                <span>100 ASTER (Graduation)</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Chart + Tabs */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Advanced Price Chart */}
+        {/* Main Content Grid - 70/30 split like Pump.fun */}
+        <div className="grid lg:grid-cols-10 gap-6">
+          {/* Left Column - Chart + Tabs (70%) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Enhanced Price Chart */}
             {bondingCurve && (
-              <AdvancedPriceChart
-                bondingCurveAddress={bondingCurve}
-                tokenSymbol={symbol}
-              />
+              <div className="bg-gray-900 rounded-xl overflow-hidden">
+                <AdvancedPriceChart
+                  bondingCurveAddress={bondingCurve}
+                  tokenSymbol={symbol}
+                />
+              </div>
             )}
 
             {/* Tabs */}
@@ -291,8 +311,8 @@ export default function CompleteTokenPage({ params }: { params: Promise<{ addres
             </div>
           </div>
 
-          {/* Right Column - Trading Panel */}
-          <div className="lg:col-span-1">
+          {/* Right Column - Trading Panel (30%) */}
+          <div className="lg:col-span-3">
             <div className="sticky top-24">
               {bondingCurve ? (
                 <TradingPanel
