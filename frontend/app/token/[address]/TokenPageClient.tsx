@@ -20,6 +20,7 @@ import { CommentsSection } from '@/components/CommentsSection'
 import { RecentTrades } from '@/components/RecentTrades'
 import { TopHolders } from '@/components/TopHolders'
 import { useTokenData } from '@/lib/hooks/useTokenData'
+import { useWatchTradeEvents } from '@/lib/hooks/useTokenEvents'
 
 type Tab = 'comments' | 'trades' | 'holders'
 
@@ -66,7 +67,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const creator = apiData?.creator
 
   // Read bonding curve reserves
-  const { data: reserves } = useReadContract({
+  const { data: reserves, refetch: refetchReserves } = useReadContract({
     address: bondingCurve as `0x${string}` | undefined,
     abi: BondingCurveABI,
     functionName: 'getReserves',
@@ -75,6 +76,15 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
       refetchInterval: 10000,
     },
   })
+
+  // Watch for trade events and immediately refetch reserves
+  useWatchTradeEvents(
+    bondingCurve || '',
+    (event) => {
+      console.log('[TokenPageClient] 🔄 Trade event detected, refetching reserves...', event)
+      refetchReserves()
+    }
+  )
 
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
