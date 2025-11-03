@@ -66,6 +66,7 @@ class TokensService {
       stats: token.stats,
       recentTrades: token.trades.map(trade => ({
         ...trade,
+        price: trade.price ?? undefined,
         marketCap: trade.marketCap ?? undefined,
       })),
       topHolders,
