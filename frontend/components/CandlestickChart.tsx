@@ -9,6 +9,7 @@ import {
   CrosshairMode,
   CandlestickSeries,
   HistogramSeries,
+  LogicalRange,
 } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
