@@ -138,9 +138,6 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
       throw error
     }
 
-    volumeSeriesRef.current = volumeSeries
-    console.log('[PriceChart] Volume series added')
-
     // Configure volume scale - keep it small at the bottom
     chart.priceScale('volume').applyOptions({
       scaleMargins: {

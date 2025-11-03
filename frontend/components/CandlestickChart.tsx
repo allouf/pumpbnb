@@ -321,8 +321,6 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
       throw error
     }
 
-    volumeSeriesRef.current = volumeSeries
-
     // Configure volume scale
     chart.priceScale('volume').applyOptions({
       scaleMargins: {

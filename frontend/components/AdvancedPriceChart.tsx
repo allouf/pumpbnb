@@ -259,8 +259,6 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       throw error
     }
 
-    volumeSeriesRef.current = volumeSeries
-
     // Configure volume scale
     chart.priceScale('volume').applyOptions({
       scaleMargins: {
