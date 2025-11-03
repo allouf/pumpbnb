@@ -101,6 +101,38 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     args: address && isConnected ? [address, bondingCurveAddress] : undefined,
   })
 
+  // Read user's ASTER balance (for buy)
+  const { data: asterBalance } = useReadContract({
+    address: CONTRACTS.MockASTER as `0x${string}`,
+    abi: [
+      {
+        constant: true,
+        inputs: [{ name: 'account', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ name: '', type: 'uint256' }],
+        type: 'function',
+      },
+    ],
+    functionName: 'balanceOf',
+    args: address && isConnected ? [address] : undefined,
+  })
+
+  // Read user's TOKEN balance (for sell)
+  const { data: tokenBalance } = useReadContract({
+    address: tokenAddress as `0x${string}`,
+    abi: [
+      {
+        constant: true,
+        inputs: [{ name: 'account', type: 'address' }],
+        name: 'balanceOf',
+        outputs: [{ name: '', type: 'uint256' }],
+        type: 'function',
+      },
+    ],
+    functionName: 'balanceOf',
+    args: address && isConnected ? [address] : undefined,
+  })
+
   const { data: hash, isPending, writeContract, error: writeError } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
@@ -137,10 +169,17 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
 
   const currentAsterAllowance = (asterAllowance as bigint) || BigInt(0)
   const currentTokenAllowance = (tokenAllowance as bigint) || BigInt(0)
+  const currentAsterBalance = (asterBalance as bigint) || BigInt(0)
+  const currentTokenBalance = (tokenBalance as bigint) || BigInt(0)
 
   const needsApproval = activeTab === 'buy'
     ? currentAsterAllowance < amountBigInt
     : currentTokenAllowance < amountBigInt
+
+  // Check if user has sufficient balance
+  const insufficientBalance = activeTab === 'buy'
+    ? currentAsterBalance < amountBigInt
+    : currentTokenBalance < amountBigInt
 
   // Handle transaction success
   useEffect(() => {
@@ -375,6 +414,14 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           </div>
         )}
 
+        {insufficientBalance && amount && parseFloat(amount) > 0 && (
+          <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
+            <p className="text-red-500 text-sm">
+              ⚠️ Insufficient balance. You have {formatUnits(activeTab === 'buy' ? currentAsterBalance : currentTokenBalance, 18).slice(0, 8)} {activeTab === 'buy' ? 'ASTER' : tokenSymbol}
+            </p>
+          </div>
+        )}
+
         {priceImpact > 10 && amount && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
             <p className="text-red-500 text-sm">⚠️ High price impact! Consider reducing trade size.</p>
@@ -393,7 +440,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         ) : (
           <button
             type="submit"
-            disabled={!isConnected || isPending || isConfirming || !amount || parseFloat(amount) <= 0}
+            disabled={!isConnected || isPending || isConfirming || !amount || parseFloat(amount) <= 0 || insufficientBalance}
             className={`w-full py-3 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed ${
               activeTab === 'buy'
                 ? 'bg-primary text-black hover:bg-primary-dark'
@@ -402,6 +449,8 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           >
             {isPending || isConfirming
               ? activeTab === 'buy' ? 'Buying...' : 'Selling...'
+              : insufficientBalance && amount && parseFloat(amount) > 0
+              ? 'Insufficient Balance'
               : activeTab === 'buy' ? 'Buy' : 'Sell'}
           </button>
         )}
