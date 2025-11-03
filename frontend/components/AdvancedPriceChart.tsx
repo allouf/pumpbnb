@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode, ISeriesApi, CandlestickData, HistogramData } from 'lightweight-charts'
+// Import series constructors for v5 API
+import { CandlestickSeries, HistogramSeries } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 // Debug: Log the imported functions
@@ -264,29 +266,27 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         },
       }
       
-      // Try dedicated method first
-      if (typeof chart.addCandlestickSeries === 'function') {
-        console.log('[AdvancedPriceChart] Trying addCandlestickSeries')
+      // Try TradingView v5 API with series constructor
+      if (typeof chart.addSeries === 'function') {
         try {
-          priceSeries = chart.addCandlestickSeries(seriesOptions)
-          console.log('[AdvancedPriceChart] ✅ addCandlestickSeries worked!')
+          console.log('[AdvancedPriceChart] Trying addSeries with CandlestickSeries constructor')
+          priceSeries = chart.addSeries(CandlestickSeries, seriesOptions)
+          console.log('[AdvancedPriceChart] ✅ CandlestickSeries constructor worked!')
         } catch (e) {
-          console.log('[AdvancedPriceChart] ❌ addCandlestickSeries failed:', (e as Error).message)
-        }
-      }
-      
-      // Try addSeries with different type variations
-      if (!priceSeries && typeof chart.addSeries === 'function') {
-        const typeVariations = ['Candlestick', 'candlestick', 'CANDLESTICK', 'CandlestickSeries', 'ohlc', 'OHLC', 'bars']
-        
-        for (const seriesType of typeVariations) {
-          try {
-            console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}')`)
-            priceSeries = chart.addSeries(seriesType, seriesOptions)
-            console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked!`)
-            break
-          } catch (e) {
-            console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed: ${(e as Error).message}`)
+          console.log('[AdvancedPriceChart] ❌ CandlestickSeries constructor failed:', (e as Error).message)
+          
+          // Fallback: Try string-based approach (in case it's a different v5 variant)
+          const typeVariations = ['Candlestick', 'candlestick', 'CANDLESTICK', 'CandlestickSeries', 'ohlc', 'OHLC', 'bars']
+          
+          for (const seriesType of typeVariations) {
+            try {
+              console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}')`)
+              priceSeries = chart.addSeries(seriesType, seriesOptions)
+              console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked!`)
+              break
+            } catch (e2) {
+              console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed: ${(e2 as Error).message}`)
+            }
           }
         }
       }
@@ -314,29 +314,27 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         priceScaleId: 'volume',
       }
       
-      // Try dedicated method first
-      if (typeof chart.addHistogramSeries === 'function') {
-        console.log('[AdvancedPriceChart] Trying addHistogramSeries')
+      // Try TradingView v5 API with histogram series constructor
+      if (typeof chart.addSeries === 'function') {
         try {
-          volumeSeries = chart.addHistogramSeries(volumeOptions)
-          console.log('[AdvancedPriceChart] ✅ addHistogramSeries worked!')
+          console.log('[AdvancedPriceChart] Trying addSeries with HistogramSeries constructor')
+          volumeSeries = chart.addSeries(HistogramSeries, volumeOptions)
+          console.log('[AdvancedPriceChart] ✅ HistogramSeries constructor worked!')
         } catch (e) {
-          console.log('[AdvancedPriceChart] ❌ addHistogramSeries failed:', (e as Error).message)
-        }
-      }
-      
-      // Try addSeries with different type variations
-      if (!volumeSeries && typeof chart.addSeries === 'function') {
-        const typeVariations = ['Histogram', 'histogram', 'HISTOGRAM', 'HistogramSeries', 'volume', 'Volume']
-        
-        for (const seriesType of typeVariations) {
-          try {
-            console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}') for volume`)
-            volumeSeries = chart.addSeries(seriesType, volumeOptions)
-            console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked for volume!`)
-            break
-          } catch (e) {
-            console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed for volume: ${(e as Error).message}`)
+          console.log('[AdvancedPriceChart] ❌ HistogramSeries constructor failed:', (e as Error).message)
+          
+          // Fallback: Try string-based approach
+          const typeVariations = ['Histogram', 'histogram', 'HISTOGRAM', 'HistogramSeries', 'volume', 'Volume']
+          
+          for (const seriesType of typeVariations) {
+            try {
+              console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}') for volume`)
+              volumeSeries = chart.addSeries(seriesType, volumeOptions)
+              console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked for volume!`)
+              break
+            } catch (e2) {
+              console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed for volume: ${(e2 as Error).message}`)
+            }
           }
         }
       }
