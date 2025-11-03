@@ -17,6 +17,10 @@ class TradesService {
       sortOrder?: 'asc' | 'desc';
     } = {}
   ): Promise<PaginatedResponse<Trade>> {
+    console.log('[TradesService] getTokenTrades called');
+    console.log('[TradesService] Token address:', tokenAddress);
+    console.log('[TradesService] Options:', JSON.stringify(options, null, 2));
+
     const {
       filter = {},
       page = 1,
@@ -29,6 +33,8 @@ class TradesService {
     const where: Prisma.TradeWhereInput = {
       tokenAddress: tokenAddress.toLowerCase(),
     };
+
+    console.log('[TradesService] Initial where clause:', JSON.stringify(where, null, 2));
 
     // Apply filters
     if (filter.type === 'my' && filter.traderAddress) {
@@ -77,29 +83,41 @@ class TradesService {
     // Calculate pagination
     const skip = (page - 1) * limit;
 
-    // Execute query with pagination
-    const [trades, total] = await Promise.all([
-      prisma.trade.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-      }),
-      prisma.trade.count({ where }),
-    ]);
+    console.log('[TradesService] Final where clause:', JSON.stringify(where, null, 2));
+    console.log('[TradesService] Order by:', JSON.stringify(orderBy, null, 2));
+    console.log('[TradesService] Pagination:', { skip, take: limit });
 
-    const totalPages = Math.ceil(total / limit);
+    try {
+      // Execute query with pagination
+      const [trades, total] = await Promise.all([
+        prisma.trade.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limit,
+        }),
+        prisma.trade.count({ where }),
+      ]);
 
-    return {
-      data: trades,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasMore: page < totalPages,
-      },
-    };
+      console.log('[TradesService] Query successful');
+      console.log('[TradesService] Found', trades.length, 'trades out of', total, 'total');
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data: trades,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasMore: page < totalPages,
+        },
+      };
+    } catch (error) {
+      console.error('[TradesService] Database query failed:', error);
+      throw error;
+    }
   }
 
   /**

@@ -11,6 +11,8 @@ class TradesController {
   async getTokenTrades(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { address } = req.params;
+      logger.info(`[TradesController] GET /api/v2/tokens/${address}/trades`);
+
       const {
         type,
         traderAddress,
@@ -23,6 +25,8 @@ class TradesController {
         sortBy = 'timestamp',
         sortOrder = 'desc',
       } = req.query;
+
+      logger.info(`[TradesController] Query params:`, { type, traderAddress, page, limit, sortBy, sortOrder });
 
       // Build filter
       const filter: TradeFilter = {};
@@ -41,12 +45,15 @@ class TradesController {
         sortOrder: sortOrder as any,
       });
 
+      logger.info(`[TradesController] Successfully fetched ${result.data.length} trades`);
+
       res.json({
         success: true,
         ...result,
       });
-    } catch (error) {
-      logger.error('Error fetching token trades:', error);
+    } catch (error: any) {
+      logger.error('[TradesController] Error fetching token trades:', error);
+      logger.error('[TradesController] Error stack:', error.stack);
       next(error);
     }
   }
