@@ -71,39 +71,47 @@ export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
       ) : (
         <>
           {/* Holders List */}
-          {holders.map((holder, index) => (
-            <div
-              key={holder.address}
-              className="bg-secondary p-4 rounded-lg flex items-center justify-between hover:bg-secondary-light transition"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">
-                  #{index + 1}
-                </div>
-                <div>
-                  <p className="text-sm font-mono">
-                    {holder.address.slice(0, 6)}...{holder.address.slice(-4)}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {parseFloat(holder.balance).toLocaleString()} {tokenSymbol}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center gap-2">
-                  <div className="w-24 bg-secondary-light rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full"
-                      style={{ width: `${Math.min(holder.percentage, 100)}%` }}
-                    />
+          {holders.map((holder, index) => {
+            // Safety check: ensure holder has required fields
+            if (!holder || !holder.address || !holder.balance) {
+              console.warn('[TopHolders] Skipping invalid holder:', holder)
+              return null
+            }
+
+            return (
+              <div
+                key={holder.address}
+                className="bg-secondary p-4 rounded-lg flex items-center justify-between hover:bg-secondary-light transition"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">
+                    #{index + 1}
                   </div>
-                  <p className="text-sm font-bold text-primary w-12 text-right">
-                    {holder.percentage.toFixed(2)}%
-                  </p>
+                  <div>
+                    <p className="text-sm font-mono">
+                      {holder.address.slice(0, 6)}...{holder.address.slice(-4)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {parseFloat(holder.balance).toLocaleString()} {tokenSymbol}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 bg-secondary-light rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full"
+                        style={{ width: `${Math.min(holder.percentage || 0, 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-sm font-bold text-primary w-12 text-right">
+                      {(holder.percentage || 0).toFixed(2)}%
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {/* Generate Bubble Map Button */}
           <button className="w-full mt-4 bg-secondary hover:bg-secondary-light border border-gray-700 rounded-lg p-4 text-center transition group">
