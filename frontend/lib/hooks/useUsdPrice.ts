@@ -44,16 +44,15 @@ export function useUsdPrice(): UsdPriceData {
 
       setData(prev => ({ ...prev, isLoading: true, error: null }))
 
-      // For now, we'll use a mock rate since ASTER isn't on major exchanges
-      // In production, you'd integrate with an API that tracks ASTER price
-      const mockAsterToUsd = 0.0025 // $0.0025 per ASTER
+      // Fixed ASTER price at $1.5 USD
+      const asterToUsd = 1.5 // $1.5 per ASTER
 
-      // If ASTER were on CoinGecko, you'd use:
+      // If you want to use a real API in the future:
       // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=astar&vs_currencies=usd')
       // const data = await response.json()
       // const rate = data.astar.usd
 
-      const rate = mockAsterToUsd
+      const rate = asterToUsd
 
       // Cache the result
       const cacheData: CachedRate = {

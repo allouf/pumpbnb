@@ -10,6 +10,7 @@ import { calculateExpectedOutput, calculateMinOutput, calculatePriceImpact, SLIP
 import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
 import { indexTrade } from '@/lib/api/indexer'
+import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 
@@ -41,9 +42,24 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy')
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState(SLIPPAGE_PRESETS.MEDIUM)
+  const [showUsd, setShowUsd] = useState(true) // Default to USD display
+  const { usdRate } = useUsdPrice()
 
   // Calculate amount early so we can use it in contract reads
-  const amountBigInt = amount ? parseUnits(amount, 18) : BigInt(0)
+  // Convert USD to ASTER for buy orders when USD display is enabled
+  const getAsterAmount = () => {
+    if (!amount || parseFloat(amount) <= 0) return BigInt(0)
+    
+    if (activeTab === 'buy' && showUsd) {
+      // Convert USD to ASTER
+      const asterAmount = parseFloat(amount) / usdRate
+      return parseUnits(asterAmount.toString(), 18)
+    }
+    
+    return parseUnits(amount, 18)
+  }
+  
+  const amountBigInt = getAsterAmount()
 
   // Read bonding curve reserves
   const { data: reserves, refetch: refetchReserves } = useReadContract({
@@ -249,6 +265,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
 
   return (
     <div className="bg-secondary-light p-6 rounded-xl sticky top-24">
+      {/* Header with tabs and currency toggle */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex gap-2">
           <button
@@ -272,20 +289,42 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             Sell
           </button>
         </div>
-        <SlippageSettings slippage={slippage} onSlippageChange={setSlippage} />
+        
+        <div className="flex items-center gap-2">
+          {/* Currency Toggle */}
+          <button
+            onClick={() => setShowUsd(!showUsd)}
+            className="px-2 py-1 text-xs bg-gray-800 hover:bg-gray-700 rounded-md transition font-medium"
+            title="Toggle USD/ASTER display"
+          >
+            {showUsd ? 'USD' : 'ASTER'}
+          </button>
+          <SlippageSettings slippage={slippage} onSlippageChange={setSlippage} />
+        </div>
       </div>
 
       <form onSubmit={handleTrade} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">
-            Amount ({activeTab === 'buy' ? 'ASTER' : tokenSymbol})
-          </label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-medium">
+              Amount ({activeTab === 'buy' ? (showUsd ? 'USD' : 'ASTER') : tokenSymbol})
+            </label>
+            {amount && parseFloat(amount) > 0 && (
+              <div className="text-xs text-gray-400">
+                {activeTab === 'buy' && (
+                  showUsd 
+                    ? `≈ ${(parseFloat(amount) / usdRate).toFixed(4)} ASTER`
+                    : `≈ ${formatUsdPrice(asterToUsd(parseFloat(amount), usdRate))}`
+                )}
+              </div>
+            )}
+          </div>
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.0"
-            step="0.01"
+            placeholder={showUsd && activeTab === 'buy' ? '0.00' : '0.0'}
+            step={showUsd && activeTab === 'buy' ? '0.01' : '0.01'}
             className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none"
           />
         </div>
@@ -293,9 +332,16 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         <div className="bg-secondary rounded-lg p-4 text-sm space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-400">You receive (min):</span>
-            <span className="font-semibold">
-              {amount ? formatUnits(minOutput, 18).slice(0, 10) : '0.0'} {activeTab === 'buy' ? tokenSymbol : 'ASTER'}
-            </span>
+            <div className="text-right">
+              <span className="font-semibold">
+                {amount ? formatUnits(minOutput, 18).slice(0, 10) : '0.0'} {activeTab === 'buy' ? tokenSymbol : 'ASTER'}
+              </span>
+              {amount && parseFloat(amount) > 0 && activeTab === 'sell' && (
+                <div className="text-xs text-gray-500">
+                  ≈ {formatUsdPrice(asterToUsd(parseFloat(formatUnits(minOutput, 18)), usdRate))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Price impact:</span>
@@ -305,11 +351,21 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">Trading fee (1%):</span>
-            <span className="font-semibold">
-              {amount && (buyData || sellData)
-                ? formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18).slice(0, 8)
-                : '0'} {activeTab === 'buy' ? 'ASTER' : 'ASTER'}
-            </span>
+            <div className="text-right">
+              <span className="font-semibold">
+                {amount && (buyData || sellData)
+                  ? formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18).slice(0, 8)
+                  : '0'} ASTER
+              </span>
+              {amount && (buyData || sellData) && (
+                <div className="text-xs text-gray-500">
+                  ≈ {formatUsdPrice(asterToUsd(
+                    parseFloat(formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18)), 
+                    usdRate
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
