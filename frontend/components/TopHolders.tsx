@@ -2,6 +2,18 @@
 
 import { useEffect, useState } from 'react'
 
+interface HolderApiResponse {
+  holderAddress: string
+  balance: string
+  percentage: number
+  isCreator?: boolean
+  firstTxAt?: string
+  lastTxAt?: string
+  tokenAddress?: string
+  updatedAt?: string
+  id?: string
+}
+
 interface Holder {
   address: string
   balance: string
@@ -33,11 +45,18 @@ export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
         console.log('[TopHolders] API Response:', data)
 
         if (data.success) {
-          setHolders(data.data)
-          console.log('[TopHolders] Loaded', data.data.length, 'holders')
+          // Map API response to internal Holder format
+          const mappedHolders: Holder[] = data.data.map((h: HolderApiResponse) => ({
+            address: h.holderAddress,
+            balance: h.balance,
+            percentage: h.percentage
+          }))
+
+          setHolders(mappedHolders)
+          console.log('[TopHolders] Loaded', mappedHolders.length, 'holders')
 
           // Calculate total supply from holders
-          const total = data.data.reduce((sum: number, h: Holder) => sum + parseFloat(h.balance), 0)
+          const total = mappedHolders.reduce((sum: number, h: Holder) => sum + parseFloat(h.balance), 0)
           setTotalSupply(total.toString())
         } else {
           console.error('[TopHolders] API returned error:', data.error)
