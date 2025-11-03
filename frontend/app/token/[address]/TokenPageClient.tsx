@@ -220,38 +220,70 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
             </div>
           </div>
 
-          {/* Enhanced Progress Bars */}
-          <div className="mt-4">
-            {/* Import and use DualProgressBars here */}
+          {/* Dual Progress Bars - Pump.fun Style */}
+          <div className="mt-4 space-y-4">
+            {/* Bonding Curve Progress */}
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Progress to PancakeSwap</span>
-                <span className="font-semibold">{progress.toFixed(2)}%</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-400 font-medium">🚀 Bonding Curve Progress</span>
+                <span className="font-bold text-primary">{progress.toFixed(1)}%</span>
               </div>
-              <div className="w-full bg-secondary rounded-full h-4 overflow-hidden">
+              <div className="relative w-full bg-secondary rounded-full h-4 overflow-hidden shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-primary via-yellow-400 to-green-500 h-4 rounded-full transition-all duration-1000 ease-out"
-                  style={{ 
+                  className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-green-500 h-4 transition-all duration-1000 ease-out"
+                  style={{
                     width: `${Math.min(progress, 100)}%`,
-                    boxShadow: progress >= 100 
-                      ? '0 0 20px rgba(34, 197, 94, 0.5)' 
-                      : '0 0 15px rgba(255, 215, 0, 0.3)'
+                    boxShadow: progress >= 100
+                      ? '0 0 20px rgba(34, 197, 94, 0.6)'
+                      : '0 0 12px rgba(255, 215, 0, 0.4)'
                   }}
                 >
                   {/* Animated sparkles for active progress */}
-                  {progress > 10 && (
+                  {progress > 5 && progress < 100 && (
                     <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute top-1 left-1/4 w-1 h-1 bg-white rounded-full animate-ping" 
+                      <div className="absolute top-1 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping"
                            style={{ animationDelay: '0s', animationDuration: '2s' }} />
-                      <div className="absolute top-2 right-1/3 w-0.5 h-0.5 bg-white rounded-full animate-ping"
-                           style={{ animationDelay: '0.5s', animationDuration: '2s' }} />
+                      <div className="absolute top-1.5 right-1/3 w-1 h-1 bg-white rounded-full animate-ping"
+                           style={{ animationDelay: '0.7s', animationDuration: '2s' }} />
+                      <div className="absolute top-1 left-1/2 w-0.5 h-0.5 bg-white rounded-full animate-ping"
+                           style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
+                    </div>
+                  )}
+                  {/* Completion celebration effect */}
+                  {progress >= 100 && (
+                    <div className="absolute inset-0 animate-pulse">
+                      <div className="w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
                     </div>
                   )}
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500">
-                <span>0 ASTER</span>
-                <span>100 ASTER (Graduation)</span>
+                <span>{asterReserves.toFixed(2)} ASTER</span>
+                <span className="font-semibold">100 ASTER → PancakeSwap 🥞</span>
+              </div>
+            </div>
+
+            {/* ATH Progress (All Time High) */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-400 font-medium">📈 Market Cap (ATH)</span>
+                <span className="font-bold text-green-400">{marketCap} ASTER</span>
+              </div>
+              <div className="relative w-full bg-secondary rounded-full h-3 overflow-hidden shadow-inner">
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 transition-all duration-1000 ease-out"
+                  style={{
+                    width: `${Math.min((asterReserves / Math.max(asterReserves, 1)) * 100, 100)}%`,
+                    boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
+                  }}
+                >
+                  {/* Pulsing effect for ATH bar */}
+                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/40 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Current: {asterReserves.toFixed(2)} ASTER</span>
+                <span className="font-semibold text-green-400">ATH: {asterReserves.toFixed(2)} ASTER ⬆️</span>
               </div>
             </div>
           </div>

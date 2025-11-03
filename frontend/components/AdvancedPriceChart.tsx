@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { createChart, ColorType, IChartApi, AreaSeries, HistogramSeries, UTCTimestamp, CrosshairMode } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode, ISeriesApi, CandlestickData, HistogramData } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 interface AdvancedPriceChartProps {
@@ -10,6 +10,10 @@ interface AdvancedPriceChartProps {
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
+type PriceMode = 'ASTER' | 'USD'
+
+// Mock ASTER USD price - can be replaced with real API
+const ASTER_USD_PRICE = 1.22
 
 export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
@@ -19,7 +23,8 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const chartCreatedRef = useRef(false)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
-  const [hoveredData, setHoveredData] = useState<{price: number, volume: number, time: string} | null>(null)
+  const [priceMode, setPriceMode] = useState<PriceMode>('ASTER')
+  const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
 
@@ -28,10 +33,14 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     if (transactions.length === 0) {
       return {
         currentPrice: 0,
+        currentPriceUSD: 0,
         change24h: 0,
         high24h: 0,
         low24h: 0,
         volume24h: 0,
+        volume24hUSD: 0,
+        ath: 0,
+        athUSD: 0,
       }
     }
 
@@ -45,26 +54,38 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     if (prices.length === 0) {
       return {
         currentPrice: 0,
+        currentPriceUSD: 0,
         change24h: 0,
         high24h: 0,
         low24h: 0,
         volume24h: 0,
+        volume24hUSD: 0,
+        ath: 0,
+        athUSD: 0,
       }
     }
 
     const currentPrice = prices[prices.length - 1]
+    const currentPriceUSD = currentPrice * ASTER_USD_PRICE
     const firstPrice = prices[0]
     const change24h = firstPrice > 0 ? ((currentPrice - firstPrice) / firstPrice) * 100 : 0
     const high24h = Math.max(...prices)
     const low24h = Math.min(...prices)
+    const ath = high24h
+    const athUSD = ath * ASTER_USD_PRICE
     const volume24h = transactions.reduce((sum, tx) => sum + Number(tx.asterAmountFormatted), 0)
+    const volume24hUSD = volume24h * ASTER_USD_PRICE
 
     return {
       currentPrice,
+      currentPriceUSD,
       change24h,
       high24h,
       low24h,
       volume24h,
+      volume24hUSD,
+      ath,
+      athUSD,
     }
   }, [transactions])
 
@@ -130,7 +151,9 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         timeVisible: true,
         secondsVisible: false,
         borderColor: '#2b2b43',
-        rightOffset: 5,
+        rightOffset: 10,
+        fixLeftEdge: true,
+        fixRightEdge: true,
       },
       rightPriceScale: {
         borderColor: '#2b2b43',
@@ -139,17 +162,19 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           top: 0.05,
           bottom: 0.35,
         },
+        autoScale: true,
       },
     })
 
     chartRef.current = chart
 
-    // Add price series (Area chart)
-    const priceSeries = chart.addSeries(AreaSeries, {
-      lineColor: '#26a69a',
-      topColor: 'rgba(38, 166, 154, 0.4)',
-      bottomColor: 'rgba(38, 166, 154, 0.0)',
-      lineWidth: 2,
+    // Add candlestick series
+    const priceSeries = (chart as any).addCandlestickSeries({
+      upColor: '#26a69a',
+      downColor: '#ef5350',
+      borderVisible: false,
+      wickUpColor: '#26a69a',
+      wickDownColor: '#ef5350',
       priceFormat: {
         type: 'price',
         precision: 8,
@@ -160,7 +185,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     priceSeriesRef.current = priceSeries
 
     // Add volume series (Histogram)
-    const volumeSeries = chart.addSeries(HistogramSeries, {
+    const volumeSeries = (chart as any).addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
@@ -193,7 +218,10 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       if (priceData && volumeData) {
         const date = new Date((param.time as number) * 1000)
         setHoveredData({
-          price: priceData.value || 0,
+          open: priceData.open || 0,
+          high: priceData.high || 0,
+          low: priceData.low || 0,
+          close: priceData.close || 0,
           volume: volumeData.value || 0,
           time: date.toLocaleString(),
         })
@@ -218,13 +246,30 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     }
   }, [transactions.length])
 
-  // Update chart data when filtered transactions change
+  // Update chart data when filtered transactions change or price mode changes
   useEffect(() => {
     if (!priceSeriesRef.current || !volumeSeriesRef.current) return
     if (filteredTransactions.length === 0) return
 
-    const priceData: Array<{time: UTCTimestamp, value: number}> = []
-    const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
+    // Get candle interval in seconds based on timeframe
+    const getCandleInterval = () => {
+      switch (timeframe) {
+        case '1m': return 60
+        case '5m': return 300
+        case '15m': return 900
+        case '30m': return 1800
+        case '1h': return 3600
+        case '4h': return 14400
+        case '1d': return 86400
+        default: return 300 // default 5 minutes for 'all'
+      }
+    }
+
+    const intervalSeconds = getCandleInterval()
+    const priceMultiplier = priceMode === 'USD' ? ASTER_USD_PRICE : 1
+
+    // Aggregate transactions into candlesticks
+    const candleMap = new Map<number, {open: number, high: number, low: number, close: number, volume: number, lastTimestamp: number}>()
 
     filteredTransactions
       .filter(tx => tx.timestamp > 0)
@@ -232,27 +277,64 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       .forEach(tx => {
         const asterAmount = Number(tx.asterAmountFormatted)
         const tokenAmount = Number(tx.tokenAmountFormatted)
-        const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        const time = Math.floor(tx.timestamp) as UTCTimestamp
+        let price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        price *= priceMultiplier
 
-        priceData.push({ time, value: price })
+        // Round timestamp to interval
+        const candleTime = Math.floor(tx.timestamp / intervalSeconds) * intervalSeconds
+
+        const existing = candleMap.get(candleTime)
+        if (!existing) {
+          candleMap.set(candleTime, {
+            open: price,
+            high: price,
+            low: price,
+            close: price,
+            volume: asterAmount,
+            lastTimestamp: tx.timestamp,
+          })
+        } else {
+          existing.high = Math.max(existing.high, price)
+          existing.low = Math.min(existing.low, price)
+          if (tx.timestamp > existing.lastTimestamp) {
+            existing.close = price
+            existing.lastTimestamp = tx.timestamp
+          }
+          existing.volume += asterAmount
+        }
+      })
+
+    // Convert to array format for TradingView
+    const candleData: Array<{time: UTCTimestamp, open: number, high: number, low: number, close: number}> = []
+    const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
+
+    Array.from(candleMap.entries())
+      .sort(([a], [b]) => a - b)
+      .forEach(([time, candle]) => {
+        candleData.push({
+          time: time as UTCTimestamp,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+        })
         volumeData.push({
-          time,
-          value: asterAmount,
-          color: tx.type === 'buy' ? '#26a69a' : '#ef5350',
+          time: time as UTCTimestamp,
+          value: candle.volume,
+          color: candle.close >= candle.open ? '#26a69a' : '#ef5350',
         })
       })
 
-    if (priceData.length > 0) {
+    if (candleData.length > 0) {
       try {
-        priceSeriesRef.current.setData(priceData)
+        priceSeriesRef.current.setData(candleData)
         volumeSeriesRef.current.setData(volumeData)
         chartRef.current?.timeScale().fitContent()
       } catch (error) {
         console.error('[AdvancedPriceChart] Error updating data:', error)
       }
     }
-  }, [filteredTransactions])
+  }, [filteredTransactions, priceMode, timeframe])
 
   if (isLoading && transactions.length === 0) {
     return (
@@ -290,70 +372,147 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       {/* Chart Header with Statistics */}
       <div className="px-6 py-4 border-b border-gray-700">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">{tokenSymbol}/ASTER</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold">{tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'}</h2>
 
-          {/* Timeframe Selector */}
-          <div className="flex gap-2">
-            {(['all', '1m', '5m', '15m', '30m', '1h', '4h', '1d'] as Timeframe[]).map((tf) => (
+            {/* USD/ASTER Toggle */}
+            <div className="flex bg-secondary rounded-lg p-1">
               <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                  timeframe === tf
+                onClick={() => setPriceMode('ASTER')}
+                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                  priceMode === 'ASTER'
                     ? 'bg-primary text-black'
-                    : 'bg-secondary text-gray-400 hover:text-white hover:bg-secondary-light'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
-                {tf === 'all' ? 'All' : tf}
+                ASTER
               </button>
-            ))}
+              <button
+                onClick={() => setPriceMode('USD')}
+                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                  priceMode === 'USD'
+                    ? 'bg-primary text-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                USD
+              </button>
+            </div>
           </div>
+
+          {/* Timeframe Dropdown */}
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+            className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
+          >
+            <option value="all">All Time</option>
+            <option value="1m">1 Minute</option>
+            <option value="5m">5 Minutes</option>
+            <option value="15m">15 Minutes</option>
+            <option value="30m">30 Minutes</option>
+            <option value="1h">1 Hour</option>
+            <option value="4h">4 Hours</option>
+            <option value="1d">1 Day</option>
+          </select>
         </div>
 
-        {/* Price Statistics Panel */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div>
+        {/* Price Statistics Panel - Pump.fun Style */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+          <div className="bg-secondary p-3 rounded-lg">
             <p className="text-xs text-gray-400 mb-1">Price</p>
-            <p className={`text-lg font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {stats.currentPrice.toFixed(8)} <span className="text-xs text-gray-400">ASTER</span>
+            <p className={`text-base font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              {priceMode === 'USD'
+                ? `$${stats.currentPriceUSD.toFixed(6)}`
+                : `${stats.currentPrice.toFixed(8)} ASTER`
+              }
             </p>
           </div>
-          <div>
+          <div className="bg-secondary p-3 rounded-lg">
             <p className="text-xs text-gray-400 mb-1">24h Change</p>
-            <p className={`text-lg font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <p className={`text-base font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
             </p>
           </div>
-          <div>
+          <div className="bg-secondary p-3 rounded-lg">
+            <p className="text-xs text-gray-400 mb-1">ATH</p>
+            <p className="text-base font-bold text-primary">
+              {priceMode === 'USD'
+                ? `$${stats.athUSD.toFixed(6)}`
+                : `${stats.ath.toFixed(8)}`
+              }
+            </p>
+          </div>
+          <div className="bg-secondary p-3 rounded-lg">
             <p className="text-xs text-gray-400 mb-1">24h High</p>
-            <p className="text-lg font-bold text-gray-300">{stats.high24h.toFixed(8)}</p>
+            <p className="text-base font-bold text-gray-300">
+              {priceMode === 'USD'
+                ? `$${(stats.high24h * ASTER_USD_PRICE).toFixed(6)}`
+                : stats.high24h.toFixed(8)
+              }
+            </p>
           </div>
-          <div>
+          <div className="bg-secondary p-3 rounded-lg">
             <p className="text-xs text-gray-400 mb-1">24h Low</p>
-            <p className="text-lg font-bold text-gray-300">{stats.low24h.toFixed(8)}</p>
+            <p className="text-base font-bold text-gray-300">
+              {priceMode === 'USD'
+                ? `$${(stats.low24h * ASTER_USD_PRICE).toFixed(6)}`
+                : stats.low24h.toFixed(8)
+              }
+            </p>
           </div>
-          <div>
+          <div className="bg-secondary p-3 rounded-lg">
             <p className="text-xs text-gray-400 mb-1">24h Volume</p>
-            <p className="text-lg font-bold text-primary">{stats.volume24h.toFixed(2)} <span className="text-xs text-gray-400">ASTER</span></p>
+            <p className="text-base font-bold text-primary">
+              {priceMode === 'USD'
+                ? `$${stats.volume24hUSD.toFixed(2)}`
+                : `${stats.volume24h.toFixed(2)} ASTER`
+              }
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Hover Tooltip */}
+      {/* Hover Tooltip - Candlestick OHLC */}
       {hoveredData && (
         <div className="px-6 py-3 bg-secondary border-b border-gray-700">
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-6 gap-3 text-sm">
             <div>
               <p className="text-gray-400 text-xs mb-1">Time</p>
-              <p className="font-semibold text-white">{hoveredData.time}</p>
+              <p className="font-semibold text-white text-xs">{hoveredData.time}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-xs mb-1">Price</p>
-              <p className="font-bold text-primary">{hoveredData.price.toFixed(8)} ASTER</p>
+              <p className="text-gray-400 text-xs mb-1">Open</p>
+              <p className="font-bold text-white">
+                {priceMode === 'USD' ? `$${hoveredData.open.toFixed(6)}` : hoveredData.open.toFixed(8)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">High</p>
+              <p className="font-bold text-green-400">
+                {priceMode === 'USD' ? `$${hoveredData.high.toFixed(6)}` : hoveredData.high.toFixed(8)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Low</p>
+              <p className="font-bold text-red-400">
+                {priceMode === 'USD' ? `$${hoveredData.low.toFixed(6)}` : hoveredData.low.toFixed(8)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Close</p>
+              <p className={`font-bold ${hoveredData.close >= hoveredData.open ? 'text-green-500' : 'text-red-500'}`}>
+                {priceMode === 'USD' ? `$${hoveredData.close.toFixed(6)}` : hoveredData.close.toFixed(8)}
+              </p>
             </div>
             <div>
               <p className="text-gray-400 text-xs mb-1">Volume</p>
-              <p className="font-semibold text-green-400">{hoveredData.volume.toFixed(4)} ASTER</p>
+              <p className="font-semibold text-primary">
+                {priceMode === 'USD'
+                  ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
+                  : `${hoveredData.volume.toFixed(4)} ASTER`
+                }
+              </p>
             </div>
           </div>
         </div>
@@ -369,22 +528,24 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span>Price Line</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
-            <span>Buy Volume</span>
+            <span>Bullish Candle</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded"></div>
-            <span>Sell Volume</span>
+            <span>Bearish Candle</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-1 bg-primary rounded"></div>
+            <span>Volume</span>
           </div>
           <div>
-            <span className="text-gray-500">{filteredTransactions.length} trades in view</span>
+            <span className="text-gray-500">{filteredTransactions.length} trades • {timeframe === 'all' ? 'All time' : timeframe} candles</span>
           </div>
         </div>
-        <div>
-          Powered by TradingView Lightweight Charts
+        <div className="flex items-center gap-2">
+          <span className="text-xs">1 ASTER = ${ASTER_USD_PRICE.toFixed(2)}</span>
+          <span className="text-gray-600">•</span>
+          <span>Powered by TradingView</span>
         </div>
       </div>
     </div>
