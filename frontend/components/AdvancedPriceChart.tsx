@@ -261,7 +261,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         })
       } else if (typeof chart.addSeries === 'function') {
         console.log('[AdvancedPriceChart] Using addSeries with type parameter')
-        priceSeries = chart.addSeries('candlestick', {
+        priceSeries = chart.addSeries('Candlestick', {
           upColor: '#26a69a',
           downColor: '#ef5350',
           borderVisible: false,
@@ -299,7 +299,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         })
       } else if (typeof chart.addSeries === 'function') {
         console.log('[AdvancedPriceChart] Using addSeries with histogram type parameter')
-        volumeSeries = chart.addSeries('histogram', {
+        volumeSeries = chart.addSeries('Histogram', {
           color: '#26a69a',
           priceFormat: {
             type: 'volume',
