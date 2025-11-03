@@ -9,7 +9,7 @@ interface AdvancedPriceChartProps {
   tokenSymbol: string
 }
 
-type Timeframe = '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
+type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 
 export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
@@ -18,7 +18,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const volumeSeriesRef = useRef<any>(null)
   const chartCreatedRef = useRef(false)
 
-  const [timeframe, setTimeframe] = useState<Timeframe>('1h')
+  const [timeframe, setTimeframe] = useState<Timeframe>('all')
   const [hoveredData, setHoveredData] = useState<{price: number, volume: number, time: string} | null>(null)
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
@@ -72,8 +72,13 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const filteredTransactions = useMemo(() => {
     if (transactions.length === 0) return []
 
+    // If "all" is selected, show all transactions
+    if (timeframe === 'all') {
+      return transactions
+    }
+
     const now = Math.floor(Date.now() / 1000)
-    const timeframeSeconds: Record<Timeframe, number> = {
+    const timeframeSeconds: Record<Exclude<Timeframe, 'all'>, number> = {
       '1m': 60,
       '5m': 300,
       '15m': 900,
@@ -289,7 +294,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
           {/* Timeframe Selector */}
           <div className="flex gap-2">
-            {(['1m', '5m', '15m', '30m', '1h', '4h', '1d'] as Timeframe[]).map((tf) => (
+            {(['all', '1m', '5m', '15m', '30m', '1h', '4h', '1d'] as Timeframe[]).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
@@ -299,7 +304,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                     : 'bg-secondary text-gray-400 hover:text-white hover:bg-secondary-light'
                 }`}
               >
-                {tf}
+                {tf === 'all' ? 'All' : tf}
               </button>
             ))}
           </div>
