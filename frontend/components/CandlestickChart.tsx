@@ -8,11 +8,6 @@ import {
   UTCTimestamp,
   CrosshairMode,
   LogicalRange,
-  ISeriesApi,
-  CandlestickData,
-  HistogramData,
-  CandlestickSeries,
-  HistogramSeries,
 } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
@@ -38,8 +33,8 @@ interface OHLCV {
 export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
-  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const candleSeriesRef = useRef<any>(null)
+  const volumeSeriesRef = useRef<any>(null)
   const chartCreatedRef = useRef(false)
   const savedRangeRef = useRef<LogicalRange | null>(null)
 
@@ -239,8 +234,8 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     chartRef.current = chart
 
-    // Add candlestick series using v5 API
-    const candleSeries = chart.addSeries(CandlestickSeries, {
+    // Add candlestick series using v4-compatible API
+    const candleSeries = (chart as any).addCandlestickSeries({
       upColor: '#10b981',
       downColor: '#ef4444',
       borderUpColor: '#10b981',
@@ -256,8 +251,8 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     candleSeriesRef.current = candleSeries
 
-    // Add volume series using v5 API
-    const volumeSeries = chart.addSeries(HistogramSeries, {
+    // Add volume series using v4-compatible API
+    const volumeSeries = (chart as any).addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
