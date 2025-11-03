@@ -21,8 +21,13 @@ export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
   useEffect(() => {
     const fetchHolders = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
+        const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/holders?limit=10`
+
         console.log('[TopHolders] Fetching holders for token:', tokenAddress)
-        const response = await fetch(`/api/v2/tokens/${tokenAddress}/holders?limit=10`)
+        console.log('[TopHolders] API URL:', url)
+
+        const response = await fetch(url)
         const data = await response.json()
 
         console.log('[TopHolders] API Response:', data)

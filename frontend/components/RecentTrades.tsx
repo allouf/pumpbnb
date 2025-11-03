@@ -27,8 +27,13 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   useEffect(() => {
     const fetchTrades = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
+        const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/trades?limit=50`
+
         console.log('[RecentTrades] Fetching trades for token:', tokenAddress)
-        const response = await fetch(`/api/v2/tokens/${tokenAddress}/trades?limit=50`)
+        console.log('[RecentTrades] API URL:', url)
+
+        const response = await fetch(url)
         const data = await response.json()
 
         console.log('[RecentTrades] API Response:', data)
