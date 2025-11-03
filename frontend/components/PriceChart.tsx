@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, AreaSeries, HistogramSeries, UTCTimestamp, CrosshairMode } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 interface PriceChartProps {
@@ -46,7 +46,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     console.log('[PriceChart] Container width:', chartContainerRef.current.clientWidth)
 
     // Create chart with enhanced configuration
-    const chart = createChart(chartContainerRef.current, {
+    const chart: any = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#1E2329' },
         textColor: '#9CA3AF',
@@ -91,7 +91,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     console.log('[PriceChart] Chart instance created successfully')
 
     // Add price series (Area chart) using v5 API
-    const priceSeries = chart.addSeries(AreaSeries, {
+    const priceSeries = chart.addAreaSeries({
       lineColor: '#F0B90B',
       topColor: 'rgba(240, 185, 11, 0.4)',
       bottomColor: 'rgba(240, 185, 11, 0.0)',
@@ -107,7 +107,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     console.log('[PriceChart] Price series added')
 
     // Add volume series (Histogram) using v5 API
-    const volumeSeries = chart.addSeries(HistogramSeries, {
+    const volumeSeries = chart.addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
@@ -127,7 +127,7 @@ export function PriceChart({ bondingCurveAddress, tokenSymbol }: PriceChartProps
     })
 
     // Add crosshair move handler for tooltips
-    chart.subscribeCrosshairMove((param) => {
+    chart.subscribeCrosshairMove((param: any) => {
       if (!param.time || !param.point) {
         setHoveredData(null)
         return

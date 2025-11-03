@@ -8,8 +8,6 @@ import {
   UTCTimestamp,
   CrosshairMode,
   LogicalRange,
-  CandlestickSeries,
-  HistogramSeries,
 } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
@@ -179,7 +177,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
     const container = chartContainerRef.current
     if (!container) return
 
-    const chart = createChart(container, {
+    const chart: any = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: '#0f0f0f' },
         textColor: '#9ca3af',
@@ -240,7 +238,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
     chartRef.current = chart
 
     // Add candlestick series using v5 API
-    const candleSeries = chart.addSeries(CandlestickSeries, {
+    const candleSeries = chart.addCandlestickSeries({
       upColor: '#10b981',
       downColor: '#ef4444',
       borderUpColor: '#10b981',
@@ -257,7 +255,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
     candleSeriesRef.current = candleSeries
 
     // Add volume series using v5 API
-    const volumeSeries = chart.addSeries(HistogramSeries, {
+    const volumeSeries = chart.addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
@@ -276,7 +274,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
     })
 
     // Crosshair handler
-    chart.subscribeCrosshairMove((param) => {
+    chart.subscribeCrosshairMove((param: any) => {
       if (!param.time || !candleSeriesRef.current) {
         setHoveredCandle(null)
         return
@@ -287,7 +285,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
     })
 
     // Save zoom range when user interacts
-    chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+    chart.timeScale().subscribeVisibleLogicalRangeChange((range: any) => {
       if (zoomLocked && range) {
         savedRangeRef.current = range
       }
