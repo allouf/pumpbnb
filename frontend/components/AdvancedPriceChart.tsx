@@ -17,7 +17,7 @@ const ASTER_USD_PRICE = 1.22
 
 export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
-  const chartRef = useRef<IChartApi | null>(null)
+  const chartRef = useRef<any>(null)
   const priceSeriesRef = useRef<any>(null)
   const volumeSeriesRef = useRef<any>(null)
   const chartCreatedRef = useRef(false)
@@ -121,7 +121,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
     chartCreatedRef.current = true
 
-    const chart = createChart(chartContainerRef.current, {
+    const chart: any = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#1a1b1e' },
         textColor: '#d1d4dc',
@@ -169,7 +169,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     chartRef.current = chart
 
     // Add candlestick series
-    const priceSeries = (chart as any).addCandlestickSeries({
+    const priceSeries = chart.addCandlestickSeries({
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -185,7 +185,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     priceSeriesRef.current = priceSeries
 
     // Add volume series (Histogram)
-    const volumeSeries = (chart as any).addHistogramSeries({
+    const volumeSeries = chart.addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
@@ -204,7 +204,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     })
 
     // Add crosshair handler
-    chart.subscribeCrosshairMove((param) => {
+    chart.subscribeCrosshairMove((param: any) => {
       if (!param.time || !param.point) {
         setHoveredData(null)
         return
