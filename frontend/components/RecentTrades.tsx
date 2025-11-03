@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 
 interface Trade {
-  id: string
-  trader: string
-  isBuy: boolean
-  asterAmount: string
+  transactionHash: string
+  type: string
+  user: string
   tokenAmount: string
-  price: string
+  asterAmount: string
   timestamp: Date
-  txHash: string
+  blockNumber: number
+  bondingCurve: string
 }
 
 interface RecentTradesProps {
@@ -28,7 +28,8 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
     const fetchTrades = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
-        const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/trades?limit=50`
+        // Use the working /api/trades endpoint instead of /api/v2/tokens endpoint
+        const url = `${apiUrl}/api/trades/${tokenAddress}/history?limit=50`
 
         console.log('[RecentTrades] Fetching trades for token:', tokenAddress)
         console.log('[RecentTrades] API URL:', url)
@@ -42,7 +43,8 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           setTrades(data.data)
           console.log('[RecentTrades] Loaded', data.data.length, 'trades')
         } else {
-          console.error('[RecentTrades] API returned error:', data.error)
+          console.error('[RecentTrades] API returned error:', data.error || data.message)
+          console.error('[RecentTrades] Full error response:', JSON.stringify(data, null, 2))
         }
         setIsLoading(false)
       } catch (error) {
@@ -58,7 +60,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
 
   const filteredTrades = filter === 'all'
     ? trades
-    : trades.filter(t => t.isBuy === (filter === 'buy'))
+    : trades.filter(t => t.type === filter)
 
   if (isLoading) {
     return (
@@ -107,21 +109,21 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
         ) : (
           filteredTrades.map((trade) => (
             <div
-              key={trade.id}
+              key={trade.transactionHash}
               className="bg-secondary p-4 rounded-lg flex items-center justify-between hover:bg-secondary-light transition"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${trade.isBuy ? 'bg-green-500' : 'bg-red-500'}`} />
+                <div className={`w-2 h-2 rounded-full ${trade.type === 'buy' ? 'bg-green-500' : 'bg-red-500'}`} />
                 <div>
                   <p className="text-sm font-medium">
-                    <span className={trade.isBuy ? 'text-green-500' : 'text-red-500'}>
-                      {trade.isBuy ? 'BUY' : 'SELL'}
+                    <span className={trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                      {trade.type.toUpperCase()}
                     </span>
                     {' '}
                     {parseFloat(trade.tokenAmount).toFixed(2)} {tokenSymbol}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {trade.trader.slice(0, 6)}...{trade.trader.slice(-4)}
+                    {trade.user.slice(0, 6)}...{trade.user.slice(-4)}
                   </p>
                 </div>
               </div>
