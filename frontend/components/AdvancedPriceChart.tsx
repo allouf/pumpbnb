@@ -242,39 +242,57 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     console.log('[AdvancedPriceChart] Methods containing "series":', uniqueMethods.filter(name => name.toLowerCase().includes('series')))
     console.log('[AdvancedPriceChart] Methods containing "candlestick":', uniqueMethods.filter(name => name.toLowerCase().includes('candlestick')))
     
+    // Log specific method details
+    const addMethods = uniqueMethods.filter(name => name.toLowerCase().includes('add'))
+    console.log('[AdvancedPriceChart] Detailed add methods:')
+    addMethods.forEach(method => {
+      console.log(`  - ${method}: ${typeof chart[method]}`)
+    })
+    
     try {
-      // Try different method names that might exist
       let priceSeries
+      const seriesOptions = {
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderVisible: false,
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+        priceFormat: {
+          type: 'price',
+          precision: 8,
+          minMove: 0.00000001,
+        },
+      }
+      
+      // Try dedicated method first
       if (typeof chart.addCandlestickSeries === 'function') {
-        console.log('[AdvancedPriceChart] Using addCandlestickSeries')
-        priceSeries = chart.addCandlestickSeries({
-          upColor: '#26a69a',
-          downColor: '#ef5350',
-          borderVisible: false,
-          wickUpColor: '#26a69a',
-          wickDownColor: '#ef5350',
-          priceFormat: {
-            type: 'price',
-            precision: 8,
-            minMove: 0.00000001,
-          },
-        })
-      } else if (typeof chart.addSeries === 'function') {
-        console.log('[AdvancedPriceChart] Using addSeries with type parameter')
-        priceSeries = chart.addSeries('Candlestick', {
-          upColor: '#26a69a',
-          downColor: '#ef5350',
-          borderVisible: false,
-          wickUpColor: '#26a69a',
-          wickDownColor: '#ef5350',
-          priceFormat: {
-            type: 'price',
-            precision: 8,
-            minMove: 0.00000001,
-          },
-        })
-      } else {
-        throw new Error('No suitable method found to add candlestick series')
+        console.log('[AdvancedPriceChart] Trying addCandlestickSeries')
+        try {
+          priceSeries = chart.addCandlestickSeries(seriesOptions)
+          console.log('[AdvancedPriceChart] ✅ addCandlestickSeries worked!')
+        } catch (e) {
+          console.log('[AdvancedPriceChart] ❌ addCandlestickSeries failed:', (e as Error).message)
+        }
+      }
+      
+      // Try addSeries with different type variations
+      if (!priceSeries && typeof chart.addSeries === 'function') {
+        const typeVariations = ['Candlestick', 'candlestick', 'CANDLESTICK', 'CandlestickSeries', 'ohlc', 'OHLC', 'bars']
+        
+        for (const seriesType of typeVariations) {
+          try {
+            console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}')`)
+            priceSeries = chart.addSeries(seriesType, seriesOptions)
+            console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked!`)
+            break
+          } catch (e) {
+            console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed: ${(e as Error).message}`)
+          }
+        }
+      }
+      
+      if (!priceSeries) {
+        throw new Error('All candlestick series creation methods failed')
       }
       
       console.log('[AdvancedPriceChart] ✅ Candlestick series created successfully')
@@ -288,26 +306,43 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     console.log('[AdvancedPriceChart] 📊 Adding volume histogram series...')
     try {
       let volumeSeries
+      const volumeOptions = {
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+      }
+      
+      // Try dedicated method first
       if (typeof chart.addHistogramSeries === 'function') {
-        console.log('[AdvancedPriceChart] Using addHistogramSeries')
-        volumeSeries = chart.addHistogramSeries({
-          color: '#26a69a',
-          priceFormat: {
-            type: 'volume',
-          },
-          priceScaleId: 'volume',
-        })
-      } else if (typeof chart.addSeries === 'function') {
-        console.log('[AdvancedPriceChart] Using addSeries with histogram type parameter')
-        volumeSeries = chart.addSeries('Histogram', {
-          color: '#26a69a',
-          priceFormat: {
-            type: 'volume',
-          },
-          priceScaleId: 'volume',
-        })
-      } else {
-        throw new Error('No suitable method found to add histogram series')
+        console.log('[AdvancedPriceChart] Trying addHistogramSeries')
+        try {
+          volumeSeries = chart.addHistogramSeries(volumeOptions)
+          console.log('[AdvancedPriceChart] ✅ addHistogramSeries worked!')
+        } catch (e) {
+          console.log('[AdvancedPriceChart] ❌ addHistogramSeries failed:', (e as Error).message)
+        }
+      }
+      
+      // Try addSeries with different type variations
+      if (!volumeSeries && typeof chart.addSeries === 'function') {
+        const typeVariations = ['Histogram', 'histogram', 'HISTOGRAM', 'HistogramSeries', 'volume', 'Volume']
+        
+        for (const seriesType of typeVariations) {
+          try {
+            console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}') for volume`)
+            volumeSeries = chart.addSeries(seriesType, volumeOptions)
+            console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked for volume!`)
+            break
+          } catch (e) {
+            console.log(`[AdvancedPriceChart] ❌ addSeries('${seriesType}') failed for volume: ${(e as Error).message}`)
+          }
+        }
+      }
+      
+      if (!volumeSeries) {
+        throw new Error('All volume series creation methods failed')
       }
       
       console.log('[AdvancedPriceChart] ✅ Volume histogram series created successfully')
