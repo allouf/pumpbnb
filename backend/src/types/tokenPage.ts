@@ -44,7 +44,7 @@ export interface Trade {
   timestamp: Date;
   txHash: string;
   blockNumber: number;
-  price: string;
+  price?: string; // Optional for old trades without price data
   marketCap?: string;
   asterAmount: string;
   tokenAmount: string;
