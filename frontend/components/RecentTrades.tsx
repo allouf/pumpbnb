@@ -15,11 +15,11 @@ interface Trade {
 }
 
 interface RecentTradesProps {
-  bondingCurveAddress: string
+  tokenAddress: string
   tokenSymbol: string
 }
 
-export function RecentTrades({ bondingCurveAddress, tokenSymbol }: RecentTradesProps) {
+export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   const [trades, setTrades] = useState<Trade[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all')
@@ -27,15 +27,21 @@ export function RecentTrades({ bondingCurveAddress, tokenSymbol }: RecentTradesP
   useEffect(() => {
     const fetchTrades = async () => {
       try {
-        const response = await fetch(`/api/v2/tokens/${bondingCurveAddress}/trades?limit=50`)
+        console.log('[RecentTrades] Fetching trades for token:', tokenAddress)
+        const response = await fetch(`/api/v2/tokens/${tokenAddress}/trades?limit=50`)
         const data = await response.json()
+
+        console.log('[RecentTrades] API Response:', data)
 
         if (data.success) {
           setTrades(data.data)
+          console.log('[RecentTrades] Loaded', data.data.length, 'trades')
+        } else {
+          console.error('[RecentTrades] API returned error:', data.error)
         }
         setIsLoading(false)
       } catch (error) {
-        console.error('Failed to fetch trades:', error)
+        console.error('[RecentTrades] Failed to fetch trades:', error)
         setIsLoading(false)
       }
     }
@@ -43,7 +49,7 @@ export function RecentTrades({ bondingCurveAddress, tokenSymbol }: RecentTradesP
     fetchTrades()
     const interval = setInterval(fetchTrades, 5000) // Refresh every 5 seconds
     return () => clearInterval(interval)
-  }, [bondingCurveAddress])
+  }, [tokenAddress])
 
   const filteredTrades = filter === 'all'
     ? trades

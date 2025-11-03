@@ -21,19 +21,25 @@ export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
   useEffect(() => {
     const fetchHolders = async () => {
       try {
+        console.log('[TopHolders] Fetching holders for token:', tokenAddress)
         const response = await fetch(`/api/v2/tokens/${tokenAddress}/holders?limit=10`)
         const data = await response.json()
 
+        console.log('[TopHolders] API Response:', data)
+
         if (data.success) {
           setHolders(data.data)
+          console.log('[TopHolders] Loaded', data.data.length, 'holders')
 
           // Calculate total supply from holders
           const total = data.data.reduce((sum: number, h: Holder) => sum + parseFloat(h.balance), 0)
           setTotalSupply(total.toString())
+        } else {
+          console.error('[TopHolders] API returned error:', data.error)
         }
         setIsLoading(false)
       } catch (error) {
-        console.error('Failed to fetch holders:', error)
+        console.error('[TopHolders] Failed to fetch holders:', error)
         setIsLoading(false)
       }
     }

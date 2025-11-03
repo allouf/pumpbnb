@@ -276,8 +276,8 @@ export default function CompleteTokenPage({ params }: { params: Promise<{ addres
 
               {/* Tab Content */}
               <div className="p-6">
-                {activeTab === 'trades' && bondingCurve && (
-                  <RecentTrades bondingCurveAddress={bondingCurve} tokenSymbol={symbol} />
+                {activeTab === 'trades' && (
+                  <RecentTrades tokenAddress={address} tokenSymbol={symbol} />
                 )}
 
                 {activeTab === 'holders' && (
