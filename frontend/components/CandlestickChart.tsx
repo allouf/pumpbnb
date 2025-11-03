@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import {
   createChart,
   ColorType,
+  IChartApi,
   UTCTimestamp,
   CrosshairMode,
   CandlestickSeries,
