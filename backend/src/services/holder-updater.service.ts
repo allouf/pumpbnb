@@ -33,17 +33,18 @@ export class HolderUpdaterService extends EventEmitter {
    */
   start(): void {
     if (this.isRunning) {
-      logger.warn('Holder Updater Service is already running');
+      logger.warn('[HolderUpdater] ⚠️ Service is already running');
       return;
     }
 
-    logger.info('Starting Holder Balance Updater Service');
+    logger.info('[HolderUpdater] 🚀 Starting Holder Balance Updater Service');
 
     // Listen for trade events
     this.on('trade', this.handleTradeEvent.bind(this));
 
     this.isRunning = true;
-    logger.info('Holder Balance Updater Service started successfully');
+    logger.info('[HolderUpdater] ✅ Service started successfully');
+    logger.info(`[HolderUpdater] 👂 Listening for trade events (${this.listenerCount('trade')} listeners)`);
   }
 
   /**
@@ -66,7 +67,11 @@ export class HolderUpdaterService extends EventEmitter {
    */
   private async handleTradeEvent(trade: TradeEvent): Promise<void> {
     try {
-      logger.debug(`Processing trade event for ${trade.tokenAddress} by ${trade.trader}`);
+      logger.info(`[HolderUpdater] 📊 Processing trade event`);
+      logger.info(`[HolderUpdater] Token: ${trade.tokenAddress}`);
+      logger.info(`[HolderUpdater] Trader: ${trade.trader}`);
+      logger.info(`[HolderUpdater] Type: ${trade.isBuy ? 'BUY' : 'SELL'}`);
+      logger.info(`[HolderUpdater] Amount: ${trade.tokenAmount}`);
 
       // Update holder balance
       await this.updateHolderBalance(
@@ -83,9 +88,10 @@ export class HolderUpdaterService extends EventEmitter {
       // Invalidate cache
       await this.invalidateCache(trade.tokenAddress);
 
-      logger.debug(`Holder balance updated for ${trade.trader} on token ${trade.tokenAddress}`);
+      logger.info(`[HolderUpdater] ✅ Holder balance updated for ${trade.trader} on token ${trade.tokenAddress}`);
     } catch (error) {
-      logger.error('Failed to handle trade event:', error);
+      logger.error('[HolderUpdater] ❌ Failed to handle trade event:', error);
+      logger.error('[HolderUpdater] Error details:', error);
     }
   }
 
@@ -102,6 +108,10 @@ export class HolderUpdaterService extends EventEmitter {
     const address = tokenAddress.toLowerCase();
     const holder = holderAddress.toLowerCase();
 
+    logger.info(`[HolderUpdater] updateHolderBalance called`);
+    logger.info(`[HolderUpdater] Token: ${address}`);
+    logger.info(`[HolderUpdater] Holder: ${holder}`);
+
     // Get current holder record
     const existingHolder = await prisma.tokenHolder.findUnique({
       where: {
@@ -112,6 +122,11 @@ export class HolderUpdaterService extends EventEmitter {
       },
     });
 
+    logger.info(`[HolderUpdater] Existing holder found: ${existingHolder ? 'YES' : 'NO'}`);
+    if (existingHolder) {
+      logger.info(`[HolderUpdater] Current balance: ${existingHolder.balance}`);
+    }
+
     // Calculate new balance
     const amountBigInt = BigInt(tokenAmount);
     let newBalance: bigint;
@@ -119,8 +134,10 @@ export class HolderUpdaterService extends EventEmitter {
     if (existingHolder) {
       const currentBalance = BigInt(existingHolder.balance);
       newBalance = isBuy ? currentBalance + amountBigInt : currentBalance - amountBigInt;
+      logger.info(`[HolderUpdater] New balance: ${newBalance.toString()} (${isBuy ? 'added' : 'subtracted'} ${tokenAmount})`);
     } else {
       newBalance = isBuy ? amountBigInt : BigInt(0);
+      logger.info(`[HolderUpdater] New holder - Initial balance: ${newBalance.toString()}`);
     }
 
     // Check if holder is the token creator
@@ -137,6 +154,8 @@ export class HolderUpdaterService extends EventEmitter {
 
     // Update or create holder record
     if (newBalance > 0) {
+      logger.info(`[HolderUpdater] Upserting holder record - Balance: ${newBalance.toString()}, Percentage: ${percentage.toFixed(4)}%`);
+
       await prisma.tokenHolder.upsert({
         where: {
           tokenAddress_holderAddress: {
@@ -160,6 +179,8 @@ export class HolderUpdaterService extends EventEmitter {
         },
       });
 
+      logger.info(`[HolderUpdater] ✅ Holder record ${existingHolder ? 'updated' : 'created'} successfully`);
+
       // Broadcast holder update via WebSocket
       await websocketService.publishEvent('HolderUpdate', {
         tokenAddress: address,
@@ -169,6 +190,8 @@ export class HolderUpdaterService extends EventEmitter {
         isCreator,
       });
     } else {
+      logger.info(`[HolderUpdater] Balance is 0, removing holder record`);
+
       // Remove holder if balance is 0
       await prisma.tokenHolder.delete({
         where: {
@@ -178,6 +201,8 @@ export class HolderUpdaterService extends EventEmitter {
           },
         },
       });
+
+      logger.info(`[HolderUpdater] ✅ Holder record deleted`);
 
       // Broadcast holder removal
       await websocketService.publishEvent('HolderUpdate', {

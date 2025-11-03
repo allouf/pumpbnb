@@ -178,6 +178,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
       logger.info(`[Immediate Trade Indexer] Buy indexed: ${buyer} bought ${Number(tokensOut) / 1e18} tokens for ${Number(asterIn) / 1e18} ASTER`);
 
       // Emit trade event for holder updater service
+      logger.info(`[Immediate Trade Indexer] 📤 Emitting trade event to holder updater service`);
+      logger.info(`[Immediate Trade Indexer] Event data: { token: ${request.tokenAddress.toLowerCase()}, trader: ${buyer.toLowerCase()}, type: BUY, amount: ${tokensOut} }`);
+
       holderUpdaterService.emitTradeEvent({
         tokenAddress: request.tokenAddress.toLowerCase(),
         trader: buyer.toLowerCase(),
@@ -185,6 +188,8 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
         tokenAmount: tokensOut,
         timestamp,
       });
+
+      logger.info(`[Immediate Trade Indexer] ✅ Trade event emitted`);
 
       // Trigger OHLCV aggregation for this token (all timeframes)
       ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())
@@ -238,6 +243,9 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
       });
 
       // Emit trade event for holder updater service
+      logger.info(`[Immediate Trade Indexer] 📤 Emitting trade event to holder updater service`);
+      logger.info(`[Immediate Trade Indexer] Event data: { token: ${request.tokenAddress.toLowerCase()}, trader: ${seller.toLowerCase()}, type: SELL, amount: ${tokensIn} }`);
+
       holderUpdaterService.emitTradeEvent({
         tokenAddress: request.tokenAddress.toLowerCase(),
         trader: seller.toLowerCase(),
@@ -245,6 +253,8 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
         tokenAmount: tokensIn,
         timestamp,
       });
+
+      logger.info(`[Immediate Trade Indexer] ✅ Trade event emitted`);
 
       // Trigger OHLCV aggregation for this token (all timeframes)
       ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())
