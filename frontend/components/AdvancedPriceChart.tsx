@@ -8,8 +8,6 @@ import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 console.log('[AdvancedPriceChart] 📚 Import check:', {
   createChart: typeof createChart,
   ColorType: typeof ColorType,
-  IChartApi: typeof IChartApi,
-  UTCTimestamp: typeof UTCTimestamp,
   CrosshairMode: typeof CrosshairMode
 })
 
