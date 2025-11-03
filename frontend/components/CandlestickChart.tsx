@@ -4,16 +4,10 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import {
   createChart,
   ColorType,
-  IChartApi,
-  CandlestickSeries,
-  HistogramSeries,
   UTCTimestamp,
   CrosshairMode,
-  ISeriesApi,
-  CandlestickData,
-  HistogramData,
-  Time,
-  LogicalRange,
+  CandlestickSeries,
+  HistogramSeries,
 } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
@@ -39,15 +33,15 @@ interface OHLCV {
 export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
-  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const candleSeriesRef = useRef<any>(null)
+  const volumeSeriesRef = useRef<any>(null)
   const chartCreatedRef = useRef(false)
   const savedRangeRef = useRef<LogicalRange | null>(null)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('1m')
   const [showVolume, setShowVolume] = useState(true)
   const [zoomLocked, setZoomLocked] = useState(false)
-  const [hoveredCandle, setHoveredCandle] = useState<CandlestickData | null>(null)
+  const [hoveredCandle, setHoveredCandle] = useState<any>(null)
   const [showUsd, setShowUsd] = useState(false)
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
@@ -240,8 +234,8 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     chartRef.current = chart
 
-    // Add candlestick series
-    const candleSeries = chart.addCandlestickSeries({
+    // Add candlestick series using v5 API
+    const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#10b981',
       downColor: '#ef4444',
       borderUpColor: '#10b981',
@@ -257,8 +251,8 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     candleSeriesRef.current = candleSeries
 
-    // Add volume series
-    const volumeSeries = chart.addHistogramSeries({
+    // Add volume series using v5 API
+    const volumeSeries = chart.addSeries(HistogramSeries, {
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
@@ -283,7 +277,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
         return
       }
 
-      const data = param.seriesData.get(candleSeriesRef.current) as CandlestickData | undefined
+      const data = param.seriesData.get(candleSeriesRef.current) as any
       setHoveredCandle(data || null)
     })
 
@@ -338,7 +332,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     try {
       // Convert to chart data format
-      const candleData: CandlestickData[] = candles.map(c => ({
+      const candleData = candles.map(c => ({
         time: c.timestamp as UTCTimestamp,
         open: c.open,
         high: c.high,
@@ -346,7 +340,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
         close: c.close,
       }))
 
-      const volumeData: HistogramData[] = candles.map(c => ({
+      const volumeData = candles.map(c => ({
         time: c.timestamp as UTCTimestamp,
         value: c.volume,
         // Green if more buy volume, red if more sell volume
