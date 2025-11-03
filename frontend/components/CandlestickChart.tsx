@@ -7,9 +7,12 @@ import {
   IChartApi,
   UTCTimestamp,
   CrosshairMode,
+  LogicalRange,
+  ISeriesApi,
+  CandlestickData,
+  HistogramData,
   CandlestickSeries,
   HistogramSeries,
-  LogicalRange,
 } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
@@ -35,8 +38,8 @@ interface OHLCV {
 export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const candleSeriesRef = useRef<any>(null)
-  const volumeSeriesRef = useRef<any>(null)
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
+  const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   const chartCreatedRef = useRef(false)
   const savedRangeRef = useRef<LogicalRange | null>(null)
 

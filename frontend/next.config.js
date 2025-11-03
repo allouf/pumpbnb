@@ -4,7 +4,10 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lightweight-charts', 'recharts'],
   },
-  
+
+  // Add empty turbopack config to silence Next.js 16 warning
+  turbopack: {},
+
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
     // Optimize for production builds
@@ -41,18 +44,20 @@ const nextConfig = {
         },
       }
     }
-    
+
     return config
   },
-  
-  // Reduce build time
-  swcMinify: true,
-  
-  // Image optimization
+
+  // Image optimization (updated to use remotePatterns)
   images: {
-    domains: ['ipfs.io'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+      },
+    ],
   },
-  
+
   // Disable source maps in production for faster builds
   productionBrowserSourceMaps: false,
 }
