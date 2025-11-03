@@ -99,12 +99,23 @@ export function ChartToolbar({
       onExport()
     } else {
       // Fallback export functionality
-      const dataUrl = chartRef.current?.takeScreenshot()
-      if (dataUrl) {
-        const link = document.createElement('a')
-        link.download = 'chart-export.png'
-        link.href = dataUrl
-        link.click()
+      try {
+        const screenshot = chartRef.current?.takeScreenshot()
+        if (screenshot) {
+          const link = document.createElement('a')
+          link.download = 'chart-export.png'
+          
+          // Handle both string URL and canvas element
+          if (typeof screenshot === 'string') {
+            link.href = screenshot
+          } else if (screenshot instanceof HTMLCanvasElement) {
+            link.href = screenshot.toDataURL('image/png')
+          }
+          
+          link.click()
+        }
+      } catch (error) {
+        console.error('[ChartToolbar] Export failed:', error)
       }
     }
   }
