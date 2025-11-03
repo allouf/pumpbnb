@@ -174,136 +174,148 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
 
     chartCreatedRef.current = true
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: '#0f0f0f' },
-        textColor: '#9ca3af',
-      },
-      grid: {
-        vertLines: { color: '#1f2937' },
-        horzLines: { color: '#1f2937' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 500,
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: {
-          width: 1,
-          color: '#6b7280',
-          style: 2,
-          labelBackgroundColor: '#10b981',
+    // Async function to load series types and create chart
+    const initChart = async () => {
+      const container = chartContainerRef.current
+      if (!container) return
+
+      const chart = createChart(container, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#0f0f0f' },
+          textColor: '#9ca3af',
         },
-        horzLine: {
-          width: 1,
-          color: '#6b7280',
-          style: 2,
-          labelBackgroundColor: '#10b981',
+        grid: {
+          vertLines: { color: '#1f2937' },
+          horzLines: { color: '#1f2937' },
         },
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: timeframe === '1m',
-        borderColor: '#1f2937',
-        rightOffset: 12,
-        // Enable zoom lock with Ctrl key
-        lockVisibleTimeRangeOnResize: zoomLocked,
-      },
-      rightPriceScale: {
-        borderColor: '#1f2937',
-        visible: true,
+        width: container.clientWidth,
+        height: 500,
+        crosshair: {
+          mode: CrosshairMode.Normal,
+          vertLine: {
+            width: 1,
+            color: '#6b7280',
+            style: 2,
+            labelBackgroundColor: '#10b981',
+          },
+          horzLine: {
+            width: 1,
+            color: '#6b7280',
+            style: 2,
+            labelBackgroundColor: '#10b981',
+          },
+        },
+        timeScale: {
+          timeVisible: true,
+          secondsVisible: timeframe === '1m',
+          borderColor: '#1f2937',
+          rightOffset: 12,
+          // Enable zoom lock with Ctrl key
+          lockVisibleTimeRangeOnResize: zoomLocked,
+        },
+        rightPriceScale: {
+          borderColor: '#1f2937',
+          visible: true,
+          scaleMargins: {
+            top: 0.1,
+            bottom: showVolume ? 0.25 : 0.1,
+          },
+        },
+        handleScale: {
+          mouseWheel: !zoomLocked,
+          pinch: !zoomLocked,
+          axisPressedMouseMove: {
+            time: !zoomLocked,
+            price: !zoomLocked,
+          },
+        },
+        handleScroll: {
+          mouseWheel: true,
+          pressedMouseMove: true,
+          horzTouchDrag: true,
+          vertTouchDrag: true,
+        },
+      })
+
+      chartRef.current = chart
+
+      // Import series dynamically to ensure correct runtime loading
+      const { CandlestickSeries: CS, HistogramSeries: HS } = await import('lightweight-charts')
+
+      // Add candlestick series using v5 API with dynamic import
+      const candleSeries = chart.addSeries(CS, {
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderUpColor: '#10b981',
+        borderDownColor: '#ef4444',
+        wickUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+        priceFormat: {
+          type: 'price',
+          precision: 8,
+          minMove: 0.00000001,
+        },
+      })
+
+      candleSeriesRef.current = candleSeries
+
+      // Add volume series using v5 API with dynamic import
+      const volumeSeries = chart.addSeries(HS, {
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        priceScaleId: 'volume',
+      })
+
+      volumeSeriesRef.current = volumeSeries
+
+      // Configure volume scale
+      chart.priceScale('volume').applyOptions({
         scaleMargins: {
-          top: 0.1,
-          bottom: showVolume ? 0.25 : 0.1,
+          top: 0.8,
+          bottom: 0,
         },
-      },
-      handleScale: {
-        mouseWheel: !zoomLocked,
-        pinch: !zoomLocked,
-        axisPressedMouseMove: {
-          time: !zoomLocked,
-          price: !zoomLocked,
-        },
-      },
-      handleScroll: {
-        mouseWheel: true,
-        pressedMouseMove: true,
-        horzTouchDrag: true,
-        vertTouchDrag: true,
-      },
-    })
+      })
 
-    chartRef.current = chart
+      // Crosshair handler
+      chart.subscribeCrosshairMove((param) => {
+        if (!param.time || !candleSeriesRef.current) {
+          setHoveredCandle(null)
+          return
+        }
 
-    // Add candlestick series using v4-compatible API
-    const candleSeries = (chart as any).addCandlestickSeries({
-      upColor: '#10b981',
-      downColor: '#ef4444',
-      borderUpColor: '#10b981',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#10b981',
-      wickDownColor: '#ef4444',
-      priceFormat: {
-        type: 'price',
-        precision: 8,
-        minMove: 0.00000001,
-      },
-    })
+        const data = param.seriesData.get(candleSeriesRef.current) as any
+        setHoveredCandle(data || null)
+      })
 
-    candleSeriesRef.current = candleSeries
+      // Save zoom range when user interacts
+      chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        if (zoomLocked && range) {
+          savedRangeRef.current = range
+        }
+      })
 
-    // Add volume series using v4-compatible API
-    const volumeSeries = (chart as any).addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
-
-    volumeSeriesRef.current = volumeSeries
-
-    // Configure volume scale
-    chart.priceScale('volume').applyOptions({
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0,
-      },
-    })
-
-    // Crosshair handler
-    chart.subscribeCrosshairMove((param) => {
-      if (!param.time || !candleSeriesRef.current) {
-        setHoveredCandle(null)
-        return
+      // Resize handler
+      const handleResize = () => {
+        if (chartContainerRef.current && chart) {
+          chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+        }
       }
 
-      const data = param.seriesData.get(candleSeriesRef.current) as any
-      setHoveredCandle(data || null)
-    })
+      window.addEventListener('resize', handleResize)
 
-    // Save zoom range when user interacts
-    chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-      if (zoomLocked && range) {
-        savedRangeRef.current = range
-      }
-    })
-
-    // Resize handler
-    const handleResize = () => {
-      if (chartContainerRef.current && chart) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        if (chartRef.current) {
+          chartRef.current.remove()
+          chartCreatedRef.current = false
+        }
       }
     }
 
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      if (chartRef.current) {
-        chartRef.current.remove()
-        chartCreatedRef.current = false
-      }
-    }
+    // Call the async init function
+    initChart().catch(console.error)
   }, [candles.length, showVolume, zoomLocked, timeframe])
 
   // Update zoom lock
