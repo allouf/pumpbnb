@@ -98,13 +98,6 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
         </div>
       </div>
 
-      {/* Description */}
-      {token.description && (
-        <p className="text-sm text-gray-400 mb-3 line-clamp-2">
-          {token.description}
-        </p>
-      )}
-
       {/* Progress Bar */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
