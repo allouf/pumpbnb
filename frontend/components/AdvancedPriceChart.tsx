@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode, ISeriesApi, CandlestickData, HistogramData } from 'lightweight-charts'
 // Import series constructors for v5 API
-import { CandlestickSeries, HistogramSeries } from 'lightweight-charts'
+import { CandlestickSeries, HistogramSeries, LineSeries, AreaSeries } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 // Debug: Log the imported functions
@@ -20,6 +20,7 @@ interface AdvancedPriceChartProps {
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 type PriceMode = 'ASTER' | 'USD'
+type ChartType = 'candlestick' | 'line' | 'area'
 
 // Mock ASTER USD price - can be replaced with real API
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
@@ -48,9 +49,11 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const priceSeriesRef = useRef<any>(null)
   const volumeSeriesRef = useRef<any>(null)
   const chartCreatedRef = useRef(false)
+  const isInitialLoadRef = useRef(true)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
   const [priceMode, setPriceMode] = useState<PriceMode>('ASTER')
+  const [chartType, setChartType] = useState<ChartType>('candlestick')
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
@@ -406,6 +409,68 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     }
   }, [transactions.length])
 
+  // Switch chart type (candlestick, line, area)
+  const switchChartType = (newType: ChartType) => {
+    if (!chartRef.current || !priceSeriesRef.current) return
+    
+    console.log('[AdvancedPriceChart] Switching chart type from', chartType, 'to', newType)
+    
+    // Remove existing price series
+    try {
+      chartRef.current.removeSeries(priceSeriesRef.current)
+    } catch (error) {
+      console.error('[AdvancedPriceChart] Error removing series:', error)
+    }
+    
+    // Create new series based on type
+    let newSeries
+    const priceFormat = {
+      type: 'price',
+      precision: 8,
+      minMove: 0.00000001,
+    }
+    
+    try {
+      switch (newType) {
+        case 'line':
+          newSeries = chartRef.current.addSeries(LineSeries, {
+            color: '#00D4AA',
+            lineWidth: 2,
+            priceFormat,
+          })
+          break
+        case 'area':
+          newSeries = chartRef.current.addSeries(AreaSeries, {
+            topColor: 'rgba(0, 212, 170, 0.4)',
+            bottomColor: 'rgba(0, 212, 170, 0.0)',
+            lineColor: '#00D4AA',
+            lineWidth: 2,
+            priceFormat,
+          })
+          break
+        case 'candlestick':
+        default:
+          newSeries = chartRef.current.addSeries(CandlestickSeries, {
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderVisible: false,
+            wickUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+            priceFormat,
+          })
+          break
+      }
+      
+      priceSeriesRef.current = newSeries
+      console.log('[AdvancedPriceChart] ✅ Chart type switched to', newType)
+      
+      // Update chart type state
+      setChartType(newType)
+    } catch (error) {
+      console.error('[AdvancedPriceChart] Error creating new series:', error)
+    }
+  }
+
   // Update chart data when filtered transactions change or price mode changes
   useEffect(() => {
     if (!priceSeriesRef.current || !volumeSeriesRef.current) return
@@ -487,20 +552,42 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
     if (candleData.length > 0) {
       try {
-        priceSeriesRef.current.setData(candleData)
+        // Set data based on chart type
+        if (chartType === 'line' || chartType === 'area') {
+          // For line/area charts, we only need time and value (close price)
+          const lineData = candleData.map(candle => ({
+            time: candle.time,
+            value: candle.close,
+          }))
+          priceSeriesRef.current.setData(lineData)
+        } else {
+          // For candlestick charts, use full OHLC data
+          priceSeriesRef.current.setData(candleData)
+        }
+        
         volumeSeriesRef.current.setData(volumeData)
-        // Only fit content on initial load or timeframe change, not on every update
-        // This preserves user's zoom level when new transactions come in
+        
+        // Fit content ONLY on initial load to show all candles
+        if (isInitialLoadRef.current && chartRef.current) {
+          console.log('[AdvancedPriceChart] Initial load - fitting all candles:', candleData.length)
+          setTimeout(() => {
+            if (chartRef.current) {
+              chartRef.current.timeScale().fitContent()
+              isInitialLoadRef.current = false
+            }
+          }, 100)
+        }
       } catch (error) {
         console.error('[AdvancedPriceChart] Error updating data:', error)
       }
     }
-  }, [filteredTransactions, priceMode])
+  }, [filteredTransactions, priceMode, chartType])
 
   // Separate effect to fit content only when timeframe changes
   useEffect(() => {
     if (!chartRef.current || !priceSeriesRef.current) return
     if (filteredTransactions.length === 0) return
+    if (isInitialLoadRef.current) return // Don't interfere with initial load
     
     // Fit content when timeframe changes to show the selected period properly
     console.log('[AdvancedPriceChart] Timeframe changed, fitting content to:', timeframe, 'with', filteredTransactions.length, 'transactions')
@@ -511,7 +598,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         chartRef.current.timeScale().fitContent()
       }
     }, 100)
-  }, [timeframe, filteredTransactions.length])
+  }, [timeframe])
 
   if (isLoading && transactions.length === 0) {
     return (
@@ -577,21 +664,34 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
             </div>
           </div>
 
-          {/* Timeframe Dropdown */}
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-            className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
-          >
-            <option value="all">All Time</option>
-            <option value="1m">1 Minute</option>
-            <option value="5m">5 Minutes</option>
-            <option value="15m">15 Minutes</option>
-            <option value="30m">30 Minutes</option>
-            <option value="1h">1 Hour</option>
-            <option value="4h">4 Hours</option>
-            <option value="1d">1 Day</option>
-          </select>
+          <div className="flex items-center gap-3">
+            {/* Chart Type Selector */}
+            <select
+              value={chartType}
+              onChange={(e) => switchChartType(e.target.value as ChartType)}
+              className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
+            >
+              <option value="candlestick">Candlestick</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+            </select>
+
+            {/* Timeframe Dropdown */}
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+              className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
+            >
+              <option value="all">All Time</option>
+              <option value="1m">1 Minute</option>
+              <option value="5m">5 Minutes</option>
+              <option value="15m">15 Minutes</option>
+              <option value="30m">30 Minutes</option>
+              <option value="1h">1 Hour</option>
+              <option value="4h">4 Hours</option>
+              <option value="1d">1 Day</option>
+            </select>
+          </div>
         </div>
 
         {/* Price Statistics Panel - Pump.fun Style */}
