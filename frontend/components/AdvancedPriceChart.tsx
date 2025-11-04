@@ -489,12 +489,29 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       try {
         priceSeriesRef.current.setData(candleData)
         volumeSeriesRef.current.setData(volumeData)
-        chartRef.current?.timeScale().fitContent()
+        // Only fit content on initial load or timeframe change, not on every update
+        // This preserves user's zoom level when new transactions come in
       } catch (error) {
         console.error('[AdvancedPriceChart] Error updating data:', error)
       }
     }
-  }, [filteredTransactions, priceMode, timeframe])
+  }, [filteredTransactions, priceMode])
+
+  // Separate effect to fit content only when timeframe changes
+  useEffect(() => {
+    if (!chartRef.current || !priceSeriesRef.current) return
+    if (filteredTransactions.length === 0) return
+    
+    // Fit content when timeframe changes to show the selected period properly
+    console.log('[AdvancedPriceChart] Timeframe changed, fitting content to:', timeframe, 'with', filteredTransactions.length, 'transactions')
+    
+    // Add a small delay to ensure data is updated before fitting
+    setTimeout(() => {
+      if (chartRef.current) {
+        chartRef.current.timeScale().fitContent()
+      }
+    }, 100)
+  }, [timeframe, filteredTransactions.length])
 
   if (isLoading && transactions.length === 0) {
     return (
