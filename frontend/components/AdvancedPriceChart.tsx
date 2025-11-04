@@ -190,7 +190,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         horzLines: { color: '#2b2b43' },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 500,
+      height: 600,
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
@@ -604,7 +604,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     return (
       <div className="bg-secondary-light rounded-xl overflow-hidden">
         <div className="p-6">
-          <div className="h-[500px] flex items-center justify-center">
+        <div className="h-[600px] flex items-center justify-center">
             <div className="text-center">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
               <p className="text-gray-400">Loading chart data...</p>
@@ -619,7 +619,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     return (
       <div className="bg-secondary-light rounded-xl overflow-hidden">
         <div className="p-6">
-          <div className="h-[500px] flex items-center justify-center">
+          <div className="h-[600px] flex items-center justify-center">
             <div className="text-center">
               <div className="text-4xl mb-4">📊</div>
               <h3 className="text-xl font-bold mb-2">No Chart Data</h3>
@@ -795,9 +795,108 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         </div>
       )}
 
-      {/* Chart Container */}
+      {/* Chart Container with Toolbar */}
       <div className="relative">
+        {/* Vertical Chart Toolbar - Left Side */}
+        <div className="absolute left-2 top-4 z-10 flex flex-col gap-2">
+          {/* Zoom In */}
+          <button
+            onClick={() => {
+              if (chartRef.current) {
+                const timeScale = chartRef.current.timeScale()
+                timeScale.scrollToPosition(-5, true)
+              }
+            }}
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            title="Zoom In"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+            </svg>
+          </button>
+          
+          {/* Zoom Out */}
+          <button
+            onClick={() => {
+              if (chartRef.current) {
+                const timeScale = chartRef.current.timeScale()
+                timeScale.scrollToPosition(5, true)
+              }
+            }}
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            title="Zoom Out"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+            </svg>
+          </button>
+          
+          {/* Fit Content */}
+          <button
+            onClick={() => {
+              if (chartRef.current) {
+                chartRef.current.timeScale().fitContent()
+              }
+            }}
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            title="Fit to Screen"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </button>
+        </div>
+        
         <div ref={chartContainerRef} className="w-full" />
+        
+        {/* Period Selectors - Below Chart */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+          <div className="bg-secondary/90 backdrop-blur-sm border border-gray-700 rounded-lg p-1 flex gap-1">
+            <button
+              onClick={() => setTimeframe('1d')}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                timeframe === '1d'
+                  ? 'bg-primary text-black'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              1D
+            </button>
+            <button
+              onClick={() => {
+                // 5 days = 5 * 24 hours = 120 hours, approximate with 4h timeframe
+                setTimeframe('4h')
+              }}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                timeframe === '4h'
+                  ? 'bg-primary text-black'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              5D
+            </button>
+            <button
+              onClick={() => setTimeframe('all')}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                timeframe === 'all'
+                  ? 'bg-primary text-black'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              1M
+            </button>
+            <button
+              onClick={() => setTimeframe('all')}
+              className={`px-3 py-1 rounded text-xs font-medium transition ${
+                timeframe === 'all'
+                  ? 'bg-primary text-black'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              All
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Chart Footer */}

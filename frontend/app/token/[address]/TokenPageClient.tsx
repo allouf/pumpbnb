@@ -142,157 +142,123 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
-        {/* Token Header */}
-        <div className="bg-secondary-light rounded-xl p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
+        {/* Compact Token Header - Pump.fun Style */}
+        <div className="bg-secondary-light rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               {imageUrl ? (
                 <img
                   src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
                   alt={name}
-                  className="w-20 h-20 rounded-full object-cover"
+                  className="w-12 h-12 rounded-full object-cover"
                 />
               ) : (
-                <TokenAvatar symbol={symbol} size="xl" />
+                <TokenAvatar symbol={symbol} size="lg" />
               )}
               <div>
-                <h1 className="text-4xl font-bold mb-1">{name}</h1>
-                <p className="text-gray-400 text-xl">${symbol}</p>
+                <h1 className="text-xl font-bold">{name}</h1>
+                <p className="text-gray-400 text-sm">${symbol}</p>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={handleShare}
-                className="px-4 py-2 bg-secondary hover:bg-secondary-light border border-gray-700 rounded-lg transition flex items-center gap-2"
+                className="px-3 py-2 bg-secondary hover:bg-secondary-light border border-gray-700 rounded-lg transition flex items-center gap-2 text-sm"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
                 Share
               </button>
               <button
                 onClick={() => setIsFavorite(!isFavorite)}
-                className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
+                className={`px-3 py-2 rounded-lg transition flex items-center gap-2 text-sm ${
                   isFavorite
                     ? 'bg-primary text-black'
                     : 'bg-secondary hover:bg-secondary-light border border-gray-700'
                 }`}
               >
-                <svg className="w-5 h-5" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                {isFavorite ? 'Favorited' : 'Favorite'}
               </button>
-            </div>
-          </div>
-
-          {description && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">About</h3>
-              <p className="text-gray-300">{description}</p>
-            </div>
-          )}
-
-          {creator && (
-            <div className="mb-6 p-3 bg-secondary rounded-lg">
-              <p className="text-sm text-gray-400 mb-1">Created by</p>
-              <p className="text-sm font-mono text-primary break-all">{creator}</p>
-            </div>
-          )}
-
-          {/* Stats Grid */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-secondary p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-1">Market Cap</p>
-              <p className="text-2xl font-bold text-primary">{marketCap} ASTER</p>
-            </div>
-            <div className="bg-secondary p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-1">Progress</p>
-              <p className="text-2xl font-bold">{progress.toFixed(1)}%</p>
-            </div>
-            <div className="bg-secondary p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-1">Status</p>
-              <p className="text-2xl font-bold text-green-500">
-                {progress >= 100 ? 'Graduated' : 'Active'}
-              </p>
-            </div>
-          </div>
-
-          {/* Dual Progress Bars - Pump.fun Style */}
-          <div className="mt-4 space-y-4">
-            {/* Bonding Curve Progress */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-400 font-medium">🚀 Bonding Curve Progress</span>
-                <span className="font-bold text-primary">{progress.toFixed(1)}%</span>
-              </div>
-              <div className="relative w-full bg-secondary rounded-full h-4 overflow-hidden shadow-inner">
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-green-500 h-4 transition-all duration-1000 ease-out"
-                  style={{
-                    width: `${Math.min(progress, 100)}%`,
-                    boxShadow: progress >= 100
-                      ? '0 0 20px rgba(34, 197, 94, 0.6)'
-                      : '0 0 12px rgba(255, 215, 0, 0.4)'
-                  }}
-                >
-                  {/* Animated sparkles for active progress */}
-                  {progress > 5 && progress < 100 && (
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute top-1 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-ping"
-                           style={{ animationDelay: '0s', animationDuration: '2s' }} />
-                      <div className="absolute top-1.5 right-1/3 w-1 h-1 bg-white rounded-full animate-ping"
-                           style={{ animationDelay: '0.7s', animationDuration: '2s' }} />
-                      <div className="absolute top-1 left-1/2 w-0.5 h-0.5 bg-white rounded-full animate-ping"
-                           style={{ animationDelay: '1.2s', animationDuration: '2s' }} />
-                    </div>
-                  )}
-                  {/* Completion celebration effect */}
-                  {progress >= 100 && (
-                    <div className="absolute inset-0 animate-pulse">
-                      <div className="w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>{asterReserves.toFixed(2)} ASTER</span>
-                <span className="font-semibold">100 ASTER → PancakeSwap 🥞</span>
-              </div>
-            </div>
-
-            {/* ATH Progress (All Time High) */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-400 font-medium">📈 Market Cap (ATH)</span>
-                <span className="font-bold text-green-400">{marketCap} ASTER</span>
-              </div>
-              <div className="relative w-full bg-secondary rounded-full h-3 overflow-hidden shadow-inner">
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 transition-all duration-1000 ease-out"
-                  style={{
-                    width: `${Math.min((asterReserves / Math.max(asterReserves, 1)) * 100, 100)}%`,
-                    boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
-                  }}
-                >
-                  {/* Pulsing effect for ATH bar */}
-                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/40 animate-pulse"></div>
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Current: {asterReserves.toFixed(2)} ASTER</span>
-                <span className="font-semibold text-green-400">ATH: {asterReserves.toFixed(2)} ASTER ⬆️</span>
-              </div>
             </div>
           </div>
         </div>
 
+        {/* About Section - Separate if exists */}
+        {description && (
+          <div className="bg-secondary-light rounded-xl p-4 mb-4">
+            <h3 className="text-sm font-semibold mb-2 text-gray-400">About</h3>
+            <p className="text-sm text-gray-300">{description}</p>
+          </div>
+        )}
+
+        {/* Creator Info - Compact */}
+        {creator && (
+          <div className="bg-secondary-light rounded-xl p-3 mb-4">
+            <p className="text-xs text-gray-400 mb-1">Created by</p>
+            <p className="text-xs font-mono text-primary break-all">{creator}</p>
+          </div>
+        )}
+
         {/* Main Content Grid - 70/30 split like Pump.fun */}
         <div className="grid lg:grid-cols-10 gap-6">
           {/* Left Column - Chart + Tabs (70%) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4">
+            {/* Compact Market Cap Card - Above Chart */}
+            <div className="bg-secondary-light rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-6">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Market Cap</p>
+                    <p className="text-lg font-bold text-primary">{marketCap} ASTER</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Progress</p>
+                    <p className="text-lg font-bold">{progress.toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Status</p>
+                    <p className={`text-lg font-bold ${
+                      progress >= 100 ? 'text-green-500' : 'text-yellow-500'
+                    }`}>
+                      {progress >= 100 ? '✓ Graduated' : '⚡ Active'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Single Progress Bar */}
+              <div className="space-y-2">
+                <div className="relative w-full bg-secondary rounded-full h-3 overflow-hidden shadow-inner">
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-primary via-yellow-400 to-green-500 h-3 transition-all duration-1000 ease-out"
+                    style={{
+                      width: `${Math.min(progress, 100)}%`,
+                      boxShadow: progress >= 100
+                        ? '0 0 20px rgba(34, 197, 94, 0.6)'
+                        : '0 0 12px rgba(255, 215, 0, 0.4)'
+                    }}
+                  >
+                    {progress > 5 && progress < 100 && (
+                      <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute top-0.5 left-1/4 w-1 h-1 bg-white rounded-full animate-ping"
+                             style={{ animationDelay: '0s', animationDuration: '2s' }} />
+                        <div className="absolute top-0.5 right-1/3 w-0.5 h-0.5 bg-white rounded-full animate-ping"
+                             style={{ animationDelay: '0.7s', animationDuration: '2s' }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>{asterReserves.toFixed(2)} ASTER</span>
+                  <span className="font-semibold">100 ASTER to graduate</span>
+                </div>
+              </div>
+            </div>
             {/* Enhanced Price Chart */}
             {bondingCurve && (
               <div className="bg-gray-900 rounded-xl overflow-hidden">
