@@ -1,88 +1,131 @@
-import Link from "next/link";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useTokenList } from '@/lib/hooks/useTokenList';
+import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
+import { TrendingSection } from '@/components/TrendingSection';
+import { FilterBar } from '@/components/FilterBar';
+import { TokenCard } from '@/components/TokenCard';
 
 export default function Home() {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filters, setFilters] = useState({
+    tab: 'all',
+    showNsfw: false,
+  });
+  const [sortBy, setSortBy] = useState('recent');
+  const [allTokens, setAllTokens] = useState<any[]>([]);
+  
+  // Fetch all tokens from blockchain
+  const { tokens, isLoading, error } = useTokenList();
+  
+  // Update local state when tokens load
+  useEffect(() => {
+    setAllTokens(tokens);
+  }, [tokens]);
+  
+  // Watch for new token events and add them to the list
+  useWatchTokenCreated((event) => {
+    const newToken = {
+      address: event.token,
+      bondingCurve: event.bondingCurve,
+      creator: event.creator,
+      name: event.name,
+      symbol: event.symbol,
+      timestamp: Number(event.timestamp),
+    };
+    setAllTokens((prev) => [newToken, ...prev]);
+  });
+  
+  // Get trending tokens (top 10 by market cap or recent activity)
+  const trendingTokens = [...allTokens]
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+    .slice(0, 10);
+  
+  // Sort tokens based on selected sort option
+  const sortedTokens = [...allTokens].sort((a, b) => {
+    switch (sortBy) {
+      case 'recent':
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      case 'marketcap':
+        // Will be implemented when we have market cap data
+        return 0;
+      case 'volume':
+        // Will be implemented when we have volume data
+        return 0;
+      case 'price':
+        // Will be implemented when we have price change data
+        return 0;
+      default:
+        return 0;
+    }
+  });
+  
+  // Filter tokens based on active filters
+  const filteredTokens = sortedTokens.filter(token => {
+    if (filters.tab === 'featured') {
+      // Filter for featured tokens (can be based on market cap, volume, etc.)
+      return true; // For now, show all
+    }
+    return true;
+  });
+  
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <main className="flex-1">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center max-w-4xl mx-auto">
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-yellow-600 bg-clip-text text-transparent">
-              Launch Your Meme Coin on BNB Chain
-            </h2>
-            <p className="text-xl text-gray-400 mb-8">
-              Create and trade tokens with automated bonding curves. Graduate to PancakeSwap at 100 ASTER market cap.
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Link
-                href="/create"
-                className="bg-primary text-black px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-dark transition"
-              >
-                Create Token (FREE)
-              </Link>
-              <Link
-                href="/tokens"
-                className="border border-primary text-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary/10 transition"
-              >
-                Browse Tokens
-              </Link>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-8 mt-20">
-            <div className="bg-secondary-light p-6 rounded-xl">
-              <div className="text-4xl mb-4">🚀</div>
-              <h3 className="text-xl font-bold mb-2">Instant Launch</h3>
-              <p className="text-gray-400">
-                Create your token for FREE. Only pay gas costs. No presale, no team allocation during bonding curve.
-              </p>
-            </div>
-            <div className="bg-secondary-light p-6 rounded-xl">
-              <div className="text-4xl mb-4">📈</div>
-              <h3 className="text-xl font-bold mb-2">Bonding Curve</h3>
-              <p className="text-gray-400">
-                Trade on automated bonding curves with ASTER token. Only 1% trading fee (0.3% creator, 0.7% protocol).
-              </p>
-            </div>
-            <div className="bg-secondary-light p-6 rounded-xl">
-              <div className="text-4xl mb-4">🎓</div>
-              <h3 className="text-xl font-bold mb-2">Auto Graduate</h3>
-              <p className="text-gray-400">
-                Automatically migrate to PancakeSwap at 100 ASTER threshold. Liquidity permanently locked.
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-20 grid md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">$0</div>
-              <div className="text-gray-400">Token Creation Fee</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">1%</div>
-              <div className="text-gray-400">Trading Fee</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">100</div>
-              <div className="text-gray-400">ASTER to Graduate</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-primary mb-2">3s</div>
-              <div className="text-gray-400">Block Time</div>
-            </div>
-          </div>
+    <div className="space-y-6 min-h-screen">
+      {/* Trending Section */}
+      {trendingTokens.length > 0 && (
+        <TrendingSection tokens={trendingTokens} />
+      )}
+      
+      {/* Filter Bar */}
+      <FilterBar 
+        onFilterChange={setFilters}
+        onViewModeChange={setViewMode}
+        onSortChange={setSortBy}
+      />
+      
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-gray-400">Loading tokens...</p>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-800 bg-secondary py-8">
-        <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>ASTER FUN - Built on BNB Smart Chain | Testnet v1.0</p>
-          <p className="mt-2 text-sm">Smart contracts audited and deployed on BSC Testnet</p>
+      )}
+      
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+          <p className="text-red-500">Error loading tokens: {error.message}</p>
         </div>
-      </footer>
+      )}
+      
+      {/* Token Grid */}
+      {!isLoading && filteredTokens.length > 0 && (
+        <div className={`grid gap-4 ${
+          viewMode === 'grid' 
+            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+            : 'grid-cols-1'
+        }`}>
+          {filteredTokens.map((token) => (
+            <TokenCard key={token.address} token={token} compact={viewMode === 'list'} />
+          ))}
+        </div>
+      )}
+      
+      {/* Empty State */}
+      {!isLoading && filteredTokens.length === 0 && !error && (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🚀</div>
+          <h3 className="text-xl font-semibold mb-2 text-white">No tokens yet</h3>
+          <p className="text-gray-400 mb-6">Be the first to create a token!</p>
+          <a
+            href="/create"
+            className="inline-block bg-primary text-black px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition"
+          >
+            Create Token
+          </a>
+        </div>
+      )}
     </div>
   );
 }

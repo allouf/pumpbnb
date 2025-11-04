@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { Header } from "@/components/Header";
 import { ToastProvider } from "@/components/ToastProvider";
 
 export const metadata: Metadata = {
@@ -19,9 +19,8 @@ export default function RootLayout({
       <body className="antialiased">
         <Web3Provider>
           <ToastProvider />
-          <MainLayout>
-            {children}
-          </MainLayout>
+          <Header />
+          {children}
         </Web3Provider>
       </body>
     </html>

@@ -5,6 +5,12 @@
 :root {
   --background: #0a0e14;
   --foreground: #ffffff;
+  --primary-green: #00D4AA;
+  --primary-red: #FF6B6B;
+  --background-card: #1A1A1A;
+  --background-sidebar: #111111;
+  --text-secondary: #A0A0A0;
+  --border-color: #2A2A2A;
 }
 
 body {
@@ -18,6 +24,31 @@ body {
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text clamp utilities */
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }
 
