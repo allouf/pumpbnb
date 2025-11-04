@@ -210,14 +210,16 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         timeVisible: true,
         secondsVisible: true,
         borderColor: '#2b2b43',
-        rightOffset: 12,
-        barSpacing: 10,
+        rightOffset: 20, // More space on right to show latest data clearly
+        barSpacing: 12, // Better spacing between candles
         minBarSpacing: 0.5,
         fixLeftEdge: false,
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
         rightBarStaysOnScroll: true,
         visible: true,
+        // Add time before token creation for better visibility
+        shiftVisibleRangeOnNewBar: true,
       },
       rightPriceScale: {
         borderColor: '#2b2b43',
@@ -533,22 +535,46 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     const candleData: Array<{time: UTCTimestamp, open: number, high: number, low: number, close: number}> = []
     const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
 
-    Array.from(candleMap.entries())
-      .sort(([a], [b]) => a - b)
-      .forEach(([time, candle]) => {
+    const sortedCandles = Array.from(candleMap.entries()).sort(([a], [b]) => a - b)
+    
+    // Add padding before first candle for better visibility (Pump.fun style)
+    if (sortedCandles.length > 0) {
+      const firstTime = sortedCandles[0][0]
+      const firstCandle = sortedCandles[0][1]
+      const paddingIntervals = 3 // Add 3 intervals before first trade
+      
+      for (let i = paddingIntervals; i > 0; i--) {
+        const paddedTime = (firstTime - (intervalSeconds * i)) as UTCTimestamp
         candleData.push({
-          time: time as UTCTimestamp,
-          open: candle.open,
-          high: candle.high,
-          low: candle.low,
-          close: candle.close,
+          time: paddedTime,
+          open: firstCandle.open,
+          high: firstCandle.open,
+          low: firstCandle.open,
+          close: firstCandle.open,
         })
         volumeData.push({
-          time: time as UTCTimestamp,
-          value: candle.volume,
-          color: candle.close >= candle.open ? '#26a69a' : '#ef5350',
+          time: paddedTime,
+          value: 0,
+          color: '#26a69a',
         })
+      }
+    }
+    
+    // Add actual candle data
+    sortedCandles.forEach(([time, candle]) => {
+      candleData.push({
+        time: time as UTCTimestamp,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
       })
+      volumeData.push({
+        time: time as UTCTimestamp,
+        value: candle.volume,
+        color: candle.close >= candle.open ? '#26a69a' : '#ef5350',
+      })
+    })
 
     if (candleData.length > 0) {
       try {
