@@ -626,37 +626,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     }, 100)
   }, [timeframe])
 
-  if (isLoading && transactions.length === 0) {
-    return (
-      <div className="bg-secondary-light rounded-xl overflow-hidden">
-        <div className="p-6">
-        <div className="h-[600px] flex items-center justify-center">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-              <p className="text-gray-400">Loading chart data...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isLoading && transactions.length === 0) {
-    return (
-      <div className="bg-secondary-light rounded-xl overflow-hidden">
-        <div className="p-6">
-          <div className="h-[600px] flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-bold mb-2">No Chart Data</h3>
-              <p className="text-gray-400">Chart will appear after first trades</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // CRITICAL: ALL useMemo hooks MUST be called BEFORE any early returns!
   // Get current OHLC data from hovered or latest
   const currentOHLC = useMemo(() => {
     if (hoveredData) {
@@ -711,6 +681,44 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
     return changes
   }, [transactions, stats.currentPrice])
+
+  console.log('[AdvancedPriceChart] ✅ All hooks called, checking early return conditions...')
+
+  // NOW we can safely do early returns AFTER all hooks
+  if (isLoading && transactions.length === 0) {
+    console.log('[AdvancedPriceChart] 🔄 Loading state - showing spinner')
+    return (
+      <div className="bg-secondary-light rounded-xl overflow-hidden">
+        <div className="p-6">
+        <div className="h-[600px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+              <p className="text-gray-400">Loading chart data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isLoading && transactions.length === 0) {
+    console.log('[AdvancedPriceChart] ❌ No data - showing empty state')
+    return (
+      <div className="bg-secondary-light rounded-xl overflow-hidden">
+        <div className="p-6">
+          <div className="h-[600px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-4">📊</div>
+              <h3 className="text-xl font-bold mb-2">No Chart Data</h3>
+              <p className="text-gray-400">Chart will appear after first trades</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  console.log('[AdvancedPriceChart] ✅ Rendering main chart with', transactions.length, 'transactions')
 
   return (
     <div className="bg-secondary-light rounded-xl overflow-hidden">
