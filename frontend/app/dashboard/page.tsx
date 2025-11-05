@@ -158,7 +158,8 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
     if (!isLoading && onStatsCalculated) {
       onStatsCalculated(totalVolume, creatorRevenue)
     }
-  }, [totalVolume, creatorRevenue, isLoading, onStatsCalculated])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalVolume, creatorRevenue, isLoading])
 
   const buyCount = transactions.filter(tx => tx.type === 'buy').length
   const sellCount = transactions.filter(tx => tx.type === 'sell').length
