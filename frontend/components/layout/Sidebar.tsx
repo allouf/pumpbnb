@@ -66,15 +66,12 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
       {/* Logo Section with Collapse Button */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between gap-2">
-          <Link href="/" className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <Link href="/" className="flex items-center justify-center flex-1 min-w-0">
+            <div className={`rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 ${
+              isCollapsed ? 'w-12 h-12' : 'w-full h-16'
+            }`}>
               <img src="/logo.jpg" alt="ASTER FUN" className="w-full h-full object-cover" />
             </div>
-            {!isCollapsed && (
-              <span className="text-xl font-bold text-white whitespace-nowrap overflow-hidden">
-                ASTER FUN
-              </span>
-            )}
           </Link>
 
           {/* Collapse Toggle Button */}
