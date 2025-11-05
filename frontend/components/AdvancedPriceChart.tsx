@@ -16,6 +16,9 @@ console.log('[AdvancedPriceChart] 📚 Import check:', {
 interface AdvancedPriceChartProps {
   bondingCurveAddress: string
   tokenSymbol: string
+  marketCap?: string
+  marketCapChange24h?: number
+  ath?: number
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
@@ -26,7 +29,13 @@ type ChartType = 'candlestick' | 'line' | 'area'
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
-export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: AdvancedPriceChartProps) {
+export function AdvancedPriceChart({ 
+  bondingCurveAddress, 
+  tokenSymbol, 
+  marketCap, 
+  marketCapChange24h = 0, 
+  ath 
+}: AdvancedPriceChartProps) {
   // Global error handler
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -1066,11 +1075,35 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           </div>
         </div>
         
-        {/* Volume and Change Line - Fixed Height */}
-        <div className="flex items-center gap-4 text-xs min-h-[16px]">
+        {/* Market Cap and Stats Line - Pump.fun Style */}
+        <div className="flex items-center gap-6 text-xs min-h-[16px]">
+          {/* Market Cap */}
+          {marketCap && (
+            <div className="flex items-center">
+              <span className="text-gray-400 mr-1">Market Cap:</span>
+              <span className="text-primary font-bold">${marketCap}</span>
+              {marketCapChange24h !== 0 && (
+                <span className={`ml-2 font-medium ${
+                  marketCapChange24h >= 0 ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}%
+                </span>
+              )}
+            </div>
+          )}
+          
+          {/* ATH */}
+          {ath && (
+            <div className="flex items-center">
+              <span className="text-gray-400 mr-1">ATH:</span>
+              <span className="text-primary font-bold">${ath.toFixed(2)}</span>
+            </div>
+          )}
+          
+          {/* 24h Volume */}
           <div className="flex items-center">
-            <span className="text-gray-400 mr-1">Vol:</span>
-            <span className="text-primary font-mono">
+            <span className="text-gray-400 mr-1">Vol 24h:</span>
+            <span className="text-white font-mono">
               {hoveredData ? (
                 priceMode === 'USD'
                   ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
@@ -1080,14 +1113,8 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
               )}
             </span>
           </div>
-          <div className="flex items-center">
-            <span className="text-gray-400 mr-1">24h:</span>
-            <span className={`font-medium ${
-              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
-            </span>
-          </div>
+          
+          {/* Current Price */}
           <div className="flex items-center">
             <span className="text-gray-400 mr-1">Price:</span>
             <span className="text-white font-mono">
@@ -1097,11 +1124,16 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
               }
             </span>
           </div>
-        </div>
-
-        {/* Volume Line */}
-        <div className="text-xs text-gray-400">
-          Volume {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(4)} ASTER`}
+          
+          {/* 24h Change */}
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">24h:</span>
+            <span className={`font-medium ${
+              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
+            </span>
+          </div>
         </div>
       </div>
 
