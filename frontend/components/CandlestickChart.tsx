@@ -38,7 +38,7 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
   const chartCreatedRef = useRef(false)
   const savedRangeRef = useRef<LogicalRange | null>(null)
 
-  const [timeframe, setTimeframe] = useState<Timeframe>('1m')
+  const [timeframe, setTimeframe] = useState<Timeframe>('all')
   const [showVolume, setShowVolume] = useState(true)
   const [zoomLocked, setZoomLocked] = useState(false)
   const [hoveredCandle, setHoveredCandle] = useState<any>(null)
@@ -414,9 +414,45 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
         volumeSeriesRef.current.setData([])
       }
 
-      // Fit content on initial load or timeframe change
+      // Improved chart fitting for better token history visibility
       if (!zoomLocked) {
-        chartRef.current?.timeScale().fitContent()
+        try {
+          if (chartRef.current && candleData.length > 0) {
+            // For timeframe 'all', ensure we show the complete trading history
+            if (timeframe === 'all') {
+              console.log('[CandlestickChart] Setting up complete history view for', candleData.length, 'candles')
+              
+              // Get full time range
+              const firstTime = candleData[0].time
+              const lastTime = candleData[candleData.length - 1].time
+              const totalRange = lastTime - firstTime
+              
+              // Add moderate padding for better visibility
+              const padding = Math.max(totalRange * 0.05, 300) // 5% or minimum 5 minutes
+              const paddedStart = (firstTime - padding) as UTCTimestamp
+              const paddedEnd = (lastTime + (padding * 0.5)) as UTCTimestamp
+              
+              // Set visible range to show all data with padding
+              chartRef.current.timeScale().setVisibleRange({
+                from: paddedStart,
+                to: paddedEnd,
+              })
+              
+              console.log('[CandlestickChart] ✅ Complete history view applied:', {
+                firstCandle: new Date(firstTime * 1000).toISOString(),
+                lastCandle: new Date(lastTime * 1000).toISOString(),
+                totalDuration: `${(totalRange / 3600).toFixed(1)} hours`,
+                candleCount: candleData.length
+              })
+            } else {
+              // For specific timeframes, use standard fit content
+              chartRef.current.timeScale().fitContent()
+            }
+          }
+        } catch (error) {
+          console.error('[CandlestickChart] Error setting visible range, falling back to fitContent:', error)
+          chartRef.current?.timeScale().fitContent()
+        }
       } else if (savedRangeRef.current && chartRef.current) {
         // Restore saved zoom range when locked
         chartRef.current.timeScale().setVisibleLogicalRange(savedRangeRef.current)

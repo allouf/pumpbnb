@@ -637,63 +637,131 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         
         volumeSeriesRef.current.setData(volumeData)
         
-        // Fit content ONLY on initial load to show all candles with MAXIMUM zoom out
+        // Fit content ONLY on initial load to show all candles with OPTIMAL visibility
         if (isInitialLoadRef.current && chartRef.current) {
-          console.log('[AdvancedPriceChart] Initial load - fitting all candles:', candleData.length)
+          console.log('[AdvancedPriceChart] Initial load - fitting all candles for full token history:', candleData.length)
           setTimeout(() => {
             if (chartRef.current) {
-              // Calculate price range with MASSIVE padding for much more zoom out
-              const allLows = candleData.map(c => c.low)
-              const allHighs = candleData.map(c => c.high)
-              const minPrice = Math.min(...allLows)
-              const maxPrice = Math.max(...allHighs)
-              const priceRange = maxPrice - minPrice
+              try {
+                // Set the timeframe to 'all' to ensure we're showing all available data
+                if (timeframe !== 'all') {
+                  console.log('[AdvancedPriceChart] Setting initial timeframe to "all" for complete history view')
+                  setTimeframe('all')
+                }
+                
+                // Fallback handling for edge cases
+                if (candleData.length === 0) {
+                  console.log('[AdvancedPriceChart] No candle data available, using default view')
+                  chartRef.current.timeScale().fitContent()
+                  return
+                }
+                
+                // Get the full time range of all available data
+                const firstTime = candleData[0].time
+                const lastTime = candleData[candleData.length - 1].time
+                const totalTimeRange = lastTime - firstTime
+                
+                // Handle edge case: very little data (< 1 hour)
+                const minimumTimeRange = 3600 // 1 hour in seconds
+                let effectiveTimeRange = totalTimeRange
+                
+                if (totalTimeRange < minimumTimeRange) {
+                  console.log('[AdvancedPriceChart] Very little data detected, using minimum time range for better visibility')
+                  effectiveTimeRange = minimumTimeRange
+                }
+                
+                // Handle edge case: extensive history (> 30 days) - focus on recent data but still show all
+                const maxRecommendedRange = 30 * 24 * 3600 // 30 days in seconds
+                let timePaddingFactor = 0.10 // 10% padding by default
+                
+                if (totalTimeRange > maxRecommendedRange) {
+                  console.log('[AdvancedPriceChart] Extensive history detected, using reduced padding for better focus')
+                  timePaddingFactor = 0.05 // Reduce padding for very long histories
+                }
+                
+                // Add time padding for better visibility
+                const timePadding = Math.max(effectiveTimeRange * timePaddingFactor, 300) // Minimum 5 minutes padding
+                const paddedStartTime = (firstTime - timePadding) as UTCTimestamp
+                const paddedEndTime = (lastTime + (timePadding * 0.5)) as UTCTimestamp
+                
+                // Calculate price range for better visibility
+                const allLows = candleData.map(c => c.low)
+                const allHighs = candleData.map(c => c.high)
+                const minPrice = Math.min(...allLows)
+                const maxPrice = Math.max(...allHighs)
+                const priceRange = maxPrice - minPrice
+                
+                // Handle edge case: all candles have the same price (flat line)
+                let paddedMinPrice, paddedMaxPrice
+                if (priceRange === 0) {
+                  console.log('[AdvancedPriceChart] Flat price detected, using fixed padding around single price')
+                  const singlePrice = minPrice
+                  paddedMinPrice = singlePrice * 0.95 // 5% below
+                  paddedMaxPrice = singlePrice * 1.05 // 5% above
+                } else {
+                  // Use moderate price padding for better readability (40% top, 30% bottom)
+                  const pricePaddingTop = priceRange * 0.40
+                  const pricePaddingBottom = priceRange * 0.30
+                  paddedMinPrice = minPrice - pricePaddingBottom
+                  paddedMaxPrice = maxPrice + pricePaddingTop
+                }
+                
+                // Set the visible time range to show all data
+                chartRef.current.timeScale().setVisibleRange({
+                  from: paddedStartTime,
+                  to: paddedEndTime,
+                })
+                
+                // Apply price range scaling for optimal view
+                priceSeriesRef.current?.applyOptions({
+                  autoscaleInfoProvider: () => ({
+                    priceRange: {
+                      minValue: paddedMinPrice,
+                      maxValue: paddedMaxPrice,
+                    },
+                  }),
+                })
+              } catch (error) {
+                console.error('[AdvancedPriceChart] Error during chart initialization, falling back to fitContent:', error)
+                // Graceful fallback to basic fitContent if anything goes wrong
+                chartRef.current?.timeScale().fitContent()
+              }
               
-              // Add HUGE padding: 80% on top and 60% on bottom to show all candles small
-              // This matches the wanted.png where all candles are visible and small
-              const paddedMin = minPrice - (priceRange * 0.60)
-              const paddedMax = maxPrice + (priceRange * 0.80)
-              
-              // Fit content first
-              chartRef.current.timeScale().fitContent()
-              
-              // Force zoom out by setting a much wider price range
-              priceSeriesRef.current?.applyOptions({
-                autoscaleInfoProvider: () => ({
-                  priceRange: {
-                    minValue: paddedMin,
-                    maxValue: paddedMax,
-                  },
-                }),
-              })
-              
-              // Log chart state for debugging - wait a bit for chart to settle
+              // Log the improved chart state
               setTimeout(() => {
                 if (chartRef.current) {
                   const timeScale = chartRef.current.timeScale()
                   const visibleRange = timeScale.getVisibleRange()
-                  const priceScale = chartRef.current.priceScale()
                   
                   console.log('═══════════════════════════════════════════════════')
-                  console.log('📊 CHART STATE - Copy this for desired initial state:')
+                  console.log('📊 IMPROVED INITIAL CHART STATE:')
                   console.log('═══════════════════════════════════════════════════')
-                  console.log('Price Range:', {
-                    minPrice,
-                    maxPrice,
-                    priceRange,
-                    paddedMin,
-                    paddedMax,
-                    paddingBottom: '60%',
-                    paddingTop: '80%'
-                  })
                   console.log('Visible Time Range:', visibleRange)
-                  console.log('Scale Margins:', {
+                  console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
+                  console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
+                  console.log('Scale Margins (current):', {
                     top: 0.20,
                     bottom: 0.35
                   })
-                  console.log('Candle Count:', candleData.length)
-                  console.log('First Candle Time:', new Date(candleData[0].time * 1000).toISOString())
-                  console.log('Last Candle Time:', new Date(candleData[candleData.length - 1].time * 1000).toISOString())
+                  console.log('Chart Type:', chartType)
+                  console.log('Timeframe:', timeframe)
+                  console.log('Price Mode:', priceMode)
+                  console.log('Transactions Count:', candleData.length)
+                  console.log('Price Range:', {
+                    minPrice: minPrice.toFixed(8),
+                    maxPrice: maxPrice.toFixed(8),
+                    paddedMinPrice: paddedMinPrice.toFixed(8),
+                    paddedMaxPrice: paddedMaxPrice.toFixed(8),
+                    paddingTop: '40%',
+                    paddingBottom: '30%'
+                  })
+                  console.log('Time Range:', {
+                    firstCandle: new Date(firstTime * 1000).toISOString(),
+                    lastCandle: new Date(lastTime * 1000).toISOString(),
+                    totalDuration: `${(totalTimeRange / 3600).toFixed(1)} hours`,
+                    paddingAdded: `${(timePadding / 3600).toFixed(1)} hours`
+                  })
+                  console.log('✅ Chart now shows complete token trading history!')
                   console.log('═══════════════════════════════════════════════════')
                 }
               }, 300)
