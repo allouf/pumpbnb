@@ -151,6 +151,47 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const progress = (asterReserves / 100) * 100
   const marketCap = asterReserves.toFixed(2)
 
+  // Calculate 24hr market cap change from transaction history
+  const marketCapStats = useMemo(() => {
+    if (transactions.length === 0) {
+      return { change24hPercent: 0, change24hDollar: 0, ath: parseFloat(marketCap) }
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const oneDayAgo = now - 86400 // 24 hours in seconds
+
+    // Find transaction closest to 24h ago
+    const oldTx = transactions
+      .filter(tx => tx.timestamp <= oneDayAgo)
+      .sort((a, b) => b.timestamp - a.timestamp)[0]
+
+    let change24hPercent = 0
+    let change24hDollar = 0
+
+    if (oldTx) {
+      const oldPrice = oldTx.priceInAster
+      const currentPrice = transactions[transactions.length - 1]?.priceInAster || oldPrice
+      
+      if (oldPrice > 0) {
+        change24hPercent = ((currentPrice - oldPrice) / oldPrice) * 100
+        
+        // Calculate dollar change based on estimated market cap movement
+        // Assuming market cap correlates with price
+        const oldMarketCap = parseFloat(marketCap) / (currentPrice / oldPrice)
+        change24hDollar = parseFloat(marketCap) - oldMarketCap
+      }
+    }
+
+    // Calculate ATH from historical transactions
+    const athPrice = transactions.reduce((max, tx) => 
+      tx.priceInAster > max ? tx.priceInAster : max, 0
+    )
+    const currentPrice = transactions[transactions.length - 1]?.priceInAster || 0
+    const ath = currentPrice > 0 ? parseFloat(marketCap) * (athPrice / currentPrice) : parseFloat(marketCap)
+
+    return { change24hPercent, change24hDollar, ath }
+  }, [transactions, marketCap])
+
   // Share function
   const handleShare = () => {
     const url = window.location.href
@@ -355,10 +396,15 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
             <div>
               <p className="text-sm text-gray-400 mb-1">Market Cap</p>
               <p className="text-2xl font-bold text-primary">${marketCap}</p>
-              <p className="text-xs text-green-500">+{progress >= 100 ? '100' : progress.toFixed(1)}% (+$2.9K) 24hr</p>
+              <p className={`text-xs ${
+                marketCapStats.change24hPercent >= 0 ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {marketCapStats.change24hPercent >= 0 ? '+' : ''}{marketCapStats.change24hPercent.toFixed(2)}% 
+                ({marketCapStats.change24hDollar >= 0 ? '+' : ''}${Math.abs(marketCapStats.change24hDollar).toFixed(2)}) 24hr
+              </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-400 mb-1">ATH: <span className="text-primary font-bold">${marketCap}</span></div>
+              <div className="text-sm text-gray-400 mb-1">ATH: <span className="text-primary font-bold">${marketCapStats.ath.toFixed(2)}</span></div>
             </div>
           </div>
         </div>

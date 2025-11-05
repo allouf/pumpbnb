@@ -68,8 +68,8 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-black font-bold text-lg">A</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img src="/logo.jpg" alt="ASTER FUN" className="w-full h-full object-cover" />
             </div>
             {!isCollapsed && (
               <span className="text-xl font-bold text-white whitespace-nowrap overflow-hidden">

@@ -7,6 +7,9 @@ import { ToastProvider } from "@/components/ToastProvider";
 export const metadata: Metadata = {
   title: "ASTER FUN - Meme Coin Launchpad on BNB Chain",
   description: "Launch and trade meme coins on BNB Chain with automated bonding curves and PancakeSwap graduation",
+  icons: {
+    icon: '/logo.jpg',
+  },
 };
 
 export default function RootLayout({

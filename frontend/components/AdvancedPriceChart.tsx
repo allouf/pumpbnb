@@ -55,6 +55,11 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
   const [priceMode, setPriceMode] = useState<PriceMode>('ASTER')
   const [chartType, setChartType] = useState<ChartType>('candlestick')
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
+  
+  // Chart control toggles
+  const [showTradeDisplay, setShowTradeDisplay] = useState(true)
+  const [showAllBubbles, setShowAllBubbles] = useState(false)
+  const [displayMetric, setDisplayMetric] = useState<'Price' | 'MCap'>('Price')
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
   
@@ -225,8 +230,8 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         borderColor: '#2b2b43',
         visible: true,
         scaleMargins: {
-          top: 0.05,
-          bottom: 0.35,
+          top: 0.1,
+          bottom: 0.3,
         },
         autoScale: true,
       },
@@ -382,11 +387,13 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
       if (priceData && volumeData) {
         const date = new Date((param.time as number) * 1000)
+        // Handle different data structures for candlestick vs line/area charts
+        const hasOHLC = priceData.open !== undefined
         setHoveredData({
-          open: priceData.open || 0,
-          high: priceData.high || 0,
-          low: priceData.low || 0,
-          close: priceData.close || 0,
+          open: hasOHLC ? priceData.open : priceData.value || 0,
+          high: hasOHLC ? priceData.high : priceData.value || 0,
+          low: hasOHLC ? priceData.low : priceData.value || 0,
+          close: hasOHLC ? priceData.close : priceData.value || 0,
           volume: volumeData.value || 0,
           time: date.toLocaleString(),
         })
@@ -593,15 +600,25 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         
         volumeSeriesRef.current.setData(volumeData)
         
-        // Fit content ONLY on initial load to show all candles
+        // Fit content ONLY on initial load to show all candles with better zoom
         if (isInitialLoadRef.current && chartRef.current) {
           console.log('[AdvancedPriceChart] Initial load - fitting all candles:', candleData.length)
           setTimeout(() => {
             if (chartRef.current) {
+              // Fit content first to get proper scale
               chartRef.current.timeScale().fitContent()
+              // Then apply optimal price scale to show all data nicely
+              priceSeriesRef.current?.applyOptions({
+                autoscaleInfoProvider: () => ({
+                  priceRange: {
+                    minValue: Math.min(...candleData.map(c => c.low)) * 0.95,
+                    maxValue: Math.max(...candleData.map(c => c.high)) * 1.05,
+                  },
+                }),
+              })
               isInitialLoadRef.current = false
             }
-          }, 100)
+          }, 150)
         }
       } catch (error) {
         console.error('[AdvancedPriceChart] Error updating data:', error)
@@ -772,6 +789,59 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                 }`}
               >
                 USD
+              </button>
+            </div>
+          </div>
+
+          {/* Additional Chart Controls - Right Side */}
+          <div className="flex items-center gap-2">
+            {/* Trade Display Toggle */}
+            <button
+              onClick={() => setShowTradeDisplay(!showTradeDisplay)}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition border ${
+                showTradeDisplay
+                  ? 'bg-primary text-black border-primary'
+                  : 'bg-secondary text-gray-400 border-gray-700 hover:border-primary hover:text-white'
+              }`}
+              title="Toggle Trade Display"
+            >
+              Trade Display
+            </button>
+
+            {/* Show All Bubbles Toggle */}
+            <button
+              onClick={() => setShowAllBubbles(!showAllBubbles)}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition border ${
+                showAllBubbles
+                  ? 'bg-primary text-black border-primary'
+                  : 'bg-secondary text-gray-400 border-gray-700 hover:border-primary hover:text-white'
+              }`}
+              title="Show All Trade Bubbles"
+            >
+              Show All Bubbles
+            </button>
+
+            {/* Price/MCap Toggle */}
+            <div className="flex bg-secondary rounded p-0.5 border border-gray-700">
+              <button
+                onClick={() => setDisplayMetric('Price')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  displayMetric === 'Price'
+                    ? 'bg-primary text-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Price
+              </button>
+              <button
+                onClick={() => setDisplayMetric('MCap')}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  displayMetric === 'MCap'
+                    ? 'bg-primary text-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                MCap
               </button>
             </div>
           </div>
