@@ -24,8 +24,9 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
 
   useEffect(() => {
     async function fetchTransactions() {
-      if (!bondingCurveAddress) {
-        console.log('[useTransactionHistory] Missing bondingCurveAddress')
+      // If no bondingCurveAddress and no userAddress, can't fetch anything
+      if (!bondingCurveAddress && !userAddress) {
+        console.log('[useTransactionHistory] Missing both bondingCurveAddress and userAddress')
         setIsLoading(false)
         return
       }

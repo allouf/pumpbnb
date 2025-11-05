@@ -230,8 +230,8 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         borderColor: '#2b2b43',
         visible: true,
         scaleMargins: {
-          top: 0.1,
-          bottom: 0.3,
+          top: 0.15,
+          bottom: 0.25,
         },
         autoScale: true,
       },
@@ -605,17 +605,30 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           console.log('[AdvancedPriceChart] Initial load - fitting all candles:', candleData.length)
           setTimeout(() => {
             if (chartRef.current) {
-              // Fit content first to get proper scale
+              // Calculate price range with much more padding for better initial view
+              const allLows = candleData.map(c => c.low)
+              const allHighs = candleData.map(c => c.high)
+              const minPrice = Math.min(...allLows)
+              const maxPrice = Math.max(...allHighs)
+              const priceRange = maxPrice - minPrice
+              
+              // Add 20% padding on top and 15% on bottom for optimal viewing
+              const paddedMin = minPrice - (priceRange * 0.15)
+              const paddedMax = maxPrice + (priceRange * 0.20)
+              
+              // Fit content first
               chartRef.current.timeScale().fitContent()
-              // Then apply optimal price scale to show all data nicely
+              
+              // Then apply custom price scale with generous padding
               priceSeriesRef.current?.applyOptions({
                 autoscaleInfoProvider: () => ({
                   priceRange: {
-                    minValue: Math.min(...candleData.map(c => c.low)) * 0.95,
-                    maxValue: Math.max(...candleData.map(c => c.high)) * 1.05,
+                    minValue: paddedMin,
+                    maxValue: paddedMax,
                   },
                 }),
               })
+              
               isInitialLoadRef.current = false
             }
           }, 150)

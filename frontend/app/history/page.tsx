@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useTokenList } from '@/lib/hooks/useTokenList'
@@ -13,10 +13,74 @@ export default function HistoryPage() {
   const [selectedToken, setSelectedToken] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all')
 
-  const { transactions, isLoading } = useTransactionHistory(
+  // When a specific token is selected, fetch its transactions
+  // When "All Tokens" is selected, fetch from all user tokens
+  const { transactions: singleTokenTxs, isLoading: singleTokenLoading } = useTransactionHistory(
     selectedToken || undefined,
-    isConnected ? address : undefined
+    isConnected && selectedToken ? address : undefined
   )
+
+  // Fetch transactions from all tokens when no specific token is selected
+  const [allTransactions, setAllTransactions] = useState<any[]>([])
+  const [allTxsLoading, setAllTxsLoading] = useState(false)
+
+  // Fetch all user transactions across all tokens
+  useEffect(() => {
+    async function fetchAllUserTransactions() {
+      if (!isConnected || !address || selectedToken) {
+        setAllTransactions([])
+        return
+      }
+
+      setAllTxsLoading(true)
+      try {
+        // Fetch all transactions from all tokens for this user
+        const allTxs: any[] = []
+        
+        for (const token of tokens) {
+          if (token.bondingCurve) {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/trades/${token.bondingCurve}/history?userAddress=${address}`
+            )
+            if (response.ok) {
+              const data = await response.json()
+              if (data.success && data.data) {
+                const formattedTxs = data.data.map((trade: any) => ({
+                  hash: trade.transactionHash,
+                  type: trade.type,
+                  user: trade.user,
+                  tokenAmount: BigInt(trade.tokenAmount),
+                  tokenAmountFormatted: (Number(trade.tokenAmount) / 1e18).toString(),
+                  asterAmount: BigInt(trade.asterAmount),
+                  asterAmountFormatted: (Number(trade.asterAmount) / 1e18).toString(),
+                  timestamp: new Date(trade.timestamp).getTime() / 1000,
+                  blockNumber: BigInt(trade.blockNumber),
+                  bondingCurve: trade.bondingCurve,
+                  tokenName: token.name,
+                  tokenSymbol: token.symbol,
+                }))
+                allTxs.push(...formattedTxs)
+              }
+            }
+          }
+        }
+        
+        // Sort by timestamp descending
+        allTxs.sort((a, b) => b.timestamp - a.timestamp)
+        setAllTransactions(allTxs)
+      } catch (error) {
+        console.error('Error fetching all transactions:', error)
+      } finally {
+        setAllTxsLoading(false)
+      }
+    }
+
+    fetchAllUserTransactions()
+  }, [isConnected, address, selectedToken, tokens])
+
+  // Use the appropriate transaction list
+  const transactions = selectedToken ? singleTokenTxs : allTransactions
+  const isLoading = selectedToken ? singleTokenLoading : allTxsLoading
 
   const filteredTransactions = filter === 'all'
     ? transactions
