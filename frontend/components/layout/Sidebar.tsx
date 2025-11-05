@@ -43,7 +43,6 @@ const navigation: NavigationItem[] = [
   { name: 'Portfolio', href: '/portfolio', icon: Square3Stack3DIcon, iconSolid: Square3Stack3DIconSolid },
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
-  { name: 'Profile', href: '/profile', icon: UserIcon, iconSolid: UserIconSolid },
 ];
 
 // More dropdown menu items

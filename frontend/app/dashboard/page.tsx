@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import Link from 'next/link'
 import { useTokenList } from '@/lib/hooks/useTokenList'
@@ -10,11 +11,34 @@ import { formatUnits } from 'viem'
 export default function DashboardPage() {
   const { address, isConnected } = useAccount()
   const { tokens, isLoading } = useTokenList()
+  const [totalStats, setTotalStats] = useState({ volume: 0, revenue: 0 })
 
   // Filter tokens created by the connected user
   const myTokens = tokens.filter(token =>
     token.creator.toLowerCase() === address?.toLowerCase()
   )
+
+  // Track individual token stats
+  const [tokenStats, setTokenStats] = useState<Record<string, { volume: number, revenue: number }>>({})
+
+  // Aggregate totals whenever individual stats update
+  useEffect(() => {
+    const totals = Object.values(tokenStats).reduce(
+      (acc, stats) => ({
+        volume: acc.volume + stats.volume,
+        revenue: acc.revenue + stats.revenue
+      }),
+      { volume: 0, revenue: 0 }
+    )
+    setTotalStats(totals)
+  }, [tokenStats])
+
+  const handleTokenStats = (tokenAddress: string, volume: number, revenue: number) => {
+    setTokenStats(prev => ({
+      ...prev,
+      [tokenAddress]: { volume, revenue }
+    }))
+  }
 
   if (!isConnected) {
     return (
@@ -54,13 +78,13 @@ export default function DashboardPage() {
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Total Volume</p>
             <p className="text-3xl font-bold text-green-500">
-              {myTokens.length > 0 ? '...' : '0'} ASTER
+              {totalStats.volume.toFixed(2)} ASTER
             </p>
           </div>
           <div className="bg-primary/10 border border-primary/30 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Total Revenue</p>
             <p className="text-3xl font-bold text-primary">
-              {myTokens.length > 0 ? '...' : '0'} ASTER
+              {totalStats.revenue.toFixed(4)} ASTER
             </p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
@@ -104,7 +128,11 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-bold mb-4">Your Tokens</h2>
             <div className="grid gap-4">
               {myTokens.map((token) => (
-                <TokenCard key={token.address} token={token} />
+                <TokenCard
+                  key={token.address}
+                  token={token}
+                  onStatsCalculated={(vol, rev) => handleTokenStats(token.address, vol, rev)}
+                />
               ))}
             </div>
           </div>
@@ -114,7 +142,7 @@ export default function DashboardPage() {
   )
 }
 
-function TokenCard({ token }: { token: any }) {
+function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated?: (volume: number, revenue: number) => void }) {
   const { transactions, isLoading } = useTransactionHistory(token.bondingCurve)
 
   // Calculate stats from transactions
@@ -124,6 +152,13 @@ function TokenCard({ token }: { token: any }) {
 
   // Creator earns 0.3% (30 bps) of trading volume during bonding curve phase
   const creatorRevenue = totalVolume * 0.003
+
+  // Report stats to parent
+  useEffect(() => {
+    if (!isLoading && onStatsCalculated) {
+      onStatsCalculated(totalVolume, creatorRevenue)
+    }
+  }, [totalVolume, creatorRevenue, isLoading, onStatsCalculated])
 
   const buyCount = transactions.filter(tx => tx.type === 'buy').length
   const sellCount = transactions.filter(tx => tx.type === 'sell').length

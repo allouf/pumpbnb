@@ -12,6 +12,7 @@ export default function HistoryPage() {
   const { tokens } = useTokenList()
   const [selectedToken, setSelectedToken] = useState<string>('')
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all')
+  const [displayLimit, setDisplayLimit] = useState(10)
 
   // When a specific token is selected, fetch its transactions
   // When "All Tokens" is selected, fetch from all user tokens
@@ -85,6 +86,10 @@ export default function HistoryPage() {
   const filteredTransactions = filter === 'all'
     ? transactions
     : transactions.filter(tx => tx.type === filter)
+
+  // Apply pagination
+  const displayedTransactions = filteredTransactions.slice(0, displayLimit)
+  const hasMore = filteredTransactions.length > displayLimit
 
   // Calculate total volumes
   const { totalBuyVolume, totalSellVolume, totalVolume } = useMemo(() => {
@@ -239,16 +244,30 @@ export default function HistoryPage() {
 
         {/* Transactions List */}
         {!isLoading && filteredTransactions.length > 0 && (
-          <div className="space-y-3">
-            {filteredTransactions.map((tx) => (
-              <TransactionCard
-                key={tx.hash}
-                transaction={tx}
-                formatTime={formatTime}
-                formatTimeAgo={formatTimeAgo}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-3">
+              {displayedTransactions.map((tx) => (
+                <TransactionCard
+                  key={tx.hash}
+                  transaction={tx}
+                  formatTime={formatTime}
+                  formatTimeAgo={formatTimeAgo}
+                />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setDisplayLimit(prev => prev + 10)}
+                  className="px-6 py-3 bg-primary text-black rounded-lg font-bold hover:bg-primary/90 transition"
+                >
+                  Load More ({filteredTransactions.length - displayLimit} remaining)
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* Stats Summary */}

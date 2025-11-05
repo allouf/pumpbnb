@@ -230,8 +230,8 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         borderColor: '#2b2b43',
         visible: true,
         scaleMargins: {
-          top: 0.15,
-          bottom: 0.25,
+          top: 0.20,
+          bottom: 0.35,
         },
         autoScale: true,
       },
@@ -600,26 +600,27 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         
         volumeSeriesRef.current.setData(volumeData)
         
-        // Fit content ONLY on initial load to show all candles with better zoom
+        // Fit content ONLY on initial load to show all candles with MAXIMUM zoom out
         if (isInitialLoadRef.current && chartRef.current) {
           console.log('[AdvancedPriceChart] Initial load - fitting all candles:', candleData.length)
           setTimeout(() => {
             if (chartRef.current) {
-              // Calculate price range with much more padding for better initial view
+              // Calculate price range with MASSIVE padding for much more zoom out
               const allLows = candleData.map(c => c.low)
               const allHighs = candleData.map(c => c.high)
               const minPrice = Math.min(...allLows)
               const maxPrice = Math.max(...allHighs)
               const priceRange = maxPrice - minPrice
               
-              // Add 20% padding on top and 15% on bottom for optimal viewing
-              const paddedMin = minPrice - (priceRange * 0.15)
-              const paddedMax = maxPrice + (priceRange * 0.20)
+              // Add HUGE padding: 80% on top and 60% on bottom to show all candles small
+              // This matches the wanted.png where all candles are visible and small
+              const paddedMin = minPrice - (priceRange * 0.60)
+              const paddedMax = maxPrice + (priceRange * 0.80)
               
               // Fit content first
               chartRef.current.timeScale().fitContent()
               
-              // Then apply custom price scale with generous padding
+              // Force zoom out by setting a much wider price range
               priceSeriesRef.current?.applyOptions({
                 autoscaleInfoProvider: () => ({
                   priceRange: {
