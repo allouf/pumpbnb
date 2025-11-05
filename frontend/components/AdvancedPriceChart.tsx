@@ -997,61 +997,106 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           </div>
         </div>
 
-        {/* OHLC Info Line - Always Visible with Hover Data */}
-        <div className="flex items-center gap-3 text-sm mb-1">
-          <span className="font-medium text-white">
-            {tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'} Price ({priceMode === 'USD' ? 'USD' : 'ASTER'})
-          </span>
-          <span className="text-gray-400">•</span>
-          <span className="text-gray-400">{timeframe === 'all' ? 'All' : timeframe}</span>
-          <span className="text-gray-400">•</span>
+        {/* Fixed-Size OHLC Info Line - Prevents Layout Shifts */}
+        <div className="grid grid-cols-12 gap-2 text-xs mb-1 min-h-[20px]">
+          {/* Token Info - Fixed Width */}
+          <div className="col-span-3 flex items-center gap-1">
+            <span className="font-medium text-white truncate">
+              {tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'}
+            </span>
+            <span className="text-gray-400 text-xs">{timeframe === 'all' ? 'All' : timeframe}</span>
+          </div>
           
-          {/* Show hover data if available, otherwise show current data */}
-          {(hoveredData || currentOHLC) && (
-            <>
-              <span className="text-gray-400">•</span>
-              {hoveredData && (
-                <span className="text-blue-400 text-xs font-medium">
-                  {new Date(hoveredData.time).toLocaleTimeString()}
-                </span>
+          {/* Time - Fixed Width */}
+          <div className="col-span-1 flex items-center">
+            <span className="text-blue-400 font-mono text-xs w-full">
+              {hoveredData ? new Date(hoveredData.time).toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}) : '--:--'}
+            </span>
+          </div>
+          
+          {/* Open - Fixed Width */}
+          <div className="col-span-2 flex items-center">
+            <span className="text-gray-400 text-xs mr-1">O:</span>
+            <span className="text-green-400 font-mono text-xs w-full">
+              {(hoveredData || currentOHLC) ? (
+                priceMode === 'USD' 
+                  ? `$${((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(4)}`
+                  : (hoveredData?.open || currentOHLC?.open || 0).toFixed(6)
+              ) : '-.------'}
+            </span>
+          </div>
+          
+          {/* High - Fixed Width */}
+          <div className="col-span-2 flex items-center">
+            <span className="text-gray-400 text-xs mr-1">H:</span>
+            <span className="text-green-400 font-mono text-xs w-full">
+              {(hoveredData || currentOHLC) ? (
+                priceMode === 'USD' 
+                  ? `$${((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(4)}`
+                  : (hoveredData?.high || currentOHLC?.high || 0).toFixed(6)
+              ) : '-.------'}
+            </span>
+          </div>
+          
+          {/* Low - Fixed Width */}
+          <div className="col-span-2 flex items-center">
+            <span className="text-gray-400 text-xs mr-1">L:</span>
+            <span className="text-red-400 font-mono text-xs w-full">
+              {(hoveredData || currentOHLC) ? (
+                priceMode === 'USD' 
+                  ? `$${((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(4)}`
+                  : (hoveredData?.low || currentOHLC?.low || 0).toFixed(6)
+              ) : '-.------'}
+            </span>
+          </div>
+          
+          {/* Close - Fixed Width */}
+          <div className="col-span-2 flex items-center">
+            <span className="text-gray-400 text-xs mr-1">C:</span>
+            <span className={`font-mono text-xs w-full ${
+              (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
+                ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {(hoveredData || currentOHLC) ? (
+                priceMode === 'USD' 
+                  ? `$${((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(4)}`
+                  : (hoveredData?.close || currentOHLC?.close || 0).toFixed(6)
+              ) : '-.------'}
+            </span>
+          </div>
+        </div>
+        
+        {/* Volume and Change Line - Fixed Height */}
+        <div className="flex items-center gap-4 text-xs min-h-[16px]">
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">Vol:</span>
+            <span className="text-primary font-mono">
+              {hoveredData ? (
+                priceMode === 'USD'
+                  ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
+                  : `${hoveredData.volume.toFixed(2)} ASTER`
+              ) : (
+                priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(2)} ASTER`
               )}
-              <span className="text-green-400">
-                O:{priceMode === 'USD' 
-                  ? `$${((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(6)}` 
-                  : (hoveredData?.open || currentOHLC?.open || 0).toFixed(8)
-                }
-              </span>
-              <span className="text-green-400">
-                H:{priceMode === 'USD' 
-                  ? `$${((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(6)}` 
-                  : (hoveredData?.high || currentOHLC?.high || 0).toFixed(8)
-                }
-              </span>
-              <span className="text-red-400">
-                L:{priceMode === 'USD' 
-                  ? `$${((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(6)}` 
-                  : (hoveredData?.low || currentOHLC?.low || 0).toFixed(8)
-                }
-              </span>
-              <span className={`${
-                (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
-                  ? 'text-green-400' : 'text-red-400'
-              }`}>
-                C:{priceMode === 'USD' 
-                  ? `$${((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(6)}` 
-                  : (hoveredData?.close || currentOHLC?.close || 0).toFixed(8)
-                }
-              </span>
-              {hoveredData && (
-                <span className="text-primary">
-                  Vol:{priceMode === 'USD'
-                    ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
-                    : `${hoveredData.volume.toFixed(4)} ASTER`
-                  }
-                </span>
-              )}
-            </>
-          )}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">24h:</span>
+            <span className={`font-medium ${
+              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-gray-400 mr-1">Price:</span>
+            <span className="text-white font-mono">
+              {priceMode === 'USD'
+                ? `$${stats.currentPriceUSD.toFixed(6)}`
+                : `${stats.currentPrice.toFixed(8)} ASTER`
+              }
+            </span>
+          </div>
         </div>
 
         {/* Volume Line */}
