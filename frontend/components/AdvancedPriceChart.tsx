@@ -63,24 +63,39 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
 
   // Debug function to log current chart state
   const logCurrentChartState = () => {
-    if (!chartRef.current) return
+    console.log('🔴 DEBUG BUTTON CLICKED!')
     
-    const timeScale = chartRef.current.timeScale()
-    const visibleRange = timeScale.getVisibleRange()
-    const priceScale = chartRef.current.priceScale()
+    if (!chartRef.current) {
+      console.log('❌ Chart ref is null!')
+      alert('Chart not initialized yet!')
+      return
+    }
     
-    console.log('═══════════════════════════════════════════════════')
-    console.log('📊 CURRENT CHART STATE:')
-    console.log('═══════════════════════════════════════════════════')
-    console.log('Visible Time Range:', visibleRange)
-    console.log('Scale Margins (current):', {
-      top: 0.20,
-      bottom: 0.35
-    })
-    console.log('Chart Type:', chartType)
-    console.log('Timeframe:', timeframe)
-    console.log('Price Mode:', priceMode)
-    console.log('═══════════════════════════════════════════════════')
+    try {
+      const timeScale = chartRef.current.timeScale()
+      const visibleRange = timeScale.getVisibleRange()
+      
+      console.log('═══════════════════════════════════════════════════')
+      console.log('📊 CURRENT CHART STATE:')
+      console.log('═══════════════════════════════════════════════════')
+      console.log('Visible Time Range:', visibleRange)
+      console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
+      console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
+      console.log('Scale Margins (current):', {
+        top: 0.20,
+        bottom: 0.35
+      })
+      console.log('Chart Type:', chartType)
+      console.log('Timeframe:', timeframe)
+      console.log('Price Mode:', priceMode)
+      console.log('Transactions Count:', filteredTransactions.length)
+      console.log('═══════════════════════════════════════════════════')
+      
+      alert('Chart state logged to console! Check browser console (F12)')
+    } catch (error) {
+      console.error('Error logging chart state:', error)
+      alert('Error logging state: ' + error)
+    }
   }
 
   const { transactions, isLoading } = useTransactionHistory(bondingCurveAddress)
