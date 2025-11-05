@@ -23,9 +23,10 @@ interface Holder {
 interface TopHoldersProps {
   tokenAddress: string
   tokenSymbol: string
+  compact?: boolean
 }
 
-export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
+export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHoldersProps) {
   const [holders, setHolders] = useState<Holder[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [totalSupply, setTotalSupply] = useState('0')
@@ -77,6 +78,39 @@ export function TopHolders({ tokenAddress, tokenSymbol }: TopHoldersProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        {holders.length === 0 ? (
+          <div className="text-center py-4 text-gray-400 text-sm">
+            <p>No holders yet</p>
+          </div>
+        ) : (
+          holders.slice(0, 3).map((holder, index) => {
+            // Safety check: ensure holder has required fields
+            if (!holder || !holder.address || !holder.balance) {
+              console.warn('[TopHolders] Skipping invalid holder:', holder)
+              return null
+            }
+
+            return (
+              <div key={holder.address} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">
+                    {holder.address.slice(0, 4)}...{holder.address.slice(-4)}
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-white">
+                  {(holder.percentage || 0).toFixed(2)}%
+                </span>
+              </div>
+            )
+          })
+        )}
       </div>
     )
   }

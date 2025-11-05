@@ -23,7 +23,7 @@ import { TopHolders } from '@/components/TopHolders'
 import { useTokenData } from '@/lib/hooks/useTokenData'
 import { useWatchTradeEvents } from '@/lib/hooks/useTokenEvents'
 
-type Tab = 'comments' | 'trades' | 'holders'
+type Tab = 'comments' | 'trades'
 
 interface TokenPageClientProps {
   address: string
@@ -424,16 +424,6 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   🔄 Trades
                 </button>
                 <button
-                  onClick={() => setActiveTab('holders')}
-                  className={`flex-1 px-6 py-4 font-semibold transition ${
-                    activeTab === 'holders'
-                      ? 'bg-secondary text-primary border-b-2 border-primary'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  👥 Holders
-                </button>
-                <button
                   onClick={() => setActiveTab('comments')}
                   className={`flex-1 px-6 py-4 font-semibold transition ${
                     activeTab === 'comments'
@@ -449,10 +439,6 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
               <div className="p-6">
                 {activeTab === 'trades' && (
                   <RecentTrades tokenAddress={address} tokenSymbol={symbol} />
-                )}
-
-                {activeTab === 'holders' && (
-                  <TopHolders tokenAddress={address} tokenSymbol={symbol} />
                 )}
 
                 {activeTab === 'comments' && (
@@ -527,6 +513,32 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                     </div>
                   </div>
                 )}
+              </div>
+              
+              {/* Top Holders Panel */}
+              <div className="bg-secondary-light rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-white">Top holders</h3>
+                  <button className="text-xs text-gray-400 hover:text-primary transition">
+                    Generate bubble map
+                  </button>
+                </div>
+                
+                {/* Liquidity Pool Holder */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="text-blue-400">💧</div>
+                      <span className="text-sm text-white">Liquidity pool</span>
+                    </div>
+                    <span className="text-sm font-bold text-primary">
+                      {progress >= 100 ? '85.00%' : (100 - progress).toFixed(2) + '%'}
+                    </span>
+                  </div>
+                  
+                  {/* Top Individual Holders */}
+                  <TopHolders tokenAddress={address} tokenSymbol={symbol} compact={true} />
+                </div>
               </div>
             </div>
           </div>
