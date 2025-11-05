@@ -464,7 +464,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
           {/* Right Column - Trading Panel */}
           <div className="w-80 flex-shrink-0">
-            <div className="sticky top-24">
+            <div className="sticky top-24 space-y-4">
+              {/* Trading Panel */}
               {bondingCurve ? (
                 <TradingPanel
                   bondingCurveAddress={bondingCurve}
@@ -476,6 +477,57 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   <p className="text-gray-400 text-center">Loading trading panel...</p>
                 </div>
               )}
+              
+              {/* Bonding Curve Progress Panel */}
+              <div className="bg-secondary-light rounded-xl p-4">
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-white">Bonding Curve Progress</h3>
+                    <span className="text-xs text-gray-400">{progress.toFixed(1)}%</span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="w-full bg-gray-700 rounded-full h-3 mb-3">
+                    <div 
+                      className="bg-gradient-to-r from-primary to-green-400 h-3 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${Math.min(progress, 100)}%` }}
+                    >
+                      <div className="h-full w-full bg-gradient-to-r from-transparent to-white/20 rounded-full"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress Details */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Current Reserves</span>
+                      <span className="text-white font-mono">{asterReserves.toFixed(2)} ASTER</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Target for Graduation</span>
+                      <span className="text-primary font-mono">100.00 ASTER</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Remaining</span>
+                      <span className="text-orange-400 font-mono">{Math.max(0, 100 - asterReserves).toFixed(2)} ASTER</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Graduation Status */}
+                {progress >= 100 ? (
+                  <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 text-center">
+                    <div className="text-green-400 text-sm font-bold mb-1">🎉 Graduated!</div>
+                    <div className="text-xs text-green-300">Token has graduated to DEX</div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-gray-300 text-sm font-medium mb-1">Pre-Market Phase</div>
+                    <div className="text-xs text-gray-400">
+                      {(100 - asterReserves).toFixed(2)} ASTER needed for graduation
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
