@@ -160,6 +160,13 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
     const now = Math.floor(Date.now() / 1000)
     const oneDayAgo = now - 86400 // 24 hours in seconds
 
+    // Helper function to calculate price from transaction
+    const calculatePrice = (tx: typeof transactions[0]) => {
+      const asterAmount = Number(tx.asterAmountFormatted)
+      const tokenAmount = Number(tx.tokenAmountFormatted)
+      return tokenAmount > 0 ? asterAmount / tokenAmount : 0
+    }
+
     // Find transaction closest to 24h ago
     const oldTx = transactions
       .filter(tx => tx.timestamp <= oneDayAgo)
@@ -169,8 +176,9 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
     let change24hDollar = 0
 
     if (oldTx) {
-      const oldPrice = oldTx.priceInAster
-      const currentPrice = transactions[transactions.length - 1]?.priceInAster || oldPrice
+      const oldPrice = calculatePrice(oldTx)
+      const currentTx = transactions[transactions.length - 1]
+      const currentPrice = currentTx ? calculatePrice(currentTx) : oldPrice
       
       if (oldPrice > 0) {
         change24hPercent = ((currentPrice - oldPrice) / oldPrice) * 100
@@ -183,10 +191,10 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
     }
 
     // Calculate ATH from historical transactions
-    const athPrice = transactions.reduce((max, tx) => 
-      tx.priceInAster > max ? tx.priceInAster : max, 0
-    )
-    const currentPrice = transactions[transactions.length - 1]?.priceInAster || 0
+    const allPrices = transactions.map(calculatePrice).filter(p => p > 0)
+    const athPrice = allPrices.length > 0 ? Math.max(...allPrices) : 0
+    const currentTx = transactions[transactions.length - 1]
+    const currentPrice = currentTx ? calculatePrice(currentTx) : 0
     const ath = currentPrice > 0 ? parseFloat(marketCap) * (athPrice / currentPrice) : parseFloat(marketCap)
 
     return { change24hPercent, change24hDollar, ath }
