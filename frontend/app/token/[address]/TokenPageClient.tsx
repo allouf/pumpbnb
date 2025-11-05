@@ -59,7 +59,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
     query: { enabled: !apiData },
   })
 
-  // Merge data
+  // Merge data first (before using in hooks)
   const bondingCurve = apiData?.bondingCurve || (bondingCurveAddress as string | undefined)
   const name = apiData?.name || (tokenName as string | undefined)
   const symbol = apiData?.symbol || (tokenSymbol as string | undefined)
@@ -68,10 +68,31 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const creator = apiData?.creator
   const createdAt = apiData?.createdAt
 
-  // Get transaction history to calculate creation time if not in API
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // Get transaction history - called unconditionally
   const { transactions } = useTransactionHistory(bondingCurve || '')
 
-  // Calculate creation time
+  // Read bonding curve reserves - called unconditionally
+  const { data: reserves, refetch: refetchReserves } = useReadContract({
+    address: (bondingCurve as `0x${string}`) || undefined,
+    abi: BondingCurveABI,
+    functionName: 'getReserves',
+    query: {
+      enabled: !!bondingCurve,
+      refetchInterval: 10000,
+    },
+  })
+
+  // Watch for trade events - called unconditionally
+  useWatchTradeEvents(
+    bondingCurve || '',
+    (event) => {
+      console.log('[TokenPageClient] 🔄 Trade event detected, refetching reserves...', event)
+      refetchReserves()
+    }
+  )
+
+  // Calculate creation time - memoized
   const creationInfo = useMemo(() => {
     // Prioritize API data
     if (createdAt) {
@@ -124,26 +145,6 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
     return 'recently'
   }, [createdAt, transactions])
-
-  // Read bonding curve reserves
-  const { data: reserves, refetch: refetchReserves } = useReadContract({
-    address: bondingCurve as `0x${string}` | undefined,
-    abi: BondingCurveABI,
-    functionName: 'getReserves',
-    query: {
-      enabled: !!bondingCurve,
-      refetchInterval: 10000,
-    },
-  })
-
-  // Watch for trade events and immediately refetch reserves
-  useWatchTradeEvents(
-    bondingCurve || '',
-    (event) => {
-      console.log('[TokenPageClient] 🔄 Trade event detected, refetching reserves...', event)
-      refetchReserves()
-    }
-  )
 
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
