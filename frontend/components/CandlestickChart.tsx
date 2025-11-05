@@ -578,89 +578,92 @@ export function CandlestickChart({ bondingCurveAddress, tokenSymbol }: Candlesti
           </div>
         </div>
 
-        {/* Stats Bar - 24h High, Low, Volume */}
-        <div className="flex items-center gap-6 mt-3 text-xs">
-          <div>
-            <span className="text-gray-500">24h High: </span>
-            <span className="text-white font-semibold">
-              {showUsd 
-                ? formatUsdPrice(asterToUsd(stats.high24h, usdRate))
-                : stats.high24h.toFixed(8)
-              }
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">24h Low: </span>
-            <span className="text-white font-semibold">
-              {showUsd 
-                ? formatUsdPrice(asterToUsd(stats.low24h, usdRate))
-                : stats.low24h.toFixed(8)
-              }
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">24h Volume: </span>
-            <span className="text-green-400 font-semibold">
-              {showUsd 
-                ? formatUsdPrice(asterToUsd(stats.volume24h, usdRate))
-                : `${stats.volume24h.toFixed(2)} ASTER`
-              }
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-500">Candles: </span>
-            <span className="text-gray-300">{candles.length}</span>
-          </div>
+        {/* Stats Bar with Hover Data - Always Visible */}
+        <div className="flex items-center gap-6 mt-3 text-xs flex-wrap">
+          {/* Show hover data if available, otherwise show 24h stats */}
+          {hoveredCandle ? (
+            <>
+              <div>
+                <span className="text-blue-400">Hovered: </span>
+                <span className="text-gray-300">
+                  {new Date((hoveredCandle.time as number) * 1000).toLocaleTimeString()}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">O: </span>
+                <span className="text-white font-mono">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(hoveredCandle.open, usdRate))
+                    : hoveredCandle.open.toFixed(8)
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">H: </span>
+                <span className="text-green-400 font-mono">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(hoveredCandle.high, usdRate))
+                    : hoveredCandle.high.toFixed(8)
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">L: </span>
+                <span className="text-red-400 font-mono">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(hoveredCandle.low, usdRate))
+                    : hoveredCandle.low.toFixed(8)
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">C: </span>
+                <span className={`font-mono ${hoveredCandle.close >= hoveredCandle.open ? 'text-green-400' : 'text-red-400'}`}>
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(hoveredCandle.close, usdRate))
+                    : hoveredCandle.close.toFixed(8)
+                  }
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <span className="text-gray-500">24h High: </span>
+                <span className="text-white font-semibold">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(stats.high24h, usdRate))
+                    : stats.high24h.toFixed(8)
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">24h Low: </span>
+                <span className="text-white font-semibold">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(stats.low24h, usdRate))
+                    : stats.low24h.toFixed(8)
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">24h Volume: </span>
+                <span className="text-green-400 font-semibold">
+                  {showUsd 
+                    ? formatUsdPrice(asterToUsd(stats.volume24h, usdRate))
+                    : `${stats.volume24h.toFixed(2)} ASTER`
+                  }
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">Candles: </span>
+                <span className="text-gray-300">{candles.length}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Hovered Candle Tooltip */}
-      {hoveredCandle && (
-        <div className="px-4 py-2 bg-gray-950 border-b border-gray-800">
-          <div className="flex items-center gap-6 text-xs">
-            <div>
-              <span className="text-gray-500">O: </span>
-              <span className="text-white font-mono">
-                {showUsd 
-                  ? formatUsdPrice(asterToUsd(hoveredCandle.open, usdRate))
-                  : hoveredCandle.open.toFixed(8)
-                }
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">H: </span>
-              <span className="text-green-400 font-mono">
-                {showUsd 
-                  ? formatUsdPrice(asterToUsd(hoveredCandle.high, usdRate))
-                  : hoveredCandle.high.toFixed(8)
-                }
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">L: </span>
-              <span className="text-red-400 font-mono">
-                {showUsd 
-                  ? formatUsdPrice(asterToUsd(hoveredCandle.low, usdRate))
-                  : hoveredCandle.low.toFixed(8)
-                }
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">C: </span>
-              <span className={`font-mono ${hoveredCandle.close >= hoveredCandle.open ? 'text-green-400' : 'text-red-400'}`}>
-                {showUsd 
-                  ? formatUsdPrice(asterToUsd(hoveredCandle.close, usdRate))
-                  : hoveredCandle.close.toFixed(8)
-                }
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Time: </span>
-              <span className="text-gray-300">{new Date((hoveredCandle.time as number) * 1000).toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chart Container */}
       <div ref={chartContainerRef} className="w-full" />

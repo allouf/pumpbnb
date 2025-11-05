@@ -997,7 +997,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           </div>
         </div>
 
-        {/* OHLC Info Line - Pump.fun Style */}
+        {/* OHLC Info Line - Always Visible with Hover Data */}
         <div className="flex items-center gap-3 text-sm mb-1">
           <span className="font-medium text-white">
             {tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'} Price ({priceMode === 'USD' ? 'USD' : 'ASTER'})
@@ -1005,27 +1005,51 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
           <span className="text-gray-400">•</span>
           <span className="text-gray-400">{timeframe === 'all' ? 'All' : timeframe}</span>
           <span className="text-gray-400">•</span>
-          <span className="text-gray-400">Pump</span>
           
-          {currentOHLC && (
+          {/* Show hover data if available, otherwise show current data */}
+          {(hoveredData || currentOHLC) && (
             <>
+              <span className="text-gray-400">•</span>
+              {hoveredData && (
+                <span className="text-blue-400 text-xs font-medium">
+                  {new Date(hoveredData.time).toLocaleTimeString()}
+                </span>
+              )}
               <span className="text-green-400">
-                O:{(priceMode === 'USD' ? currentOHLC.open * ASTER_USD_PRICE : currentOHLC.open).toFixed(priceMode === 'USD' ? 4 : 8)}
+                O:{priceMode === 'USD' 
+                  ? `$${((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(6)}` 
+                  : (hoveredData?.open || currentOHLC?.open || 0).toFixed(8)
+                }
               </span>
               <span className="text-green-400">
-                H:{(priceMode === 'USD' ? currentOHLC.high * ASTER_USD_PRICE : currentOHLC.high).toFixed(priceMode === 'USD' ? 4 : 8)}
+                H:{priceMode === 'USD' 
+                  ? `$${((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(6)}` 
+                  : (hoveredData?.high || currentOHLC?.high || 0).toFixed(8)
+                }
               </span>
               <span className="text-red-400">
-                L:{(priceMode === 'USD' ? currentOHLC.low * ASTER_USD_PRICE : currentOHLC.low).toFixed(priceMode === 'USD' ? 4 : 8)}
+                L:{priceMode === 'USD' 
+                  ? `$${((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(6)}` 
+                  : (hoveredData?.low || currentOHLC?.low || 0).toFixed(8)
+                }
               </span>
-              <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
-                C:{(priceMode === 'USD' ? currentOHLC.close * ASTER_USD_PRICE : currentOHLC.close).toFixed(priceMode === 'USD' ? 4 : 8)}
-              </span>
-              <span className={`font-medium ${
-                stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+              <span className={`${
+                (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
+                  ? 'text-green-400' : 'text-red-400'
               }`}>
-                {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
+                C:{priceMode === 'USD' 
+                  ? `$${((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(6)}` 
+                  : (hoveredData?.close || currentOHLC?.close || 0).toFixed(8)
+                }
               </span>
+              {hoveredData && (
+                <span className="text-primary">
+                  Vol:{priceMode === 'USD'
+                    ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
+                    : `${hoveredData.volume.toFixed(4)} ASTER`
+                  }
+                </span>
+              )}
             </>
           )}
         </div>
@@ -1036,50 +1060,6 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
         </div>
       </div>
 
-      {/* Hover Tooltip - Candlestick OHLC */}
-      {hoveredData && (
-        <div className="px-6 py-3 bg-secondary border-b border-gray-700">
-          <div className="grid grid-cols-6 gap-3 text-sm">
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Time</p>
-              <p className="font-semibold text-white text-xs">{hoveredData.time}</p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Open</p>
-              <p className="font-bold text-white">
-                {priceMode === 'USD' ? `$${hoveredData.open.toFixed(6)}` : hoveredData.open.toFixed(8)}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs mb-1">High</p>
-              <p className="font-bold text-green-400">
-                {priceMode === 'USD' ? `$${hoveredData.high.toFixed(6)}` : hoveredData.high.toFixed(8)}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Low</p>
-              <p className="font-bold text-red-400">
-                {priceMode === 'USD' ? `$${hoveredData.low.toFixed(6)}` : hoveredData.low.toFixed(8)}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Close</p>
-              <p className={`font-bold ${hoveredData.close >= hoveredData.open ? 'text-green-500' : 'text-red-500'}`}>
-                {priceMode === 'USD' ? `$${hoveredData.close.toFixed(6)}` : hoveredData.close.toFixed(8)}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-400 text-xs mb-1">Volume</p>
-              <p className="font-semibold text-primary">
-                {priceMode === 'USD'
-                  ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
-                  : `${hoveredData.volume.toFixed(4)} ASTER`
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chart Container with Toolbar */}
       <div className="relative">
