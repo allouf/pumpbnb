@@ -10,6 +10,11 @@ export interface TokenData {
   imageUrl?: string
   isGraduated?: boolean
   createdAt: string
+  // Social media links
+  website?: string
+  twitter?: string
+  telegram?: string
+  discord?: string
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
