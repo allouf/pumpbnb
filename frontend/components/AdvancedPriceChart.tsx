@@ -721,50 +721,50 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                     },
                   }),
                 })
+                
+                // Log the improved chart state (inside try block to access variables)
+                setTimeout(() => {
+                  if (chartRef.current) {
+                    const timeScale = chartRef.current.timeScale()
+                    const visibleRange = timeScale.getVisibleRange()
+                    
+                    console.log('═══════════════════════════════════════════════════')
+                    console.log('📊 IMPROVED INITIAL CHART STATE:')
+                    console.log('═══════════════════════════════════════════════════')
+                    console.log('Visible Time Range:', visibleRange)
+                    console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
+                    console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
+                    console.log('Scale Margins (current):', {
+                      top: 0.20,
+                      bottom: 0.35
+                    })
+                    console.log('Chart Type:', chartType)
+                    console.log('Timeframe:', timeframe)
+                    console.log('Price Mode:', priceMode)
+                    console.log('Transactions Count:', candleData.length)
+                    console.log('Price Range:', {
+                      minPrice: minPrice.toFixed(8),
+                      maxPrice: maxPrice.toFixed(8),
+                      paddedMinPrice: paddedMinPrice.toFixed(8),
+                      paddedMaxPrice: paddedMaxPrice.toFixed(8),
+                      paddingTop: '40%',
+                      paddingBottom: '30%'
+                    })
+                    console.log('Time Range:', {
+                      firstCandle: new Date(firstTime * 1000).toISOString(),
+                      lastCandle: new Date(lastTime * 1000).toISOString(),
+                      totalDuration: `${(totalTimeRange / 3600).toFixed(1)} hours`,
+                      paddingAdded: `${(timePadding / 3600).toFixed(1)} hours`
+                    })
+                    console.log('✅ Chart now shows complete token trading history!')
+                    console.log('═══════════════════════════════════════════════════')
+                  }
+                }, 300)
               } catch (error) {
                 console.error('[AdvancedPriceChart] Error during chart initialization, falling back to fitContent:', error)
                 // Graceful fallback to basic fitContent if anything goes wrong
                 chartRef.current?.timeScale().fitContent()
               }
-              
-              // Log the improved chart state
-              setTimeout(() => {
-                if (chartRef.current) {
-                  const timeScale = chartRef.current.timeScale()
-                  const visibleRange = timeScale.getVisibleRange()
-                  
-                  console.log('═══════════════════════════════════════════════════')
-                  console.log('📊 IMPROVED INITIAL CHART STATE:')
-                  console.log('═══════════════════════════════════════════════════')
-                  console.log('Visible Time Range:', visibleRange)
-                  console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
-                  console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
-                  console.log('Scale Margins (current):', {
-                    top: 0.20,
-                    bottom: 0.35
-                  })
-                  console.log('Chart Type:', chartType)
-                  console.log('Timeframe:', timeframe)
-                  console.log('Price Mode:', priceMode)
-                  console.log('Transactions Count:', candleData.length)
-                  console.log('Price Range:', {
-                    minPrice: minPrice.toFixed(8),
-                    maxPrice: maxPrice.toFixed(8),
-                    paddedMinPrice: paddedMinPrice.toFixed(8),
-                    paddedMaxPrice: paddedMaxPrice.toFixed(8),
-                    paddingTop: '40%',
-                    paddingBottom: '30%'
-                  })
-                  console.log('Time Range:', {
-                    firstCandle: new Date(firstTime * 1000).toISOString(),
-                    lastCandle: new Date(lastTime * 1000).toISOString(),
-                    totalDuration: `${(totalTimeRange / 3600).toFixed(1)} hours`,
-                    paddingAdded: `${(timePadding / 3600).toFixed(1)} hours`
-                  })
-                  console.log('✅ Chart now shows complete token trading history!')
-                  console.log('═══════════════════════════════════════════════════')
-                }
-              }, 300)
               
               isInitialLoadRef.current = false
             }
