@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
@@ -8,6 +8,7 @@ import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
 import PumpTokenABIImport from '@/lib/abis/PumpToken.json'
 import TokenFactoryABIImport from '@/lib/abis/TokenFactory.json'
+import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 const PumpTokenABI = PumpTokenABIImport.abi as Abi
@@ -65,6 +66,64 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const description = apiData?.description
   const imageUrl = apiData?.imageUrl
   const creator = apiData?.creator
+  const createdAt = apiData?.createdAt
+
+  // Get transaction history to calculate creation time if not in API
+  const { transactions } = useTransactionHistory(bondingCurve || '')
+
+  // Calculate creation time
+  const creationInfo = useMemo(() => {
+    // Prioritize API data
+    if (createdAt) {
+      const createdDate = new Date(createdAt)
+      const now = new Date()
+      const diffMs = now.getTime() - createdDate.getTime()
+      const diffMins = Math.floor(diffMs / 60000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffDays = Math.floor(diffMs / 86400000)
+      
+      let timeAgo = ''
+      if (diffDays > 0) {
+        timeAgo = `${diffDays}d ago`
+      } else if (diffHours > 0) {
+        timeAgo = `${diffHours}h ago`
+      } else if (diffMins > 0) {
+        timeAgo = `${diffMins}m ago`
+      } else {
+        timeAgo = 'just now'
+      }
+      
+      return timeAgo
+    }
+
+    // Fallback to first transaction timestamp
+    if (transactions.length > 0) {
+      const firstTx = transactions.reduce((oldest, tx) => 
+        tx.timestamp < oldest.timestamp ? tx : oldest
+      )
+      const createdDate = new Date(firstTx.timestamp * 1000)
+      const now = new Date()
+      const diffMs = now.getTime() - createdDate.getTime()
+      const diffMins = Math.floor(diffMs / 60000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffDays = Math.floor(diffMs / 86400000)
+      
+      let timeAgo = ''
+      if (diffDays > 0) {
+        timeAgo = `${diffDays}d ago`
+      } else if (diffHours > 0) {
+        timeAgo = `${diffHours}h ago`
+      } else if (diffMins > 0) {
+        timeAgo = `${diffMins}m ago`
+      } else {
+        timeAgo = 'just now'
+      }
+      
+      return timeAgo
+    }
+
+    return 'recently'
+  }, [createdAt, transactions])
 
   // Read bonding curve reserves
   const { data: reserves, refetch: refetchReserves } = useReadContract({
@@ -215,7 +274,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   </div>
                 )}
                 <span>•</span>
-                <span>2h ago</span>
+                <span>{creationInfo}</span>
               </div>
 
               {/* Description */}

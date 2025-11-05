@@ -657,19 +657,97 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
     )
   }
 
+  // Get current OHLC data from hovered or latest
+  const currentOHLC = useMemo(() => {
+    if (hoveredData) {
+      return hoveredData
+    }
+    // Get latest candle data
+    if (filteredTransactions.length > 0) {
+      const latest = filteredTransactions[filteredTransactions.length - 1]
+      const asterAmount = Number(latest.asterAmountFormatted)
+      const tokenAmount = Number(latest.tokenAmountFormatted)
+      const price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+      return {
+        open: price,
+        high: price,
+        low: price,
+        close: price,
+        volume: asterAmount,
+        time: new Date(latest.timestamp * 1000).toLocaleString(),
+      }
+    }
+    return null
+  }, [hoveredData, filteredTransactions])
+
+  // Calculate percentage changes for different periods
+  const periodChanges = useMemo(() => {
+    const now = Math.floor(Date.now() / 1000)
+    const periods = {
+      '5m': 300,
+      '1h': 3600,
+      '6h': 21600,
+    }
+
+    const currentPrice = stats.currentPrice
+    const changes: Record<string, number> = {}
+
+    Object.entries(periods).forEach(([period, seconds]) => {
+      const cutoff = now - seconds
+      const oldTx = transactions.find(tx => tx.timestamp <= cutoff)
+      if (oldTx && currentPrice > 0) {
+        const asterAmount = Number(oldTx.asterAmountFormatted)
+        const tokenAmount = Number(oldTx.tokenAmountFormatted)
+        const oldPrice = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        if (oldPrice > 0) {
+          changes[period] = ((currentPrice - oldPrice) / oldPrice) * 100
+        } else {
+          changes[period] = 0
+        }
+      } else {
+        changes[period] = 0
+      }
+    })
+
+    return changes
+  }, [transactions, stats.currentPrice])
+
   return (
     <div className="bg-secondary-light rounded-xl overflow-hidden">
-      {/* Chart Header with Statistics */}
-      <div className="px-6 py-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold">{tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'}</h2>
+      {/* Pump.fun Style: Inline OHLC Header */}
+      <div className="px-6 py-3 border-b border-gray-700">
+        {/* Top Controls Row */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {/* Timeframe Selector */}
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+              className="bg-secondary text-white px-3 py-1.5 rounded text-xs font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
+            >
+              <option value="15m">15m</option>
+              <option value="1h">1h</option>
+              <option value="4h">4h</option>
+              <option value="1d">1d</option>
+              <option value="all">All</option>
+            </select>
+
+            {/* Chart Type Selector */}
+            <select
+              value={chartType}
+              onChange={(e) => switchChartType(e.target.value as ChartType)}
+              className="bg-secondary text-white px-3 py-1.5 rounded text-xs font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
+            >
+              <option value="candlestick">Candlestick</option>
+              <option value="line">Line</option>
+              <option value="area">Area</option>
+            </select>
 
             {/* USD/ASTER Toggle */}
-            <div className="flex bg-secondary rounded-lg p-1">
+            <div className="flex bg-secondary rounded p-0.5">
               <button
                 onClick={() => setPriceMode('ASTER')}
-                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
                   priceMode === 'ASTER'
                     ? 'bg-primary text-black'
                     : 'text-gray-400 hover:text-white'
@@ -679,7 +757,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
               </button>
               <button
                 onClick={() => setPriceMode('USD')}
-                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
                   priceMode === 'USD'
                     ? 'bg-primary text-black'
                     : 'text-gray-400 hover:text-white'
@@ -689,90 +767,44 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
               </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* Chart Type Selector */}
-            <select
-              value={chartType}
-              onChange={(e) => switchChartType(e.target.value as ChartType)}
-              className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
-            >
-              <option value="candlestick">Candlestick</option>
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-            </select>
-
-            {/* Timeframe Dropdown */}
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-              className="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
-            >
-              <option value="all">All Time</option>
-              <option value="1m">1 Minute</option>
-              <option value="5m">5 Minutes</option>
-              <option value="15m">15 Minutes</option>
-              <option value="30m">30 Minutes</option>
-              <option value="1h">1 Hour</option>
-              <option value="4h">4 Hours</option>
-              <option value="1d">1 Day</option>
-            </select>
-          </div>
         </div>
 
-        {/* Price Statistics Panel - Pump.fun Style */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">Price</p>
-            <p className={`text-base font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {priceMode === 'USD'
-                ? `$${stats.currentPriceUSD.toFixed(6)}`
-                : `${stats.currentPrice.toFixed(8)} ASTER`
-              }
-            </p>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">24h Change</p>
-            <p className={`text-base font-bold ${stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
-            </p>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">ATH</p>
-            <p className="text-base font-bold text-primary">
-              {priceMode === 'USD'
-                ? `$${stats.athUSD.toFixed(6)}`
-                : `${stats.ath.toFixed(8)}`
-              }
-            </p>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">24h High</p>
-            <p className="text-base font-bold text-gray-300">
-              {priceMode === 'USD'
-                ? `$${(stats.high24h * ASTER_USD_PRICE).toFixed(6)}`
-                : stats.high24h.toFixed(8)
-              }
-            </p>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">24h Low</p>
-            <p className="text-base font-bold text-gray-300">
-              {priceMode === 'USD'
-                ? `$${(stats.low24h * ASTER_USD_PRICE).toFixed(6)}`
-                : stats.low24h.toFixed(8)
-              }
-            </p>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <p className="text-xs text-gray-400 mb-1">24h Volume</p>
-            <p className="text-base font-bold text-primary">
-              {priceMode === 'USD'
-                ? `$${stats.volume24hUSD.toFixed(2)}`
-                : `${stats.volume24h.toFixed(2)} ASTER`
-              }
-            </p>
-          </div>
+        {/* OHLC Info Line - Pump.fun Style */}
+        <div className="flex items-center gap-3 text-sm mb-1">
+          <span className="font-medium text-white">
+            {tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'} Price ({priceMode === 'USD' ? 'USD' : 'ASTER'})
+          </span>
+          <span className="text-gray-400">•</span>
+          <span className="text-gray-400">{timeframe === 'all' ? 'All' : timeframe}</span>
+          <span className="text-gray-400">•</span>
+          <span className="text-gray-400">Pump</span>
+          
+          {currentOHLC && (
+            <>
+              <span className="text-green-400">
+                O:{(priceMode === 'USD' ? currentOHLC.open * ASTER_USD_PRICE : currentOHLC.open).toFixed(priceMode === 'USD' ? 4 : 8)}
+              </span>
+              <span className="text-green-400">
+                H:{(priceMode === 'USD' ? currentOHLC.high * ASTER_USD_PRICE : currentOHLC.high).toFixed(priceMode === 'USD' ? 4 : 8)}
+              </span>
+              <span className="text-red-400">
+                L:{(priceMode === 'USD' ? currentOHLC.low * ASTER_USD_PRICE : currentOHLC.low).toFixed(priceMode === 'USD' ? 4 : 8)}
+              </span>
+              <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
+                C:{(priceMode === 'USD' ? currentOHLC.close * ASTER_USD_PRICE : currentOHLC.close).toFixed(priceMode === 'USD' ? 4 : 8)}
+              </span>
+              <span className={`font-medium ${
+                stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+              }`}>
+                {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Volume Line */}
+        <div className="text-xs text-gray-400">
+          Volume {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(4)} ASTER`}
         </div>
       </div>
 
@@ -824,7 +856,7 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
       {/* Chart Container with Toolbar */}
       <div className="relative">
         {/* Vertical Chart Toolbar - Left Side */}
-        <div className="absolute left-2 top-4 z-10 flex flex-col gap-2">
+        <div className="absolute left-2 top-4 z-10 flex flex-col gap-1">
           {/* Zoom In */}
           <button
             onClick={() => {
@@ -833,10 +865,10 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                 timeScale.scrollToPosition(-5, true)
               }
             }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
             title="Zoom In"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
             </svg>
           </button>
@@ -849,10 +881,10 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                 timeScale.scrollToPosition(5, true)
               }
             }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
             title="Zoom Out"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
             </svg>
           </button>
@@ -864,63 +896,99 @@ export function AdvancedPriceChart({ bondingCurveAddress, tokenSymbol }: Advance
                 chartRef.current.timeScale().fitContent()
               }
             }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-2 rounded-lg transition backdrop-blur-sm"
+            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
             title="Fit to Screen"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
+          </button>
+
+          {/* Divider */}
+          <div className="h-px bg-gray-700 my-1"></div>
+
+          {/* Period Selectors - Moved to toolbar bottom */}
+          <button
+            onClick={() => setTimeframe('1d')}
+            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
+              timeframe === '1d'
+                ? 'bg-primary text-black'
+                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
+            }`}
+            title="1 Day"
+          >
+            1D
+          </button>
+          <button
+            onClick={() => setTimeframe('4h')}
+            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
+              timeframe === '4h'
+                ? 'bg-primary text-black'
+                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
+            }`}
+            title="5 Days"
+          >
+            5D
+          </button>
+          <button
+            onClick={() => setTimeframe('all')}
+            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
+              timeframe === 'all'
+                ? 'bg-primary text-black'
+                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
+            }`}
+            title="1 Month / All"
+          >
+            1M
           </button>
         </div>
         
         <div ref={chartContainerRef} className="w-full" />
-        
-        {/* Period Selectors - Below Chart */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-secondary/90 backdrop-blur-sm border border-gray-700 rounded-lg p-1 flex gap-1">
-            <button
-              onClick={() => setTimeframe('1d')}
-              className={`px-3 py-1 rounded text-xs font-medium transition ${
-                timeframe === '1d'
-                  ? 'bg-primary text-black'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              1D
-            </button>
-            <button
-              onClick={() => {
-                // 5 days = 5 * 24 hours = 120 hours, approximate with 4h timeframe
-                setTimeframe('4h')
-              }}
-              className={`px-3 py-1 rounded text-xs font-medium transition ${
-                timeframe === '4h'
-                  ? 'bg-primary text-black'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              5D
-            </button>
-            <button
-              onClick={() => setTimeframe('all')}
-              className={`px-3 py-1 rounded text-xs font-medium transition ${
-                timeframe === 'all'
-                  ? 'bg-primary text-black'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              1M
-            </button>
-            <button
-              onClick={() => setTimeframe('all')}
-              className={`px-3 py-1 rounded text-xs font-medium transition ${
-                timeframe === 'all'
-                  ? 'bg-primary text-black'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              All
-            </button>
+      </div>
+
+      {/* Stats Row Below Chart - Pump.fun Style */}
+      <div className="px-6 py-3 bg-secondary border-t border-gray-700">
+        <div className="flex items-center gap-6 text-sm">
+          <div>
+            <span className="text-gray-400">Vol 24h: </span>
+            <span className="font-bold text-white">
+              {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(4)} ASTER`}
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-400">Price: </span>
+            <span className={`font-bold ${
+              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {priceMode === 'USD'
+                ? `$${stats.currentPriceUSD.toFixed(6)}`
+                : `${stats.currentPrice.toFixed(8)} ASTER`
+              }
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-400">5m: </span>
+            <span className={`font-bold ${
+              periodChanges['5m'] >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(2)}%
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-400">1h: </span>
+            <span className={`font-bold ${
+              periodChanges['1h'] >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(2)}%
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-400">6h: </span>
+            <span className={`font-bold ${
+              periodChanges['6h'] >= 0 ? 'text-green-500' : 'text-red-500'
+            }`}>
+              {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(2)}%
+            </span>
           </div>
         </div>
       </div>
