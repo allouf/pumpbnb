@@ -195,7 +195,7 @@ class OHLCVService {
 
       const existing = candlesMap.get(candleTime);
       const price = trade.price;
-      const volume = BigInt(trade.asterAmount);
+      const volume = BigInt(trade.asterAmount || '0');
 
       if (!existing) {
         candlesMap.set(candleTime, {

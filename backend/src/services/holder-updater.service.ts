@@ -335,7 +335,7 @@ export class HolderUpdaterService extends EventEmitter {
 
     for (const trade of trades) {
       const trader = trade.trader.toLowerCase();
-      const amount = BigInt(trade.tokenAmount);
+      const amount = BigInt(trade.tokenAmount || '0');
 
       const existing = balances.get(trader) || {
         balance: BigInt(0),

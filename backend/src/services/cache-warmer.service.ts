@@ -353,7 +353,7 @@ export class CacheWarmerService {
     });
 
     const totalVolume = trades.reduce(
-      (sum, t) => sum + BigInt(t.asterAmount),
+      (sum, t) => sum + BigInt(t.asterAmount || '0'),
       BigInt(0)
     );
 

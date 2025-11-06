@@ -68,6 +68,8 @@ class TokensService {
         ...trade,
         price: trade.price ?? undefined,
         marketCap: trade.marketCap ?? undefined,
+        asterAmount: trade.asterAmount ?? '0',
+        tokenAmount: trade.tokenAmount ?? '0',
       })),
       topHolders,
       recentComments: recentComments.map(comment => ({

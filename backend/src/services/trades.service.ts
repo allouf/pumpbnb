@@ -250,7 +250,7 @@ class TradesService {
     let sellCount = 0;
 
     trades.forEach((trade) => {
-      const volume = BigInt(trade.asterAmount);
+      const volume = BigInt(trade.asterAmount || '0');
       totalVolume += volume;
 
       if (trade.isBuy) {
