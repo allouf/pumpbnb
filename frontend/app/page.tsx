@@ -137,13 +137,18 @@ export default function Home() {
 
       {/* Token Grid */}
       {!isLoading && tokens.length > 0 && (
-        <div
-          className={`grid gap-4 ${
-            viewMode === 'grid'
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-              : 'grid-cols-1'
-          }`}
-        >
+        <>
+          {/* Debug: Show current view mode */}
+          <div className="text-xs text-gray-500">
+            Current view: {viewMode} mode
+          </div>
+          <div
+            className={`grid gap-4 ${
+              viewMode === 'grid'
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                : 'grid-cols-1'
+            }`}
+          >
           {tokens.map((token) => (
             <TokenCard
               key={token.address}
@@ -152,7 +157,8 @@ export default function Home() {
               showAnimations={showAnimations}
             />
           ))}
-        </div>
+          </div>
+        </>
       )}
 
       {/* Empty State */}

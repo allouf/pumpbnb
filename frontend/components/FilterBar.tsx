@@ -25,6 +25,7 @@ export function FilterBar({ onFilterChange, onViewModeChange, onSortChange, onAd
   });
   
   const handleViewModeChange = (mode: 'grid' | 'list') => {
+    console.log('[FilterBar] View mode changed to:', mode);
     setViewMode(mode);
     onViewModeChange?.(mode);
   };
@@ -108,26 +109,34 @@ export function FilterBar({ onFilterChange, onViewModeChange, onSortChange, onAd
           
           <div className="flex border border-gray-700 rounded-lg overflow-hidden">
             <button
-              onClick={() => handleViewModeChange('grid')}
-              className={`p-2 transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-primary text-black' 
+              onClick={() => {
+                console.log('[FilterBar] Grid button clicked');
+                handleViewModeChange('grid');
+              }}
+              className={`p-2 transition-colors cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-primary text-black font-bold'
                   : 'text-gray-400 hover:text-white hover:bg-secondary-light'
               }`}
               aria-label="Grid view"
+              title="Grid view"
             >
-              <Squares2X2Icon className="w-4 h-4" />
+              <Squares2X2Icon className="w-5 h-5" />
             </button>
             <button
-              onClick={() => handleViewModeChange('list')}
-              className={`p-2 transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-primary text-black' 
+              onClick={() => {
+                console.log('[FilterBar] List button clicked');
+                handleViewModeChange('list');
+              }}
+              className={`p-2 transition-colors cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-primary text-black font-bold'
                   : 'text-gray-400 hover:text-white hover:bg-secondary-light'
               }`}
               aria-label="List view"
+              title="List view"
             >
-              <ListBulletIcon className="w-4 h-4" />
+              <ListBulletIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
