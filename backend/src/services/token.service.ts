@@ -12,11 +12,19 @@ export class TokenService {
     const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = params;
     const skip = (page - 1) * limit;
 
+    // Stats fields that need to be accessed via the stats relation
+    const statsFields = ['volume24h', 'volumeTotal', 'priceChange24h', 'holders', 'transactions'];
+
+    // Build orderBy clause based on field type
+    const orderBy = statsFields.includes(sortBy)
+      ? { stats: { [sortBy]: sortOrder } }
+      : { [sortBy]: sortOrder };
+
     const [tokens, total] = await Promise.all([
       prisma.token.findMany({
         skip,
         take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy,
         include: {
           stats: true,
         },
