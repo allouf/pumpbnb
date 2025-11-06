@@ -53,8 +53,16 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-app.use('/api', apiLimiter);
+// Rate limiting - Only apply to write operations (POST/PUT/DELETE/PATCH)
+// GET requests to our own database don't need rate limiting
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    // Skip rate limiting for read-only operations
+    return next();
+  }
+  // Apply rate limiting to write operations
+  return apiLimiter(req, res, next);
+});
 
 // Health check routes (detailed system status)
 app.use('/', healthRoutes);
