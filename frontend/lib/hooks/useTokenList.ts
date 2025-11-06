@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { cachedFetch } from '@/lib/utils/fetchWithRetry'
 
 export interface Token {
   address: string
@@ -69,18 +70,17 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
       console.log('[useTokenList] Fetching tokens from:', url)
       console.log('[useTokenList] Filters:', filters)
 
-      // Fetch tokens from backend API
-      const response = await fetch(url)
+      // Fetch tokens from backend API with caching and retry
+      const data = await cachedFetch(url, {
+        cacheTTL: 5000, // Cache for 5 seconds
+        retries: 3,
+        retryDelay: 1000,
+        bypassCache: !showLoading, // Bypass cache for background updates
+        onRetry: (attempt, error) => {
+          console.warn(`[useTokenList] Retry attempt ${attempt}:`, error)
+        },
+      })
 
-      console.log('[useTokenList] Response status:', response.status, response.statusText)
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('[useTokenList] Error response body:', errorText)
-        throw new Error(`Failed to fetch tokens: ${response.statusText}`)
-      }
-
-      const data = await response.json()
       console.log('[useTokenList] Response data:', data)
 
       if (!data.success) {

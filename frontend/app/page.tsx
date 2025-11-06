@@ -7,6 +7,7 @@ import { TrendingSection } from '@/components/TrendingSection';
 import { FilterBar } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
 import { FilterValues } from '@/components/FilterModal';
+import { cachedFetch } from '@/lib/utils/fetchWithRetry';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -48,20 +49,23 @@ export default function Home() {
         setIsTrendingLoading(true);
         const url = `${API_URL}/api/v2/tokens/trending?limit=10`;
         console.log('[Home] Trending URL:', url);
-        const response = await fetch(url);
-        console.log('[Home] Trending response status:', response.status, response.statusText);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[Home] Trending error response:', errorText);
-          throw new Error('Failed to fetch trending tokens');
-        }
-        const data = await response.json();
+        // Use cachedFetch with retry logic
+        const data = await cachedFetch(url, {
+          cacheTTL: 10000, // Cache for 10 seconds
+          retries: 3,
+          retryDelay: 1000,
+          onRetry: (attempt, error) => {
+            console.warn(`[Home] Trending retry attempt ${attempt}:`, error);
+          },
+        });
+
         console.log('[Home] Trending data received:', data);
         setTrendingTokens(data.data || []);
         console.log('[Home] Trending tokens set:', data.data?.length || 0, 'tokens');
       } catch (err) {
         console.error('[Home] Error fetching trending tokens:', err);
+        // Don't show error to user for trending - just silently fail
       } finally {
         setIsTrendingLoading(false);
       }
