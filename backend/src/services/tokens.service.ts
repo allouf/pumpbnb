@@ -193,26 +193,27 @@ class TokensService {
 
     const skip = (page - 1) * limit;
 
-    // Build order by
-    let orderBy: any = {};
+    // Build order by - use array format for stats fields
+    let orderBy: any;
     if (sortBy === 'createdAt' || sortBy === 'oldestCoins') {
       orderBy = { createdAt: sortBy === 'oldestCoins' ? 'asc' : sortOrder };
     } else if (sortBy === 'marketCap' || sortBy === 'volume24h' || sortBy === 'trades24h' || sortBy === 'highestMcap' || sortBy === 'topGainers') {
       const field = sortBy === 'highestMcap' ? 'marketCap' : sortBy === 'topGainers' ? 'priceChange24h' : sortBy;
-      orderBy = {
-        stats: {
-          [field]: sortBy === 'highestMcap' || sortBy === 'topGainers' ? 'desc' : sortOrder,
-        },
-      };
-    } else if (sortBy === 'lastTraded') {
-      // Order by most recent trade
+      const order = sortBy === 'highestMcap' || sortBy === 'topGainers' ? 'desc' : sortOrder;
+      // Use fallback ordering to handle tokens without stats
       orderBy = [
-        { trades: { _count: 'desc' } },
-        { createdAt: 'desc' },
+        { stats: { [field]: order } },
+        { createdAt: 'desc' }, // Fallback for tokens without stats
       ];
+    } else if (sortBy === 'lastTraded') {
+      // Order by createdAt for now - lastTraded requires complex query
+      orderBy = { createdAt: 'desc' };
     } else if (sortBy === 'lastReply') {
-      // This will need a subquery - for now use createdAt
+      // Order by createdAt for now - lastReply requires complex query
       orderBy = { createdAt: sortOrder };
+    } else {
+      // Default fallback
+      orderBy = { createdAt: 'desc' };
     }
 
     const [tokens, total] = await Promise.all([
