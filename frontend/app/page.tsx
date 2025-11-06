@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
@@ -25,8 +25,8 @@ export default function Home() {
   const [trendingTokens, setTrendingTokens] = useState<any[]>([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState(true);
 
-  // Build token list filters from state
-  const tokenFilters: TokenListFilters = {
+  // Memoize token list filters to prevent infinite loop
+  const tokenFilters: TokenListFilters = useMemo(() => ({
     sortBy: mapSortOptionToBackend(sortOption),
     sortOrder: sortOption === 'oldestCoins' ? 'asc' : 'desc',
     isGraduated: sortOption === 'currentlyLive' ? false : undefined,
@@ -36,10 +36,10 @@ export default function Home() {
     minVolume24h: advancedFilters.minVolume > 0 ? advancedFilters.minVolume : undefined,
     maxVolume24h: advancedFilters.maxVolume < 500 ? advancedFilters.maxVolume : undefined,
     limit: 100,
-  };
+  }), [sortOption, showNsfw, advancedFilters.minMcap, advancedFilters.maxMcap, advancedFilters.minVolume, advancedFilters.maxVolume]);
 
-  // Fetch all tokens with current filters
-  const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters });
+  // Fetch all tokens with current filters - NO POLLING
+  const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters, disablePolling: true });
 
   // Fetch trending tokens ONCE on page load only
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { cachedFetch } from '@/lib/utils/fetchWithRetry'
 
 export interface Token {
@@ -28,112 +28,127 @@ export interface TokenListFilters {
   limit?: number
 }
 
-export function useTokenList(options?: { pollingInterval?: number; filters?: TokenListFilters }) {
+export function useTokenList(options?: { pollingInterval?: number; filters?: TokenListFilters; disablePolling?: boolean }) {
   const [tokens, setTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const pollingInterval = options?.pollingInterval || 30000 // Default: 30 seconds (reduced API calls)
+  const pollingInterval = options?.pollingInterval || 30000
+  const disablePolling = options?.disablePolling || false
   const filters = options?.filters || {}
+  const isMounted = useRef(true)
+  const fetchTokensRef = useRef<() => Promise<void>>()
 
-  const fetchTokens = useCallback(async (showLoading = true) => {
-    try {
-      if (showLoading) {
-        setIsLoading(true)
-      }
+  // Single effect for initial fetch and optional polling
+  useEffect(() => {
+    isMounted.current = true
+    let interval: NodeJS.Timeout | null = null
 
-      // Build query string from filters
-      const params = new URLSearchParams()
-      params.append('limit', (filters.limit || 100).toString())
-      params.append('sortBy', filters.sortBy || 'createdAt')
-      params.append('sortOrder', filters.sortOrder || 'desc')
+    const fetchTokens = async (showLoading = true) => {
+      try {
+        if (showLoading) {
+          setIsLoading(true)
+        }
 
-      if (filters.isGraduated !== undefined) {
-        params.append('isGraduated', filters.isGraduated.toString())
-      }
-      if (filters.isNsfw !== undefined) {
-        params.append('isNsfw', filters.isNsfw.toString())
-      }
-      if (filters.minMarketCap !== undefined) {
-        params.append('minMarketCap', filters.minMarketCap.toString())
-      }
-      if (filters.maxMarketCap !== undefined) {
-        params.append('maxMarketCap', filters.maxMarketCap.toString())
-      }
-      if (filters.minVolume24h !== undefined) {
-        params.append('minVolume24h', filters.minVolume24h.toString())
-      }
-      if (filters.maxVolume24h !== undefined) {
-        params.append('maxVolume24h', filters.maxVolume24h.toString())
-      }
+        // Build query string from filters
+        const params = new URLSearchParams()
+        params.append('limit', (filters.limit || 100).toString())
+        params.append('sortBy', filters.sortBy || 'createdAt')
+        params.append('sortOrder', filters.sortOrder || 'desc')
 
-      const url = `${API_URL}/api/v2/tokens?${params.toString()}`
-      console.log('[useTokenList] Fetching tokens from:', url)
-      console.log('[useTokenList] Filters:', filters)
+        if (filters.isGraduated !== undefined) {
+          params.append('isGraduated', filters.isGraduated.toString())
+        }
+        if (filters.isNsfw !== undefined) {
+          params.append('isNsfw', filters.isNsfw.toString())
+        }
+        if (filters.minMarketCap !== undefined) {
+          params.append('minMarketCap', filters.minMarketCap.toString())
+        }
+        if (filters.maxMarketCap !== undefined) {
+          params.append('maxMarketCap', filters.maxMarketCap.toString())
+        }
+        if (filters.minVolume24h !== undefined) {
+          params.append('minVolume24h', filters.minVolume24h.toString())
+        }
+        if (filters.maxVolume24h !== undefined) {
+          params.append('maxVolume24h', filters.maxVolume24h.toString())
+        }
 
-      // Fetch tokens from backend API with caching and retry
-      const data = await cachedFetch(url, {
-        cacheTTL: 5000, // Cache for 5 seconds
-        retries: 3,
-        retryDelay: 1000,
-        bypassCache: !showLoading, // Bypass cache for background updates
-        onRetry: (attempt, error) => {
-          console.warn(`[useTokenList] Retry attempt ${attempt}:`, error)
-        },
-      })
+        const url = `${API_URL}/api/v2/tokens?${params.toString()}`
+        console.log('[useTokenList] Fetching tokens from:', url)
 
-      console.log('[useTokenList] Response data:', data)
+        // Fetch tokens from backend API with caching and retry
+        const data = await cachedFetch(url, {
+          cacheTTL: 30000, // Cache for 30 seconds
+          retries: 2,
+          retryDelay: 1000,
+          bypassCache: !showLoading,
+          onRetry: (attempt, error) => {
+            console.warn(`[useTokenList] Retry attempt ${attempt}:`, error)
+          },
+        })
 
-      if (!data.success) {
-        console.error('[useTokenList] API returned success=false:', data)
-        throw new Error(data.message || 'Failed to fetch tokens')
-      }
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch tokens')
+        }
 
-      console.log('[useTokenList] Raw token data:', data.data)
+        // Transform backend data to match Token interface
+        const tokenList: Token[] = data.data.map((token: any) => ({
+          address: token.address,
+          bondingCurve: token.bondingCurve,
+          creator: token.creator,
+          name: token.name,
+          symbol: token.symbol,
+          timestamp: new Date(token.createdAt).getTime() / 1000,
+          description: token.description,
+          imageUrl: token.imageUrl,
+          isGraduated: token.isGraduated,
+          isNsfw: token.isNsfw,
+        }))
 
-      // Transform backend data to match Token interface
-      const tokenList: Token[] = data.data.map((token: any) => ({
-        address: token.address,
-        bondingCurve: token.bondingCurve,
-        creator: token.creator,
-        name: token.name,
-        symbol: token.symbol,
-        timestamp: new Date(token.createdAt).getTime() / 1000, // Convert to Unix timestamp
-        description: token.description,
-        imageUrl: token.imageUrl,
-        isGraduated: token.isGraduated,
-        isNsfw: token.isNsfw,
-      }))
+        console.log('[useTokenList] Loaded', tokenList.length, 'tokens')
 
-      console.log('[useTokenList] Transformed token list:', tokenList.length, 'tokens')
-      setTokens(tokenList)
-      setError(null)
-    } catch (err) {
-      console.error('[useTokenList] Error fetching tokens:', err)
-      setError(err as Error)
-    } finally {
-      if (showLoading) {
-        setIsLoading(false)
+        if (isMounted.current) {
+          setTokens(tokenList)
+          setError(null)
+        }
+      } catch (err) {
+        console.error('[useTokenList] Error:', err)
+        if (isMounted.current) {
+          setError(err as Error)
+        }
+      } finally {
+        if (showLoading && isMounted.current) {
+          setIsLoading(false)
+        }
       }
     }
-  }, [filters])
 
-  // Initial fetch
-  useEffect(() => {
-    fetchTokens()
-  }, [fetchTokens])
+    // Store reference
+    fetchTokensRef.current = () => fetchTokens(true)
 
-  // Polling for updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchTokens(false) // Don't show loading spinner for background updates
-    }, pollingInterval)
+    // Initial fetch
+    fetchTokens(true)
 
-    return () => clearInterval(interval)
-  }, [fetchTokens, pollingInterval])
+    // Setup polling only if not disabled
+    if (!disablePolling) {
+      interval = setInterval(() => {
+        fetchTokens(false)
+      }, pollingInterval)
+    }
+
+    // Cleanup
+    return () => {
+      isMounted.current = false
+      if (interval) {
+        clearInterval(interval)
+      }
+    }
+  }, [filters, pollingInterval, disablePolling])
 
   const refetch = useCallback(() => {
-    fetchTokens(true)
-  }, [fetchTokens])
+    fetchTokensRef.current?.()
+  }, [])
 
   return { tokens, isLoading, error, refetch }
 }
