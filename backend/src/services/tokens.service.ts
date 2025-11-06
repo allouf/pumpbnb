@@ -195,24 +195,26 @@ class TokensService {
 
     const skip = (page - 1) * limit;
 
-    // Build order by - use array format for stats fields
+    // Build order by - fallback to createdAt when stats filters exist
+    // Prisma has issues with nested orderBy when where.stats is also present
     let orderBy: any;
+    const hasStatsFilters = where.stats !== undefined;
+    
     if (sortBy === 'createdAt' || sortBy === 'oldestCoins') {
       orderBy = { createdAt: sortBy === 'oldestCoins' ? 'asc' : sortOrder };
     } else if (sortBy === 'marketCap' || sortBy === 'volume24h' || sortBy === 'trades24h' || sortBy === 'highestMcap' || sortBy === 'topGainers') {
-      const field = sortBy === 'highestMcap' ? 'marketCap' : sortBy === 'topGainers' ? 'priceChange24h' : sortBy;
-      const order = sortBy === 'highestMcap' || sortBy === 'topGainers' ? 'desc' : sortOrder;
-      // Use fallback ordering to handle tokens without stats
-      orderBy = [
-        { stats: { [field]: order } },
-        { createdAt: 'desc' }, // Fallback for tokens without stats
-      ];
-    } else if (sortBy === 'lastTraded') {
-      // Order by createdAt for now - lastTraded requires complex query
-      orderBy = { createdAt: 'desc' };
-    } else if (sortBy === 'lastReply') {
-      // Order by createdAt for now - lastReply requires complex query
-      orderBy = { createdAt: sortOrder };
+      if (hasStatsFilters) {
+        // Fallback to createdAt when stats filters are present (Prisma limitation)
+        orderBy = { createdAt: 'desc' };
+      } else {
+        const field = sortBy === 'highestMcap' ? 'marketCap' : sortBy === 'topGainers' ? 'priceChange24h' : sortBy;
+        const order = sortBy === 'highestMcap' || sortBy === 'topGainers' ? 'desc' : sortOrder;
+        // Use single nested orderBy
+        orderBy = { stats: { [field]: order } };
+      }
+    } else if (sortBy === 'lastTraded' || sortBy === 'lastReply') {
+      // Order by createdAt for now - complex queries require raw SQL
+      orderBy = { createdAt: sortOrder === 'asc' ? 'asc' : 'desc' };
     } else {
       // Default fallback
       orderBy = { createdAt: 'desc' };
