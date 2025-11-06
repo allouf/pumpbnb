@@ -32,7 +32,7 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
   const [tokens, setTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const pollingInterval = options?.pollingInterval || 10000 // Default: 10 seconds
+  const pollingInterval = options?.pollingInterval || 30000 // Default: 30 seconds (reduced API calls)
   const filters = options?.filters || {}
 
   const fetchTokens = useCallback(async (showLoading = true) => {

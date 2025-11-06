@@ -41,7 +41,7 @@ export default function Home() {
   // Fetch all tokens with current filters
   const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters });
 
-  // Fetch trending tokens
+  // Fetch trending tokens ONCE on page load only
   useEffect(() => {
     const fetchTrending = async () => {
       try {
@@ -52,7 +52,7 @@ export default function Home() {
 
         // Use cachedFetch with retry logic
         const data = await cachedFetch(url, {
-          cacheTTL: 10000, // Cache for 10 seconds
+          cacheTTL: 60000, // Cache for 1 minute (since we don't poll)
           retries: 3,
           retryDelay: 1000,
           onRetry: (attempt, error) => {
@@ -71,10 +71,8 @@ export default function Home() {
       }
     };
 
+    // Fetch ONLY ONCE on mount - no polling!
     fetchTrending();
-    // Refresh trending every 30 seconds
-    const interval = setInterval(fetchTrending, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   // Watch for new token events
