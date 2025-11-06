@@ -135,29 +135,98 @@ export default function Home() {
         </div>
       )}
 
-      {/* Token Grid */}
+      {/* Token Display */}
       {!isLoading && tokens.length > 0 && (
         <>
-          {/* Debug: Show current view mode */}
-          <div className="text-xs text-gray-500">
-            Current view: {viewMode} mode
-          </div>
-          <div
-            className={`grid gap-4 ${
-              viewMode === 'grid'
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                : 'grid-cols-1'
-            }`}
-          >
-          {tokens.map((token) => (
-            <TokenCard
-              key={token.address}
-              token={token}
-              compact={viewMode === 'list'}
-              showAnimations={showAnimations}
-            />
-          ))}
-          </div>
+          {viewMode === 'grid' ? (
+            /* Grid View */
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {tokens.map((token) => (
+                <TokenCard
+                  key={token.address}
+                  token={token}
+                  compact={false}
+                  showAnimations={showAnimations}
+                />
+              ))}
+            </div>
+          ) : (
+            /* List View - Table Format like pump.fun */
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-gray-400 border-b border-gray-800">
+                  <tr>
+                    <th className="text-left py-3 px-4">#</th>
+                    <th className="text-left py-3 px-4">COIN</th>
+                    <th className="text-left py-3 px-4">MCAP</th>
+                    <th className="text-left py-3 px-4">PRICE</th>
+                    <th className="text-left py-3 px-4">AGE</th>
+                    <th className="text-left py-3 px-4">24H VOL</th>
+                    <th className="text-left py-3 px-4">TRADERS</th>
+                    <th className="text-left py-3 px-4">TXNS</th>
+                    <th className="text-left py-3 px-4">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokens.map((token, index) => (
+                    <tr
+                      key={token.address}
+                      className="border-b border-gray-800 hover:bg-secondary-light/30 transition-colors cursor-pointer"
+                      onClick={() => window.location.href = `/token/${token.address}`}
+                    >
+                      <td className="py-4 px-4 text-gray-500">#{index + 1}</td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={token.imageUrl || '/placeholder-token.png'}
+                            alt={token.name}
+                            className="w-10 h-10 rounded-full"
+                          />
+                          <div>
+                            <div className="font-semibold text-white">{token.name}</div>
+                            <div className="text-xs text-gray-400">{token.symbol}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-white font-medium">
+                        ${((token as any).stats?.marketCap || '0')}
+                      </td>
+                      <td className="py-4 px-4 text-white">
+                        ${((token as any).stats?.currentPrice || '0')}
+                      </td>
+                      <td className="py-4 px-4 text-gray-400">
+                        {(() => {
+                          const now = Date.now();
+                          const created = token.timestamp * 1000;
+                          const diff = now - created;
+                          const hours = Math.floor(diff / (1000 * 60 * 60));
+                          const days = Math.floor(hours / 24);
+                          if (days > 0) return `${days}d`;
+                          return `${hours}h`;
+                        })()}
+                      </td>
+                      <td className="py-4 px-4 text-white">
+                        ${((token as any).stats?.volume24h || '0')}
+                      </td>
+                      <td className="py-4 px-4 text-gray-400">
+                        {((token as any).stats?.holders || '0')}
+                      </td>
+                      <td className="py-4 px-4 text-gray-400">
+                        {((token as any).stats?.transactions || '0')}
+                      </td>
+                      <td className="py-4 px-4">
+                        {token.isGraduated ? (
+                          <span className="text-green-500 text-xs font-semibold">GRADUATED</span>
+                        ) : (
+                          <span className="text-primary text-xs font-semibold">LIVE</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
       )}
 
