@@ -12,6 +12,13 @@ const router = Router();
  */
 
 /**
+ * @route   GET /api/v2/tokens
+ * @desc    Get all tokens with filtering, sorting and pagination
+ * @access  Public
+ */
+router.get('/', tokensController.getTokens.bind(tokensController));
+
+/**
  * @route   GET /api/v2/tokens/search
  * @desc    Search tokens by name, symbol, or address
  * @access  Public
