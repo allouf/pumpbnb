@@ -66,7 +66,7 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
       }
 
       // Fetch tokens from backend API
-      const response = await fetch(`${API_URL}/api/tokens?${params.toString()}`)
+      const response = await fetch(`${API_URL}/api/v2/tokens?${params.toString()}`)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch tokens: ${response.statusText}`)
