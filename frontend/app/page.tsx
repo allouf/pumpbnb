@@ -26,6 +26,7 @@ export default function Home() {
   const [isTrendingLoading, setIsTrendingLoading] = useState(true);
 
   // Memoize token list filters to prevent infinite loop
+  // Use JSON.stringify for advancedFilters to ensure proper dependency tracking
   const tokenFilters: TokenListFilters = useMemo(() => ({
     sortBy: mapSortOptionToBackend(sortOption),
     sortOrder: sortOption === 'oldestCoins' ? 'asc' : 'desc',
@@ -36,7 +37,7 @@ export default function Home() {
     minVolume24h: advancedFilters.minVolume > 0 ? advancedFilters.minVolume : undefined,
     maxVolume24h: advancedFilters.maxVolume < 500 ? advancedFilters.maxVolume : undefined,
     limit: 100,
-  }), [sortOption, showNsfw, advancedFilters.minMcap, advancedFilters.maxMcap, advancedFilters.minVolume, advancedFilters.maxVolume]);
+  }), [sortOption, showNsfw, JSON.stringify(advancedFilters)]);
 
   // Fetch all tokens with current filters - NO POLLING
   const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters, disablePolling: true });

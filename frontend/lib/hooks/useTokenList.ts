@@ -40,6 +40,7 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
 
   // Single effect for initial fetch and optional polling
   useEffect(() => {
+    console.log('[useTokenList] Effect triggered - filters changed')
     isMounted.current = true
     let interval: NodeJS.Timeout | null = null
 
@@ -144,7 +145,9 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
         clearInterval(interval)
       }
     }
-  }, [filters, pollingInterval, disablePolling])
+    // Use JSON.stringify to properly detect filter changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters), pollingInterval, disablePolling])
 
   const refetch = useCallback(() => {
     fetchTokensRef.current?.()
