@@ -99,7 +99,12 @@ class TokensController {
         sortBy = 'createdAt',
         sortOrder = 'desc',
         isGraduated,
+        isNsfw,
         search,
+        minMarketCap,
+        maxMarketCap,
+        minVolume24h,
+        maxVolume24h,
       } = req.query;
 
       const result = await tokensService.getTokens({
@@ -108,7 +113,12 @@ class TokensController {
         sortBy: sortBy as any,
         sortOrder: sortOrder as any,
         isGraduated: isGraduated ? isGraduated === 'true' : undefined,
+        isNsfw: isNsfw ? isNsfw === 'true' : undefined,
         search: search as string,
+        minMarketCap: minMarketCap ? parseFloat(minMarketCap as string) : undefined,
+        maxMarketCap: maxMarketCap ? parseFloat(maxMarketCap as string) : undefined,
+        minVolume24h: minVolume24h ? parseFloat(minVolume24h as string) : undefined,
+        maxVolume24h: maxVolume24h ? parseFloat(maxVolume24h as string) : undefined,
       });
 
       res.json({

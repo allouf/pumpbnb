@@ -124,10 +124,15 @@ class TokensService {
   async getTokens(options: {
     page?: number;
     limit?: number;
-    sortBy?: 'createdAt' | 'marketCap' | 'volume24h' | 'trades24h';
+    sortBy?: 'createdAt' | 'marketCap' | 'volume24h' | 'trades24h' | 'lastTraded' | 'lastReply' | 'oldestCoins' | 'highestMcap' | 'topGainers';
     sortOrder?: 'asc' | 'desc';
     isGraduated?: boolean;
+    isNsfw?: boolean;
     search?: string;
+    minMarketCap?: number;
+    maxMarketCap?: number;
+    minVolume24h?: number;
+    maxVolume24h?: number;
   } = {}): Promise<PaginatedResponse<Token & { stats?: TokenStats }>> {
     const {
       page = 1,
@@ -135,13 +140,22 @@ class TokensService {
       sortBy = 'createdAt',
       sortOrder = 'desc',
       isGraduated,
+      isNsfw,
       search,
+      minMarketCap,
+      maxMarketCap,
+      minVolume24h,
+      maxVolume24h,
     } = options;
 
     const where: Prisma.TokenWhereInput = {};
 
     if (isGraduated !== undefined) {
       where.isGraduated = isGraduated;
+    }
+
+    if (isNsfw !== undefined) {
+      where.isNsfw = isNsfw;
     }
 
     if (search) {
@@ -152,18 +166,53 @@ class TokensService {
       ];
     }
 
+    // Add market cap and volume filters
+    if (minMarketCap !== undefined || maxMarketCap !== undefined || minVolume24h !== undefined || maxVolume24h !== undefined) {
+      where.stats = {};
+      
+      if (minMarketCap !== undefined || maxMarketCap !== undefined) {
+        where.stats.marketCap = {};
+        if (minMarketCap !== undefined) {
+          where.stats.marketCap.gte = minMarketCap.toString();
+        }
+        if (maxMarketCap !== undefined) {
+          where.stats.marketCap.lte = maxMarketCap.toString();
+        }
+      }
+
+      if (minVolume24h !== undefined || maxVolume24h !== undefined) {
+        where.stats.volume24h = {};
+        if (minVolume24h !== undefined) {
+          where.stats.volume24h.gte = minVolume24h.toString();
+        }
+        if (maxVolume24h !== undefined) {
+          where.stats.volume24h.lte = maxVolume24h.toString();
+        }
+      }
+    }
+
     const skip = (page - 1) * limit;
 
     // Build order by
     let orderBy: any = {};
-    if (sortBy === 'createdAt') {
-      orderBy = { createdAt: sortOrder };
-    } else if (sortBy === 'marketCap' || sortBy === 'volume24h' || sortBy === 'trades24h') {
+    if (sortBy === 'createdAt' || sortBy === 'oldestCoins') {
+      orderBy = { createdAt: sortBy === 'oldestCoins' ? 'asc' : sortOrder };
+    } else if (sortBy === 'marketCap' || sortBy === 'volume24h' || sortBy === 'trades24h' || sortBy === 'highestMcap' || sortBy === 'topGainers') {
+      const field = sortBy === 'highestMcap' ? 'marketCap' : sortBy === 'topGainers' ? 'priceChange24h' : sortBy;
       orderBy = {
         stats: {
-          [sortBy === 'marketCap' ? 'marketCap' : sortBy === 'volume24h' ? 'volume24h' : 'trades24h']: sortOrder,
+          [field]: sortBy === 'highestMcap' || sortBy === 'topGainers' ? 'desc' : sortOrder,
         },
       };
+    } else if (sortBy === 'lastTraded') {
+      // Order by most recent trade
+      orderBy = [
+        { trades: { _count: 'desc' } },
+        { createdAt: 'desc' },
+      ];
+    } else if (sortBy === 'lastReply') {
+      // This will need a subquery - for now use createdAt
+      orderBy = { createdAt: sortOrder };
     }
 
     const [tokens, total] = await Promise.all([
@@ -270,11 +319,26 @@ class TokensService {
 
   /**
    * Get trending tokens (by volume, trades, or other metrics)
+   * Filters: marketCap > 5 ASTER (5% progress) AND has trades in last 24 hours
    */
   async getTrendingTokens(limit: number = 10): Promise<(Token & { stats: TokenStats })[]> {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     return prisma.token.findMany({
       where: {
         isGraduated: false, // Only bonding curve tokens
+        stats: {
+          marketCap: {
+            gte: '5', // Minimum 5 ASTER (5% progress)
+          },
+        },
+        trades: {
+          some: {
+            timestamp: {
+              gte: twentyFourHoursAgo,
+            },
+          },
+        },
       },
       include: {
         stats: true,

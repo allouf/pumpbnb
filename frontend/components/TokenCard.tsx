@@ -21,9 +21,10 @@ interface TokenCardProps {
     timestamp?: number;
   };
   compact?: boolean;
+  showAnimations?: boolean;
 }
 
-export function TokenCard({ token, compact = false }: TokenCardProps) {
+export function TokenCard({ token, compact = false, showAnimations = true }: TokenCardProps) {
   // Fetch real bonding curve data
   const { data: reserves } = useReadContract({
     address: token.bondingCurve as `0x${string}`,
@@ -61,7 +62,10 @@ export function TokenCard({ token, compact = false }: TokenCardProps) {
           <img
             src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
             alt={token.name}
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+            className={`w-12 h-12 rounded-full object-cover flex-shrink-0 ${
+              !showAnimations ? 'pointer-events-none' : ''
+            }`}
+            style={!showAnimations ? { imageRendering: 'crisp-edges' } : {}}
             loading="lazy"
           />
         ) : (

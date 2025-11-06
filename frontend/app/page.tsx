@@ -1,89 +1,113 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTokenList } from '@/lib/hooks/useTokenList';
+import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
 import { FilterBar } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
+import { FilterValues } from '@/components/FilterModal';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filters, setFilters] = useState({
-    tab: 'all',
-    showNsfw: false,
+  const [showAnimations, setShowAnimations] = useState(true);
+  const [showNsfw, setShowNsfw] = useState(false);
+  const [sortOption, setSortOption] = useState('featured');
+  const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({
+    minMcap: 0,
+    maxMcap: 1000,
+    minVolume: 0,
+    maxVolume: 500,
   });
-  const [sortBy, setSortBy] = useState('recent');
-  const [allTokens, setAllTokens] = useState<any[]>([]);
-  
-  // Fetch all tokens from blockchain
-  const { tokens, isLoading, error } = useTokenList();
-  
-  // Update local state when tokens load
+  const [trendingTokens, setTrendingTokens] = useState<any[]>([]);
+  const [isTrendingLoading, setIsTrendingLoading] = useState(true);
+
+  // Build token list filters from state
+  const tokenFilters: TokenListFilters = {
+    sortBy: mapSortOptionToBackend(sortOption),
+    sortOrder: sortOption === 'oldestCoins' ? 'asc' : 'desc',
+    isGraduated: sortOption === 'currentlyLive' ? false : undefined,
+    isNsfw: showNsfw ? true : undefined,
+    minMarketCap: advancedFilters.minMcap > 0 ? advancedFilters.minMcap : undefined,
+    maxMarketCap: advancedFilters.maxMcap < 1000 ? advancedFilters.maxMcap : undefined,
+    minVolume24h: advancedFilters.minVolume > 0 ? advancedFilters.minVolume : undefined,
+    maxVolume24h: advancedFilters.maxVolume < 500 ? advancedFilters.maxVolume : undefined,
+    limit: 100,
+  };
+
+  // Fetch all tokens with current filters
+  const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters });
+
+  // Fetch trending tokens
   useEffect(() => {
-    setAllTokens(tokens);
-  }, [tokens]);
-  
-  // Watch for new token events and add them to the list
-  useWatchTokenCreated((event) => {
-    const newToken = {
-      address: event.token,
-      bondingCurve: event.bondingCurve,
-      creator: event.creator,
-      name: event.name,
-      symbol: event.symbol,
-      timestamp: Number(event.timestamp),
+    const fetchTrending = async () => {
+      try {
+        setIsTrendingLoading(true);
+        const response = await fetch(`${API_URL}/api/v2/tokens/trending?limit=10`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch trending tokens');
+        }
+        const data = await response.json();
+        setTrendingTokens(data.data || []);
+      } catch (err) {
+        console.error('Error fetching trending tokens:', err);
+      } finally {
+        setIsTrendingLoading(false);
+      }
     };
-    setAllTokens((prev) => [newToken, ...prev]);
+
+    fetchTrending();
+    // Refresh trending every 30 seconds
+    const interval = setInterval(fetchTrending, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Watch for new token events
+  useWatchTokenCreated((event) => {
+    // New tokens will be picked up by the polling in useTokenList
+    console.log('New token created:', event.token);
   });
-  
-  // Get trending tokens (top 10 by market cap or recent activity)
-  const trendingTokens = [...allTokens]
-    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-    .slice(0, 10);
-  
-  // Sort tokens based on selected sort option
-  const sortedTokens = [...allTokens].sort((a, b) => {
-    switch (sortBy) {
-      case 'recent':
-        return (b.timestamp || 0) - (a.timestamp || 0);
-      case 'marketcap':
-        // Will be implemented when we have market cap data
-        return 0;
-      case 'volume':
-        // Will be implemented when we have volume data
-        return 0;
-      case 'price':
-        // Will be implemented when we have price change data
-        return 0;
-      default:
-        return 0;
+
+  // Handle filter changes from FilterBar
+  const handleFilterChange = (filters: any) => {
+    if (filters.showNsfw !== undefined) {
+      setShowNsfw(filters.showNsfw);
     }
-  });
-  
-  // Filter tokens based on active filters
-  const filteredTokens = sortedTokens.filter(token => {
-    if (filters.tab === 'featured') {
-      // Filter for featured tokens (can be based on market cap, volume, etc.)
-      return true; // For now, show all
+    if (filters.showAnimations !== undefined) {
+      setShowAnimations(filters.showAnimations);
     }
-    return true;
-  });
-  
+    if (filters.sortOption !== undefined) {
+      setSortOption(filters.sortOption);
+    }
+  };
+
+  // Handle sort changes
+  const handleSortChange = (sort: string) => {
+    setSortOption(sort);
+  };
+
+  // Handle advanced filter changes
+  const handleAdvancedFilterChange = (filters: FilterValues) => {
+    setAdvancedFilters(filters);
+  };
+
   return (
     <div className="space-y-6 min-h-screen">
       {/* Trending Section */}
-      {trendingTokens.length > 0 && (
+      {!isTrendingLoading && trendingTokens.length > 0 && (
         <TrendingSection tokens={trendingTokens} />
       )}
-      
+
       {/* Filter Bar */}
-      <FilterBar 
-        onFilterChange={setFilters}
+      <FilterBar
+        onFilterChange={handleFilterChange}
         onViewModeChange={setViewMode}
-        onSortChange={setSortBy}
+        onSortChange={handleSortChange}
+        onAdvancedFilterChange={handleAdvancedFilterChange}
       />
-      
+
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-12">
@@ -91,29 +115,36 @@ export default function Home() {
           <p className="mt-4 text-gray-400">Loading tokens...</p>
         </div>
       )}
-      
+
       {/* Error State */}
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-500">Error loading tokens: {error.message}</p>
         </div>
       )}
-      
+
       {/* Token Grid */}
-      {!isLoading && filteredTokens.length > 0 && (
-        <div className={`grid gap-4 ${
-          viewMode === 'grid' 
-            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-            : 'grid-cols-1'
-        }`}>
-          {filteredTokens.map((token) => (
-            <TokenCard key={token.address} token={token} compact={viewMode === 'list'} />
+      {!isLoading && tokens.length > 0 && (
+        <div
+          className={`grid gap-4 ${
+            viewMode === 'grid'
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              : 'grid-cols-1'
+          }`}
+        >
+          {tokens.map((token) => (
+            <TokenCard
+              key={token.address}
+              token={token}
+              compact={viewMode === 'list'}
+              showAnimations={showAnimations}
+            />
           ))}
         </div>
       )}
-      
+
       {/* Empty State */}
-      {!isLoading && filteredTokens.length === 0 && !error && (
+      {!isLoading && tokens.length === 0 && !error && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🚀</div>
           <h3 className="text-xl font-semibold mb-2 text-white">No tokens yet</h3>
@@ -128,4 +159,19 @@ export default function Home() {
       )}
     </div>
   );
+}
+
+// Helper function to map frontend sort options to backend sortBy values
+function mapSortOptionToBackend(sortOption: string): string {
+  const mapping: Record<string, string> = {
+    featured: 'volume24h',
+    createdAt: 'createdAt',
+    lastTraded: 'lastTraded',
+    oldestCoins: 'oldestCoins',
+    lastReply: 'lastReply',
+    currentlyLive: 'createdAt', // Will be filtered by isGraduated=false
+    highestMcap: 'highestMcap',
+    topGainers: 'topGainers',
+  };
+  return mapping[sortOption] || 'createdAt';
 }

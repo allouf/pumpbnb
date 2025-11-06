@@ -23,6 +23,7 @@ model Token {
   blockNumber     Int       @default(0)
   graduatedAt     DateTime?
   isGraduated     Boolean   @default(false)
+  isNsfw          Boolean   @default(false)
   ipfsHash        String?
   website         String?
   twitter         String?
@@ -35,6 +36,7 @@ model Token {
   @@index([creator])
   @@index([createdAt])
   @@index([isGraduated])
+  @@index([isNsfw])
   @@index([blockNumber])
   @@map("tokens")
 }
