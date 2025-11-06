@@ -44,15 +44,24 @@ export default function Home() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
+        console.log('[Home] Fetching trending tokens...');
         setIsTrendingLoading(true);
-        const response = await fetch(`${API_URL}/api/v2/tokens/trending?limit=10`);
+        const url = `${API_URL}/api/v2/tokens/trending?limit=10`;
+        console.log('[Home] Trending URL:', url);
+        const response = await fetch(url);
+        console.log('[Home] Trending response status:', response.status, response.statusText);
+
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[Home] Trending error response:', errorText);
           throw new Error('Failed to fetch trending tokens');
         }
         const data = await response.json();
+        console.log('[Home] Trending data received:', data);
         setTrendingTokens(data.data || []);
+        console.log('[Home] Trending tokens set:', data.data?.length || 0, 'tokens');
       } catch (err) {
-        console.error('Error fetching trending tokens:', err);
+        console.error('[Home] Error fetching trending tokens:', err);
       } finally {
         setIsTrendingLoading(false);
       }

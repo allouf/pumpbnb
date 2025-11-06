@@ -45,7 +45,7 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
       params.append('limit', (filters.limit || 100).toString())
       params.append('sortBy', filters.sortBy || 'createdAt')
       params.append('sortOrder', filters.sortOrder || 'desc')
-      
+
       if (filters.isGraduated !== undefined) {
         params.append('isGraduated', filters.isGraduated.toString())
       }
@@ -65,18 +65,30 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
         params.append('maxVolume24h', filters.maxVolume24h.toString())
       }
 
+      const url = `${API_URL}/api/v2/tokens?${params.toString()}`
+      console.log('[useTokenList] Fetching tokens from:', url)
+      console.log('[useTokenList] Filters:', filters)
+
       // Fetch tokens from backend API
-      const response = await fetch(`${API_URL}/api/v2/tokens?${params.toString()}`)
+      const response = await fetch(url)
+
+      console.log('[useTokenList] Response status:', response.status, response.statusText)
 
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[useTokenList] Error response body:', errorText)
         throw new Error(`Failed to fetch tokens: ${response.statusText}`)
       }
 
       const data = await response.json()
+      console.log('[useTokenList] Response data:', data)
 
       if (!data.success) {
+        console.error('[useTokenList] API returned success=false:', data)
         throw new Error(data.message || 'Failed to fetch tokens')
       }
+
+      console.log('[useTokenList] Raw token data:', data.data)
 
       // Transform backend data to match Token interface
       const tokenList: Token[] = data.data.map((token: any) => ({
@@ -92,10 +104,11 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
         isNsfw: token.isNsfw,
       }))
 
+      console.log('[useTokenList] Transformed token list:', tokenList.length, 'tokens')
       setTokens(tokenList)
       setError(null)
     } catch (err) {
-      console.error('Error fetching tokens:', err)
+      console.error('[useTokenList] Error fetching tokens:', err)
       setError(err as Error)
     } finally {
       if (showLoading) {
