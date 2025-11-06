@@ -47,7 +47,7 @@ export default function Home() {
       try {
         console.log('[Home] Fetching trending tokens...');
         setIsTrendingLoading(true);
-        const url = `${API_URL}/api/v2/tokens/trending?limit=10`;
+        const url = `${API_URL}/api/v2/tokens/trending?limit=4`;
         console.log('[Home] Trending URL:', url);
 
         // Use cachedFetch with retry logic

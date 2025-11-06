@@ -328,8 +328,7 @@ class TokensService {
    */
   async getTrendingTokens(limit: number = 10): Promise<(Token & { stats: TokenStats })[]> {
     try {
-      // Prisma has issues with complex where + orderBy on same relation
-      // Simplify the query to avoid conflicts
+      // Get all non-graduated tokens with stats, ordered by volume
       const tokens = await prisma.token.findMany({
         where: {
           isGraduated: false, // Only bonding curve tokens
@@ -340,25 +339,40 @@ class TokensService {
         include: {
           stats: true,
         },
-        orderBy: {
-          stats: {
-            volume24h: 'desc',
+        orderBy: [
+          {
+            stats: {
+              volume24h: 'desc', // Primary sort: by volume
+            },
           },
-        },
-        take: limit * 2, // Get more to filter after
+          {
+            createdAt: 'desc', // Secondary sort: by creation time (for tokens with 0 volume)
+          },
+        ],
+        take: limit,
       });
 
-      // Filter tokens that had recent trades
-      const filtered = tokens.filter(token => {
-        // If no stats, skip
-        if (!token.stats) return false;
+      // If we have tokens with volume, prioritize them
+      // Otherwise just return the most recent tokens
+      const tokensWithVolume = tokens.filter(token =>
+        token.stats && parseFloat(token.stats.volume24h || '0') > 0
+      );
 
-        // For now, just return tokens with any volume
-        // TODO: Add proper trade timestamp filtering after fixing Prisma query
-        return parseFloat(token.stats.volume24h || '0') > 0;
-      });
+      if (tokensWithVolume.length > 0) {
+        // If we have enough tokens with volume, return them
+        if (tokensWithVolume.length >= Math.min(limit, 2)) {
+          return tokensWithVolume.slice(0, limit) as any;
+        }
 
-      return filtered.slice(0, limit) as any;
+        // Otherwise, mix tokens with volume + newest tokens to reach limit
+        const newestTokens = tokens.filter(token =>
+          !tokensWithVolume.includes(token)
+        );
+        return [...tokensWithVolume, ...newestTokens].slice(0, limit) as any;
+      }
+
+      // No tokens with volume, return newest tokens (for new platforms)
+      return tokens as any;
     } catch (error) {
       console.error('[getTrendingTokens] Error:', error);
       // Fallback: return recent tokens if trending query fails
