@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import { adminController } from '../controllers/admin.controller';
-import { tokenStatsUpdaterService } from '../services/token-stats-updater.service';
 import Joi from 'joi';
 import { validate } from '../middleware/validation';
-import logger from '../utils/logger';
 
 const router = Router();
 
