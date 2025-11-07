@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { ethers } from 'ethers';
 import { prisma } from './database.service';
+import { usdPriceService } from './usd-price.service';
 import logger from '../utils/logger';
 import config from '../config';
 
@@ -168,8 +169,8 @@ class TokenStatsUpdaterService extends EventEmitter {
         }, 0)
         .toFixed(6);
 
-      // Calculate current price from most recent trades
-      let currentPrice = '0';
+      // Calculate current price from most recent trades with better precision
+      let currentPriceInAster = 0;
       if (allRecentTrades.length > 0) {
         // Use average price from recent trades for more stability
         const recentPrices = allRecentTrades
@@ -181,14 +182,29 @@ class TokenStatsUpdaterService extends EventEmitter {
           .filter(price => price > 0);
         
         if (recentPrices.length > 0) {
-          const avgPrice = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
-          currentPrice = avgPrice.toFixed(8);
+          currentPriceInAster = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
         }
       }
+      
+      // If no recent trades, try to calculate price from bonding curve math
+      if (currentPriceInAster === 0 && asterReserves > 0) {
+        // Simple bonding curve price estimation: price increases with more reserves
+        // This is a simplified calculation - you might want to use the exact bonding curve formula
+        const totalSupply = 1000000000; // 1 billion tokens (adjust based on your tokenomics)
+        const tokensInCirculation = asterReserves * 10000; // Rough estimation
+        currentPriceInAster = asterReserves / (totalSupply - tokensInCirculation);
+      }
+      
+      // Format price with high precision for small values
+      const currentPrice = currentPriceInAster > 0 ? currentPriceInAster.toFixed(12) : '0';
+      
+      // Calculate USD values
+      const priceUsd = usdPriceService.tokenPriceToUsd(currentPriceInAster);
+      const marketCapUsd = usdPriceService.asterToUsd(asterReserves);
 
       // Calculate price change 24h using current price vs 24h ago price
       let priceChange24h = '0';
-      if (tradesFor24h.length > 0 && parseFloat(currentPrice) > 0) {
+      if (tradesFor24h.length > 0 && currentPriceInAster > 0) {
         // Get the earliest trade in 24h window
         const oldestTrade = tradesFor24h[0];
         const asterAmount = parseFloat(oldestTrade.asterAmount || '0');
@@ -196,10 +212,9 @@ class TokenStatsUpdaterService extends EventEmitter {
         
         if (tokenAmount > 0) {
           const oldPrice = asterAmount / tokenAmount;
-          const currentPriceNum = parseFloat(currentPrice);
           
           if (oldPrice > 0) {
-            priceChange24h = (((currentPriceNum - oldPrice) / oldPrice) * 100).toFixed(2);
+            priceChange24h = (((currentPriceInAster - oldPrice) / oldPrice) * 100).toFixed(2);
           }
         }
       }
@@ -237,7 +252,7 @@ class TokenStatsUpdaterService extends EventEmitter {
         },
       });
 
-      logger.debug(`Updated stats for ${symbol}: MC=${marketCap}, Vol=${volume24h}, Price=${currentPrice}, Change=${priceChange24h}%`);
+      logger.info(`Updated stats for ${symbol}: MC=${marketCap} ASTER ($${marketCapUsd.toFixed(2)}), Vol=${volume24h}, Price=${currentPrice} ASTER ($${priceUsd.toFixed(8)}), Change=${priceChange24h}%`);
     } catch (error) {
       logger.error(`Error updating token stats for ${symbol} (${tokenAddress}):`, error);
     }

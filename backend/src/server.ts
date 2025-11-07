@@ -10,6 +10,7 @@ import { holderUpdaterService } from './services/holder-updater.service';
 import { cacheWarmerService } from './services/cache-warmer.service';
 import { tokenStatsUpdaterService } from './services/token-stats-updater.service';
 import { offlineFallbackService } from './services/offline-fallback.service';
+import { usdPriceService } from './services/usd-price.service';
 
 const server = http.createServer(app);
 
@@ -31,6 +32,12 @@ async function startServer(): Promise<void> {
     logger.info('🔌 [1.5/7] Initializing offline fallback service...');
     await offlineFallbackService.initialize();
     logger.info('✅ [1.5/7] Offline fallback service initialized');
+    logger.info('');
+
+    // Initialize USD price service
+    logger.info('💵 [1.6/7] Initializing USD price service...');
+    await usdPriceService.initialize();
+    logger.info('✅ [1.6/7] USD price service initialized');
     logger.info('');
 
     // Initialize WebSocket server
@@ -102,6 +109,7 @@ const gracefulShutdown = async (signal: string) => {
   holderUpdaterService.stop();
   cacheWarmerService.stop();
   tokenStatsUpdaterService.stop();
+  usdPriceService.stop();
   logger.info('Background services stopped');
 
   // Close HTTP server

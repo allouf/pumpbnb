@@ -4,10 +4,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
-import { FilterBar } from '@/components/FilterBar';
+import { FilterBar, FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
-import { FilterValues } from '@/components/FilterModal';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
+import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
+import { formatPrice, formatMarketCap, formatVolume, formatPercent, getPercentChangeColor } from '@/lib/utils/formatters';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -183,31 +184,7 @@ export default function Home() {
                     const stats = token.stats;
                     console.log('[Table] Token:', token.symbol, 'Stats:', stats);
 
-                    // Format numbers
-                    const formatNumber = (num: string | number | undefined) => {
-                      if (!num || num === '0') return '$0';
-                      const n = typeof num === 'string' ? parseFloat(num) : num;
-                      if (isNaN(n) || n === 0) return '$0';
-                      if (n >= 1000000) return `$${(n / 1000000).toFixed(2)}M`;
-                      if (n >= 1000) return `$${(n / 1000).toFixed(2)}K`;
-                      if (n < 0.01) return `$${n.toFixed(6)}`;
-                      return `$${n.toFixed(2)}`;
-                    };
-
-                    const formatPercent = (num: string | number | undefined) => {
-                      if (!num || num === '0') return '0%';
-                      const n = typeof num === 'string' ? parseFloat(num) : num;
-                      if (isNaN(n)) return '0%';
-                      const sign = n >= 0 ? '+' : '';
-                      return `${sign}${n.toFixed(2)}%`;
-                    };
-
-                    const getPercentColor = (num: string | number | undefined) => {
-                      if (!num || num === '0') return 'text-gray-400';
-                      const n = typeof num === 'string' ? parseFloat(num) : num;
-                      if (isNaN(n)) return 'text-gray-400';
-                      return n >= 0 ? 'text-green-500' : 'text-red-500';
-                    };
+                    // Use imported formatters with better precision for small numbers
 
                     return (
                       <tr
@@ -253,10 +230,10 @@ export default function Home() {
                           </div>
                         </td>
                         <td className="py-2 px-2 text-white font-medium text-xs">
-                          {stats ? formatNumber(stats.marketCap) : '$0'}
+                          {stats ? formatMarketCap(stats.marketCap) : '$0'}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs">
-                          {stats ? formatNumber(stats.price) : '$0'}
+                        <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price, { currency: 'ASTER' })}`}>
+                          {stats ? formatPrice(stats.price) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {(() => {
@@ -270,15 +247,15 @@ export default function Home() {
                           })()}
                         </td>
                         <td className="py-2 px-2 text-white text-xs">
-                          {stats ? formatNumber(stats.volume24h) : '$0'}
+                          {stats ? formatVolume(stats.volume24h, 'ASTER') : '0 ASTER'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {stats?.trades24h || 0}
                         </td>
-                        <td className={`py-2 px-2 text-xs font-medium ${getPercentColor(stats?.priceChange1h)}`}>
+                        <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange1h)}`}>
                           {formatPercent(stats?.priceChange1h)}
                         </td>
-                        <td className={`py-2 px-2 text-xs font-medium ${getPercentColor(stats?.priceChange24h)}`}>
+                        <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange24h)}`}>
                           {formatPercent(stats?.priceChange24h)}
                         </td>
                       </tr>
