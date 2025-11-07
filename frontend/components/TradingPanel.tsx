@@ -295,7 +295,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   }
 
   return (
-    <div className="bg-secondary-light p-6 rounded-xl sticky top-24">
+    <div className="bg-secondary-light p-6 rounded-xl">
       {/* Header with tabs and currency toggle */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex gap-2">

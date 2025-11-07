@@ -242,8 +242,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   }
 
   return (
-    <div className="min-h-screen py-6">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen py-6 overflow-x-hidden">
+      <div className="container mx-auto px-4 max-w-full">
         {/* Back button */}
         <button
           onClick={() => window.history.back()}
@@ -256,9 +256,9 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
         </button>
 
         {/* Pump.fun Style Layout - Chart Width Token Header */}
-        <div className="flex gap-6 min-h-0">
+        <div className="flex gap-6 min-h-0 overflow-x-hidden">
           {/* Left Column - Chart + Tabs + Token Info */}
-          <div className="flex-1 min-w-0 overflow-y-auto pr-2" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+          <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             {/* Token Info Header - Same Width as Chart */}
             <div className="bg-secondary-light rounded-xl p-4 mb-4">
               <div className="flex items-center gap-4">
@@ -441,8 +441,10 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
 
           {/* Right Column - Trading Panel */}
-          <div className="w-80 flex-shrink-0 overflow-y-auto pl-2" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+          <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden pl-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             <div className="space-y-4">
+              {/* Spacer to align with token info header */}
+              <div className="h-4"></div>
               {/* Trading Panel */}
               {bondingCurve ? (
                 <TradingPanel
