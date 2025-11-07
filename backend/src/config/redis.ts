@@ -77,6 +77,15 @@ redisClient.on('error', (err) => {
   console.error('❌ Redis client error:', err);
 });
 
+// Keep Redis connection alive with periodic pings (every 5 minutes)
+setInterval(async () => {
+  try {
+    await redisClient.ping();
+  } catch (error) {
+    console.warn('⚠️ Redis keepalive ping failed:', error);
+  }
+}, 5 * 60 * 1000); // 5 minutes
+
 redisPubClient.on('connect', () => {
   console.log('✅ Redis pub client connected');
 });
