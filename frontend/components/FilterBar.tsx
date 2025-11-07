@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { Squares2X2Icon, ListBulletIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { FilterModal, FilterValues } from './FilterModal';
 
+// Re-export FilterValues for external use
+export type { FilterValues };
+
 interface FilterBarProps {
   onFilterChange?: (filters: any) => void;
   onViewModeChange?: (mode: 'grid' | 'list') => void;

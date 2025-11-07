@@ -7,7 +7,6 @@ import { TrendingSection } from '@/components/TrendingSection';
 import { FilterBar, FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
-import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { formatPrice, formatMarketCap, formatVolume, formatPercent, getPercentChangeColor } from '@/lib/utils/formatters';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
