@@ -46,14 +46,26 @@ export async function startBlockchainIndexer(): Promise<void> {
 
 async function getLatestIndexedBlock(): Promise<number> {
   try {
+    const currentBlock = await provider.getBlockNumber();
+
     // Check IndexerState first (most reliable source)
     const indexerState = await prisma.indexerState.findFirst({
       orderBy: { updatedAt: 'desc' },
     });
 
     if (indexerState) {
-      logger.info(`Resuming from saved indexer state: block ${indexerState.lastIndexedBlock}`);
-      return indexerState.lastIndexedBlock + 1;
+      // Validate that saved block is not too old (avoid pruned history errors)
+      const blockAge = currentBlock - indexerState.lastIndexedBlock;
+      const maxAllowedAge = 5000; // Only allow resuming if within last 5000 blocks (~4 hours on BSC)
+
+      if (blockAge > maxAllowedAge) {
+        logger.warn(`Saved indexer state is too old (${blockAge} blocks behind), resetting to recent blocks`);
+        // Delete old state and start fresh
+        await prisma.indexerState.deleteMany({});
+      } else {
+        logger.info(`Resuming from saved indexer state: block ${indexerState.lastIndexedBlock}`);
+        return indexerState.lastIndexedBlock + 1;
+      }
     }
 
     // Fallback: check actual indexed data
@@ -83,12 +95,19 @@ async function getLatestIndexedBlock(): Promise<number> {
       latestGraduation?.blockNumber || 0
     );
 
-    // If no events indexed, start from deployment block (Oct 30, 2025)
+    // If no events indexed, start from recent blocks only
     if (latestBlock === 0) {
-      const currentBlock = await provider.getBlockNumber();
-      // Start from 10000 blocks ago to catch recent events (last ~8 hours on BSC)
-      const startBlock = Math.max(0, currentBlock - 10000);
-      logger.info(`No indexed data found, starting from ${startBlock} (last 10000 blocks)`);
+      // Start from 1000 blocks ago to avoid pruned history (last ~1 hour on BSC)
+      const startBlock = Math.max(0, currentBlock - 1000);
+      logger.info(`No indexed data found, starting from ${startBlock} (last 1000 blocks)`);
+      return startBlock;
+    }
+
+    // Validate that latest indexed block is not too old
+    const blockAge = currentBlock - latestBlock;
+    if (blockAge > 5000) {
+      logger.warn(`Latest indexed block is too old (${blockAge} blocks behind), resetting to recent blocks`);
+      const startBlock = Math.max(0, currentBlock - 1000);
       return startBlock;
     }
 
@@ -97,7 +116,8 @@ async function getLatestIndexedBlock(): Promise<number> {
   } catch (error) {
     logger.error('Error getting latest indexed block:', error);
     const currentBlock = await provider.getBlockNumber();
-    return currentBlock;
+    // On error, start from recent blocks only
+    return Math.max(0, currentBlock - 1000);
   }
 }
 
@@ -351,9 +371,16 @@ async function indexPastEvents(fromBlock: number): Promise<void> {
   try {
     const currentBlock = await provider.getBlockNumber();
 
-    // Limit to last 1000 blocks to avoid RPC rate limits on initial start
+    // Limit to last 1000 blocks to avoid pruned history errors on free RPC nodes
     const maxBlockRange = 1000;
     const startBlock = Math.max(fromBlock, currentBlock - maxBlockRange);
+
+    // Skip if startBlock is still too old (would hit pruned history)
+    if (currentBlock - startBlock > 5000) {
+      logger.warn(`Start block ${startBlock} is too old, skipping past event indexing to avoid pruned history`);
+      logger.info(`Will only index new events from block ${currentBlock} onwards`);
+      return;
+    }
 
     logger.info(`Indexing past events from block ${startBlock} to ${currentBlock}`);
 
