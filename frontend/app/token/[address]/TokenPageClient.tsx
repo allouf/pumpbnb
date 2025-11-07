@@ -442,21 +442,20 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
           {/* Right Column - Trading Panel */}
           <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden pl-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-            <div className="space-y-4">
-              {/* Spacer to align with token info header */}
-              <div className="h-4"></div>
-              {/* Trading Panel */}
-              {bondingCurve ? (
-                <TradingPanel
-                  bondingCurveAddress={bondingCurve}
-                  tokenSymbol={symbol}
-                  tokenAddress={address}
-                />
-              ) : (
-                <div className="bg-secondary-light p-6 rounded-xl">
-                  <p className="text-gray-400 text-center">Loading trading panel...</p>
-                </div>
-              )}
+            {/* Trading Panel - Aligned with token info header */}
+            {bondingCurve ? (
+              <TradingPanel
+                bondingCurveAddress={bondingCurve}
+                tokenSymbol={symbol}
+                tokenAddress={address}
+              />
+            ) : (
+              <div className="bg-secondary-light p-6 rounded-xl">
+                <p className="text-gray-400 text-center">Loading trading panel...</p>
+              </div>
+            )}
+            
+            <div className="space-y-4 mt-4">
               
               {/* Bonding Curve Progress Panel */}
               <div className="bg-secondary-light rounded-xl p-4">
