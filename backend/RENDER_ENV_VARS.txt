@@ -15,8 +15,9 @@ DATABASE_URL=postgresql://pumpbnb_user:nB3rAtHIN9kxP9hSxOgpA9jTJBkXb3Nb@dpg-d3qk
 
 # ============================================
 # REDIS - Internal URL (for Render services)
+# IMPORTANT: Must have authentication enabled! Format: redis://default:PASSWORD@hostname:6379
 # ============================================
-REDIS_URL=redis://red-d3vppb7diees73ahug30:6379
+REDIS_URL=redis://red-d3vppb7diees73ahug30:6KGSnLYR1RH7z9CcRpyaBHDgRMCpwITD@red-d3vppb7diees73ahug30:6379
 
 # ============================================
 # BLOCKCHAIN CONFIGURATION
