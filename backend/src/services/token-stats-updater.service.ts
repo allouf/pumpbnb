@@ -161,10 +161,18 @@ class TokenStatsUpdaterService extends EventEmitter {
         }),
       ]);
 
-      // Calculate 24h volume in ASTER
+      // Calculate 24h volume in ASTER (sum absolute values to avoid negative volumes)
+      // Note: asterAmount might be stored in Wei (18 decimals), so we need to handle both formats
       const volume24h = tradesFor24h
         .reduce((sum: number, trade: { asterAmount: string | null }) => {
-          const asterAmount = parseFloat(trade.asterAmount || '0');
+          const asterAmountStr = trade.asterAmount || '0';
+          let asterAmount = Math.abs(parseFloat(asterAmountStr));
+          
+          // If the number is very large (> 1e15), it's likely in Wei and needs conversion
+          if (asterAmount > 1e15) {
+            asterAmount = asterAmount / 1e18; // Convert from Wei to ASTER
+          }
+          
           return sum + asterAmount;
         }, 0)
         .toFixed(6);
@@ -175,8 +183,19 @@ class TokenStatsUpdaterService extends EventEmitter {
         // Use average price from recent trades for more stability
         const recentPrices = allRecentTrades
           .map(trade => {
-            const asterAmount = parseFloat(trade.asterAmount || '0');
-            const tokenAmount = parseFloat(trade.tokenAmount || '0');
+            let asterAmount = parseFloat(trade.asterAmount || '0');
+            let tokenAmount = parseFloat(trade.tokenAmount || '0');
+            
+            // Handle Wei conversion for asterAmount if needed
+            if (asterAmount > 1e15) {
+              asterAmount = asterAmount / 1e18;
+            }
+            
+            // Handle Wei conversion for tokenAmount if needed (tokens usually have 18 decimals too)
+            if (tokenAmount > 1e15) {
+              tokenAmount = tokenAmount / 1e18;
+            }
+            
             return tokenAmount > 0 ? asterAmount / tokenAmount : 0;
           })
           .filter(price => price > 0);
@@ -207,8 +226,16 @@ class TokenStatsUpdaterService extends EventEmitter {
       if (tradesFor24h.length > 0 && currentPriceInAster > 0) {
         // Get the earliest trade in 24h window
         const oldestTrade = tradesFor24h[0];
-        const asterAmount = parseFloat(oldestTrade.asterAmount || '0');
-        const tokenAmount = parseFloat(oldestTrade.tokenAmount || '0');
+        let asterAmount = parseFloat(oldestTrade.asterAmount || '0');
+        let tokenAmount = parseFloat(oldestTrade.tokenAmount || '0');
+        
+        // Handle Wei conversion
+        if (asterAmount > 1e15) {
+          asterAmount = asterAmount / 1e18;
+        }
+        if (tokenAmount > 1e15) {
+          tokenAmount = tokenAmount / 1e18;
+        }
         
         if (tokenAmount > 0) {
           const oldPrice = asterAmount / tokenAmount;

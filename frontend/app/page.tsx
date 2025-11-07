@@ -229,10 +229,12 @@ export default function Home() {
                           </div>
                         </td>
                         <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap, 'ASTER')}`}>
-                          {stats?.marketCapUsd ? formatMarketCap(stats.marketCapUsd, 'USD') : '$0'}
+                          {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') : 
+                           stats?.marketCap ? formatMarketCap(stats.marketCap, 'ASTER') : '$0'}
                         </td>
                         <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price, { currency: 'ASTER' })}`}>
-                          {stats?.priceUsd ? formatPrice(stats.priceUsd, { currency: 'USD' }) : '$0'}
+                          {stats?.priceUsd && stats.priceUsd !== '0' ? formatPrice(stats.priceUsd, { currency: 'USD' }) : 
+                           stats?.price ? formatPrice(stats.price, { currency: 'ASTER' }) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {(() => {
