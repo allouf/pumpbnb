@@ -10,28 +10,28 @@ datasource db {
 }
 
 model Token {
-  id              String    @id @default(uuid())
-  address         String    @unique
-  name            String
-  symbol          String
-  description     String
-  imageUrl        String
-  creator         String
-  totalSupply     String
-  bondingCurve    String
-  createdAt       DateTime  @default(now())
-  blockNumber     Int       @default(0)
-  graduatedAt     DateTime?
-  isGraduated     Boolean   @default(false)
-  isNsfw          Boolean   @default(false)
-  ipfsHash        String?
-  website         String?
-  twitter         String?
-  telegram        String?
-  discord         String?
+  id           String    @id @default(uuid())
+  address      String    @unique
+  name         String
+  symbol       String
+  description  String
+  imageUrl     String
+  creator      String
+  totalSupply  String
+  bondingCurve String
+  createdAt    DateTime  @default(now())
+  blockNumber  Int       @default(0)
+  graduatedAt  DateTime?
+  isGraduated  Boolean   @default(false)
+  isNsfw       Boolean   @default(false)
+  ipfsHash     String?
+  website      String?
+  twitter      String?
+  telegram     String?
+  discord      String?
 
-  trades          Trade[]
-  stats           TokenStats?
+  trades Trade[]
+  stats  TokenStats?
 
   @@index([creator])
   @@index([createdAt])
@@ -42,22 +42,22 @@ model Token {
 }
 
 model Trade {
-  id              String    @id @default(uuid())
-  tokenAddress    String
-  trader          String
-  isBuy           Boolean
-  amountIn        String
-  amountOut       String
-  fee             String
-  timestamp       DateTime  @default(now())
-  txHash          String    @unique
-  blockNumber     Int
-  price           String?   // Price at time of trade (nullable for old records)
-  marketCap       String?   // Market cap at time of trade
-  asterAmount     String?   // ASTER amount (for base pair) - nullable for old records
-  tokenAmount     String?   // Token amount - nullable for old records
+  id           String   @id @default(uuid())
+  tokenAddress String
+  trader       String
+  isBuy        Boolean
+  amountIn     String
+  amountOut    String
+  fee          String
+  timestamp    DateTime @default(now())
+  txHash       String   @unique
+  blockNumber  Int
+  price        String? // Price at time of trade (nullable for old records)
+  marketCap    String? // Market cap at time of trade
+  asterAmount  String? // ASTER amount (for base pair) - nullable for old records
+  tokenAmount  String? // Token amount - nullable for old records
 
-  token           Token     @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
+  token Token @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
 
   @@index([tokenAddress])
   @@index([trader])
@@ -67,18 +67,18 @@ model Trade {
 }
 
 model TokenStats {
-  id                String    @id @default(uuid())
-  tokenAddress      String    @unique
-  price             String
-  marketCap         String
-  volume24h         String
-  trades24h         Int       @default(0)
-  holders           Int       @default(0)
-  liquidity         String
-  priceChange24h    String    @default("0")
-  updatedAt         DateTime  @updatedAt
+  id             String   @id @default(uuid())
+  tokenAddress   String   @unique
+  price          String
+  marketCap      String
+  volume24h      String
+  trades24h      Int      @default(0)
+  holders        Int      @default(0)
+  liquidity      String
+  priceChange24h String   @default("0")
+  updatedAt      DateTime @updatedAt
 
-  token             Token     @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
+  token Token @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
 
   @@index([volume24h])
   @@index([marketCap])
@@ -87,13 +87,13 @@ model TokenStats {
 }
 
 model UserPortfolio {
-  id              String    @id @default(uuid())
+  id              String   @id @default(uuid())
   userAddress     String
   tokenAddress    String
   balance         String
-  averageBuyPrice String    @default("0")
-  totalInvested   String    @default("0")
-  updatedAt       DateTime  @updatedAt
+  averageBuyPrice String   @default("0")
+  totalInvested   String   @default("0")
+  updatedAt       DateTime @updatedAt
 
   @@unique([userAddress, tokenAddress])
   @@index([userAddress])
@@ -102,10 +102,10 @@ model UserPortfolio {
 }
 
 model Watchlist {
-  id              String    @id @default(uuid())
-  userAddress     String
-  tokenAddress    String
-  addedAt         DateTime  @default(now())
+  id           String   @id @default(uuid())
+  userAddress  String
+  tokenAddress String
+  addedAt      DateTime @default(now())
 
   @@unique([userAddress, tokenAddress])
   @@index([userAddress])
@@ -113,15 +113,15 @@ model Watchlist {
 }
 
 model GraduationEvent {
-  id                String    @id @default(uuid())
-  tokenAddress      String    @unique
-  asterCollected    String
-  wbnbReceived      String
-  lpTokensBurned    String
-  pancakeSwapPair   String
-  timestamp         DateTime  @default(now())
-  txHash            String    @unique
-  blockNumber       Int
+  id              String   @id @default(uuid())
+  tokenAddress    String   @unique
+  asterCollected  String
+  wbnbReceived    String
+  lpTokensBurned  String
+  pancakeSwapPair String
+  timestamp       DateTime @default(now())
+  txHash          String   @unique
+  blockNumber     Int
 
   @@index([timestamp])
   @@index([blockNumber])
@@ -129,23 +129,23 @@ model GraduationEvent {
 }
 
 model PlatformStats {
-  id                    String    @id @default(uuid())
-  date                  DateTime  @unique @default(now())
-  totalTokensCreated    Int       @default(0)
-  totalTokensGraduated  Int       @default(0)
-  totalVolume           String    @default("0")
-  totalFees             String    @default("0")
-  totalTrades           Int       @default(0)
-  activeUsers           Int       @default(0)
+  id                   String   @id @default(uuid())
+  date                 DateTime @unique @default(now())
+  totalTokensCreated   Int      @default(0)
+  totalTokensGraduated Int      @default(0)
+  totalVolume          String   @default("0")
+  totalFees            String   @default("0")
+  totalTrades          Int      @default(0)
+  activeUsers          Int      @default(0)
 
   @@index([date])
   @@map("platform_stats")
 }
 
 model IndexerState {
-  id                  String    @id @default(uuid())
-  lastIndexedBlock    Int
-  updatedAt           DateTime  @updatedAt
+  id               String   @id @default(uuid())
+  lastIndexedBlock Int
+  updatedAt        DateTime @updatedAt
 
   @@map("indexer_state")
 }
@@ -153,15 +153,15 @@ model IndexerState {
 // Token Page Features - New Models
 
 model TokenHolder {
-  id              String    @id @default(uuid())
-  tokenAddress    String
-  holderAddress   String
-  balance         String
-  percentage      Float
-  isCreator       Boolean   @default(false)
-  firstTxAt       DateTime  @default(now())
-  lastTxAt        DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String   @id @default(uuid())
+  tokenAddress  String
+  holderAddress String
+  balance       String
+  percentage    Float
+  isCreator     Boolean  @default(false)
+  firstTxAt     DateTime @default(now())
+  lastTxAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([tokenAddress, holderAddress])
   @@index([tokenAddress])
@@ -171,14 +171,14 @@ model TokenHolder {
 }
 
 model Comment {
-  id              String    @id @default(uuid())
-  tokenAddress    String
-  userAddress     String
-  content         String
-  replyTo         String?
-  likes           Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String   @id @default(uuid())
+  tokenAddress String
+  userAddress  String
+  content      String
+  replyTo      String?
+  likes        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([tokenAddress])
   @@index([userAddress])
@@ -188,10 +188,10 @@ model Comment {
 }
 
 model CommentLike {
-  id              String    @id @default(uuid())
-  commentId       String
-  userAddress     String
-  createdAt       DateTime  @default(now())
+  id          String   @id @default(uuid())
+  commentId   String
+  userAddress String
+  createdAt   DateTime @default(now())
 
   @@unique([commentId, userAddress])
   @@index([commentId])
@@ -200,11 +200,11 @@ model CommentLike {
 }
 
 model UserFavorite {
-  id              String    @id @default(uuid())
-  userAddress     String
-  tokenAddress    String
-  timeframe       String    // "1m", "5m", "15m", "1h", etc.
-  createdAt       DateTime  @default(now())
+  id           String   @id @default(uuid())
+  userAddress  String
+  tokenAddress String
+  timeframe    String // "1m", "5m", "15m", "1h", etc.
+  createdAt    DateTime @default(now())
 
   @@unique([userAddress, tokenAddress, timeframe])
   @@index([userAddress])
@@ -213,16 +213,16 @@ model UserFavorite {
 }
 
 model OHLCVData {
-  id              String    @id @default(uuid())
-  tokenAddress    String
-  timeframe       String    // "1m", "5m", "15m", "1h", "4h", "1d"
-  timestamp       DateTime
-  open            String
-  high            String
-  low             String
-  close           String
-  volume          String
-  trades          Int       @default(0)
+  id           String   @id @default(uuid())
+  tokenAddress String
+  timeframe    String // "1m", "5m", "15m", "1h", "4h", "1d"
+  timestamp    DateTime
+  open         String
+  high         String
+  low          String
+  close        String
+  volume       String
+  trades       Int      @default(0)
 
   @@unique([tokenAddress, timeframe, timestamp])
   @@index([tokenAddress])
@@ -232,13 +232,13 @@ model OHLCVData {
 }
 
 model UserSession {
-  id              String    @id @default(uuid())
-  userAddress     String
-  nonce           String    @unique
-  signature       String?
-  expiresAt       DateTime
-  createdAt       DateTime  @default(now())
-  lastActivityAt  DateTime  @default(now())
+  id             String   @id @default(uuid())
+  userAddress    String
+  nonce          String   @unique
+  signature      String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  lastActivityAt DateTime @default(now())
 
   @@index([userAddress])
   @@index([expiresAt])

@@ -73,7 +73,11 @@
       "Bash(nul)",
       "Bash(dir:*)",
       "Bash(npx tsc:*)",
-      "Bash(timeout 120 npm run build)"
+      "Bash(timeout 120 npm run build)",
+      "Bash(python3:*)",
+      "Bash(npx prisma format:*)",
+      "Bash(timeout 5 curl:*)",
+      "Bash(timeout 10 bash:*)"
     ],
     "deny": [],
     "ask": []
