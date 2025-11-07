@@ -209,34 +209,27 @@ export default function Home() {
                         <td className="py-2 px-2">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
-                              {(() => {
-                                console.log(`[${token.symbol}] imageUrl:`, token.imageUrl, 'Type:', typeof token.imageUrl);
-                                return token.imageUrl ? (
-                                  <img
-                                    src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                                    alt={token.name}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                    onLoad={() => {
-                                      console.log(`[${token.symbol}] Image loaded successfully:`, token.imageUrl);
-                                    }}
-                                    onError={(e) => {
-                                      console.error(`[${token.symbol}] Image failed to load:`, token.imageUrl, e);
-                                      const target = e.target as HTMLImageElement;
-                                      target.style.display = 'none';
-                                      const parent = target.parentElement;
-                                      if (parent && !parent.querySelector('.fallback-icon')) {
-                                        const fallback = document.createElement('span');
-                                        fallback.className = 'fallback-icon text-gray-500 text-xs';
-                                        fallback.textContent = token.symbol.charAt(0).toUpperCase();
-                                        parent.appendChild(fallback);
-                                      }
-                                    }}
-                                  />
-                                ) : (
-                                  <span className="text-gray-500 text-xs">{token.symbol.charAt(0).toUpperCase()}</span>
-                                );
-                              })()}
+                              {token.imageUrl ? (
+                                <img
+                                  src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                  alt={token.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent && !parent.querySelector('.fallback-icon')) {
+                                      const fallback = document.createElement('span');
+                                      fallback.className = 'fallback-icon text-gray-500 text-xs';
+                                      fallback.textContent = token.symbol.charAt(0).toUpperCase();
+                                      parent.appendChild(fallback);
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-gray-500 text-xs">{token.symbol.charAt(0).toUpperCase()}</span>
+                              )}
                             </div>
                             <div className="min-w-0">
                               <div className="font-medium text-white text-xs truncate">{token.name}</div>

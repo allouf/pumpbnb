@@ -8,6 +8,7 @@ import { websocketService } from './services/websocket.service';
 import { ohlcvAggregatorService } from './services/ohlcv-aggregator.service';
 import { holderUpdaterService } from './services/holder-updater.service';
 import { cacheWarmerService } from './services/cache-warmer.service';
+import { tokenStatsUpdaterService } from './services/token-stats-updater.service';
 
 const server = http.createServer(app);
 
@@ -56,6 +57,11 @@ async function startServer(): Promise<void> {
     cacheWarmerService.start();
     logger.info('    ✅ Cache Warming Service started');
 
+    // Start Token Stats Updater Service
+    logger.info('    📊 Starting Token Stats Updater Service...');
+    tokenStatsUpdaterService.start();
+    logger.info('    ✅ Token Stats Updater Service started');
+
     logger.info('✅ [4/7] All background services started successfully');
     logger.info('');
 
@@ -88,6 +94,7 @@ const gracefulShutdown = async (signal: string) => {
   ohlcvAggregatorService.stop();
   holderUpdaterService.stop();
   cacheWarmerService.stop();
+  tokenStatsUpdaterService.stop();
   logger.info('Background services stopped');
 
   // Close HTTP server
