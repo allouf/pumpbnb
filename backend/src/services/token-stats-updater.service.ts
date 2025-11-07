@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import { ethers } from 'ethers';
-import { formatUnits } from 'viem';
-import prisma from '../lib/db';
+import { prisma } from './database.service';
 import logger from '../utils/logger';
 import config from '../config';
 
@@ -95,7 +94,9 @@ class TokenStatsUpdaterService extends EventEmitter {
       logger.info(`Updating stats for ${tokens.length} tokens`);
 
       // Process tokens in parallel but with limited concurrency
-      const updatePromises = tokens.map(token => this.updateTokenStats(token.address, token.bondingCurve, token.symbol));
+      const updatePromises = tokens.map((token: { address: string; bondingCurve: string; symbol: string }) => 
+        this.updateTokenStats(token.address, token.bondingCurve, token.symbol)
+      );
       await Promise.allSettled(updatePromises);
 
       logger.info(`Token stats update cycle completed for ${tokens.length} tokens`);
@@ -109,7 +110,7 @@ class TokenStatsUpdaterService extends EventEmitter {
       // Get bonding curve reserves to calculate current price and market cap
       const bondingCurveContract = new ethers.Contract(bondingCurve, BondingCurveABI, this.provider);
       const reserves = await bondingCurveContract.getReserves();
-      const asterReserves = Number(formatUnits(reserves[0], 18));
+      const asterReserves = Number(ethers.formatUnits(reserves[0], 18));
       
       // Market cap is the ASTER reserves (simplified calculation)
       const marketCap = asterReserves.toFixed(2);
@@ -130,8 +131,8 @@ class TokenStatsUpdaterService extends EventEmitter {
             timestamp: { gte: oneDayAgo },
           },
           select: {
-            asterAmountFormatted: true,
-            tokenAmountFormatted: true,
+            asterAmount: true,
+            tokenAmount: true,
             timestamp: true,
             isBuy: true,
           },
@@ -143,8 +144,8 @@ class TokenStatsUpdaterService extends EventEmitter {
 
       // Calculate 24h volume in ASTER
       const volume24h = tradesFor24h
-        .reduce((sum, trade) => {
-          const asterAmount = parseFloat(trade.asterAmountFormatted || '0');
+        .reduce((sum: number, trade: { asterAmount: string | null }) => {
+          const asterAmount = parseFloat(trade.asterAmount || '0');
           return sum + asterAmount;
         }, 0)
         .toFixed(6);
@@ -156,8 +157,8 @@ class TokenStatsUpdaterService extends EventEmitter {
         const newestTrade = tradesFor24h[tradesFor24h.length - 1];
         
         const calculatePrice = (trade: typeof oldestTrade) => {
-          const asterAmount = parseFloat(trade.asterAmountFormatted || '0');
-          const tokenAmount = parseFloat(trade.tokenAmountFormatted || '0');
+          const asterAmount = parseFloat(trade.asterAmount || '0');
+          const tokenAmount = parseFloat(trade.tokenAmount || '0');
           return tokenAmount > 0 ? asterAmount / tokenAmount : 0;
         };
         
@@ -173,8 +174,8 @@ class TokenStatsUpdaterService extends EventEmitter {
       let currentPrice = '0';
       if (tradesFor24h.length > 0) {
         const recentTrade = tradesFor24h[tradesFor24h.length - 1];
-        const asterAmount = parseFloat(recentTrade.asterAmountFormatted || '0');
-        const tokenAmount = parseFloat(recentTrade.tokenAmountFormatted || '0');
+        const asterAmount = parseFloat(recentTrade.asterAmount || '0');
+        const tokenAmount = parseFloat(recentTrade.tokenAmount || '0');
         if (tokenAmount > 0) {
           currentPrice = (asterAmount / tokenAmount).toFixed(8);
         }
