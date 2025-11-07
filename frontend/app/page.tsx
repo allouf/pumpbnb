@@ -7,7 +7,8 @@ import { TrendingSection } from '@/components/TrendingSection';
 import { FilterBar, FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
-import { formatPrice, formatMarketCap, formatVolume, formatPercent, getPercentChangeColor } from '@/lib/utils/formatters';
+import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/utils/formatNumbers';
+import { getPercentChangeColor } from '@/lib/utils/formatters';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -228,11 +229,11 @@ export default function Home() {
                             <span className="text-xs text-gray-600">📈</span>
                           </div>
                         </td>
-                        <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap, 'ASTER')}`}>
+                        <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
                           {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') : 
                            stats?.marketCap ? formatMarketCap(stats.marketCap, 'ASTER') : '$0'}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price, { currency: 'ASTER' })}`}>
+                        <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price || 0, { currency: 'ASTER' })}`}>
                           {stats?.priceUsd && stats.priceUsd !== '0' ? formatPrice(stats.priceUsd, { currency: 'USD' }) : 
                            stats?.price ? formatPrice(stats.price, { currency: 'ASTER' }) : '$0'}
                         </td>
@@ -247,17 +248,17 @@ export default function Home() {
                             return `${hours}h`;
                           })()}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs" title={`${formatVolume(stats?.volume24h, 'ASTER')}`}>
+                        <td className="py-2 px-2 text-white text-xs" title={`${formatVolume(stats?.volume24h || 0, 'ASTER')}`}>
                           {stats?.volume24hUsd ? formatVolume(stats.volume24hUsd, 'USD') : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {stats?.trades24h || 0}
                         </td>
                         <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange1h)}`}>
-                          {formatPercent(stats?.priceChange1h)}
+                          {formatPercentage(stats?.priceChange1h || 0)}
                         </td>
                         <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange24h)}`}>
-                          {formatPercent(stats?.priceChange24h)}
+                          {formatPercentage(stats?.priceChange24h || 0)}
                         </td>
                       </tr>
                     );

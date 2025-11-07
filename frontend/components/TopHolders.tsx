@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ClickableWalletAddress } from './ClickableAddress'
+import { formatAsterAmount } from '@/lib/utils/formatNumbers'
 
 interface HolderApiResponse {
   holderAddress: string
@@ -142,7 +143,7 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHo
                   <div>
                     <ClickableWalletAddress address={holder.address} className="text-sm" />
                     <p className="text-xs text-gray-400">
-                      {parseFloat(holder.balance).toLocaleString()} {tokenSymbol}
+                      {formatAsterAmount(holder.balance, { compact: true })} {tokenSymbol}
                     </p>
                   </div>
                 </div>

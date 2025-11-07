@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAddress'
+import { Pagination, PaginationSkeleton } from './Pagination'
+import { formatTradeAmount, formatAsterAmount } from '@/lib/utils/formatNumbers'
 
 interface Trade {
   transactionHash: string
@@ -24,13 +26,18 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   const [trades, setTrades] = useState<Trade[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [totalItems, setTotalItems] = useState(0)
 
   useEffect(() => {
     const fetchTrades = async () => {
       try {
+        setIsLoading(true)
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
-        // Use the working /api/trades endpoint instead of /api/v2/tokens endpoint
-        const url = `${apiUrl}/api/trades/${tokenAddress}/history?limit=50`
+        const offset = (currentPage - 1) * itemsPerPage
+        const typeFilter = filter !== 'all' ? `&type=${filter}` : ''
+        const url = `${apiUrl}/api/trades/${tokenAddress}/history?limit=${itemsPerPage}&offset=${offset}${typeFilter}`
 
         console.log('[RecentTrades] Fetching trades for token:', tokenAddress)
         console.log('[RecentTrades] API URL:', url)
@@ -42,7 +49,8 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
 
         if (data.success) {
           setTrades(data.data)
-          console.log('[RecentTrades] Loaded', data.data.length, 'trades')
+          setTotalItems(data.pagination?.total || data.data.length)
+          console.log('[RecentTrades] Loaded', data.data.length, 'trades of', data.pagination?.total || 'unknown total')
         } else {
           console.error('[RecentTrades] API returned error:', data.error || data.message)
           console.error('[RecentTrades] Full error response:', JSON.stringify(data, null, 2))
@@ -55,13 +63,26 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
     }
 
     fetchTrades()
-    const interval = setInterval(fetchTrades, 5000) // Refresh every 5 seconds
+    const interval = setInterval(fetchTrades, 10000) // Refresh every 10 seconds (less frequent for paginated data)
     return () => clearInterval(interval)
-  }, [tokenAddress])
+  }, [tokenAddress, currentPage, itemsPerPage, filter])
 
-  const filteredTrades = filter === 'all'
-    ? trades
-    : trades.filter(t => t.type === filter)
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filter])
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1) // Reset to first page when changing items per page
+  }
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
 
   if (isLoading) {
     return (
@@ -103,12 +124,32 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
 
       {/* Trades List */}
       <div className="space-y-2">
-        {filteredTrades.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: itemsPerPage }).map((_, i) => (
+              <div key={i} className="bg-secondary p-4 rounded-lg animate-pulse">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-gray-700"></div>
+                    <div>
+                      <div className="h-4 w-24 bg-gray-700 rounded mb-1"></div>
+                      <div className="h-3 w-16 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="h-4 w-20 bg-gray-700 rounded mb-1"></div>
+                    <div className="h-3 w-12 bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : trades.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <p>No {filter !== 'all' ? filter : ''} trades yet</p>
           </div>
         ) : (
-          filteredTrades.map((trade) => (
+          trades.map((trade) => (
             <div
               key={trade.transactionHash}
               className="bg-secondary p-4 rounded-lg flex items-center justify-between hover:bg-secondary-light transition"
@@ -122,7 +163,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
                         {trade.type.toUpperCase()}
                       </span>
                       {' '}
-                      {parseFloat(trade.tokenAmount).toFixed(2)} {tokenSymbol}
+                      {formatTradeAmount(trade.tokenAmount)} {tokenSymbol}
                     </p>
                     <ClickableTransactionHash hash={trade.transactionHash} className="text-xs" />
                   </div>
@@ -133,7 +174,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium">
-                  {parseFloat(trade.asterAmount).toFixed(4)} ASTER
+                  {formatAsterAmount(trade.asterAmount)} ASTER
                 </p>
                 <p className="text-xs text-gray-400">
                   {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
@@ -143,6 +184,21 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {totalItems > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          onItemsPerPageChange={handleItemsPerPageChange}
+          itemsPerPageOptions={[5, 10, 20, 50]}
+          isLoading={isLoading}
+          className="border-t border-gray-700 mt-4 pt-4"
+        />
+      )}
     </div>
   )
 }

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { useComments } from '@/lib/hooks/useSocialFeatures'
+import { Pagination } from './Pagination'
+import { ClickableWalletAddress } from './ClickableAddress'
 import toast from 'react-hot-toast'
 
 interface CommentsSectionProps {
@@ -14,6 +16,8 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   const { comments, addComment, likeComment } = useComments(tokenAddress)
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,6 +55,24 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
+
+  // Pagination logic
+  const paginatedComments = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return comments.slice(startIndex, endIndex)
+  }, [comments, currentPage, itemsPerPage])
+
+  const totalPages = Math.ceil(comments.length / itemsPerPage)
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage)
+    setCurrentPage(1)
   }
 
   return (

@@ -12,6 +12,7 @@ import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
 import { indexTrade } from '@/lib/api/indexer'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
+import { formatAsterAmount, formatPercentage } from '@/lib/utils/formatNumbers'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 
@@ -364,7 +365,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             <span className="text-gray-400">You receive (min):</span>
             <div className="text-right">
               <span className="font-semibold">
-                {amount ? formatUnits(minOutput, 18).slice(0, 10) : '0.0'} {activeTab === 'buy' ? tokenSymbol : 'ASTER'}
+                {amount ? formatAsterAmount(formatUnits(minOutput, 18)) : '0.0'} {activeTab === 'buy' ? tokenSymbol : 'ASTER'}
               </span>
               {amount && parseFloat(amount) > 0 && activeTab === 'sell' && (
                 <div className="text-xs text-gray-500">
@@ -376,7 +377,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           <div className="flex justify-between">
             <span className="text-gray-400">Price impact:</span>
             <span className={`font-semibold ${priceImpact > 5 ? 'text-red-500' : 'text-gray-300'}`}>
-              {amount ? `${priceImpact.toFixed(2)}%` : '0%'}
+              {amount ? formatPercentage(priceImpact) : '0%'}
             </span>
           </div>
           <div className="flex justify-between">
@@ -384,7 +385,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             <div className="text-right">
               <span className="font-semibold">
                 {amount && (buyData || sellData)
-                  ? formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18).slice(0, 8)
+                  ? formatAsterAmount(formatUnits((buyData ? buyData[1] + buyData[2] : sellData![1] + sellData![2]), 18), { maxDecimals: 6 })
                   : '0'} ASTER
               </span>
               {amount && (buyData || sellData) && (
@@ -408,7 +409,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         {insufficientBalance && amount && parseFloat(amount) > 0 && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
             <p className="text-red-500 text-sm">
-              ⚠️ Insufficient balance. You have {formatUnits(activeTab === 'buy' ? currentAsterBalance : currentTokenBalance, 18).slice(0, 8)} {activeTab === 'buy' ? 'ASTER' : tokenSymbol}
+              ⚠️ Insufficient balance. You have {formatAsterAmount(formatUnits(activeTab === 'buy' ? currentAsterBalance : currentTokenBalance, 18))} {activeTab === 'buy' ? 'ASTER' : tokenSymbol}
             </p>
           </div>
         )}
