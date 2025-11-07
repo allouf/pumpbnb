@@ -23,7 +23,7 @@ class TokenStatsUpdaterService extends EventEmitter {
   constructor() {
     super();
     this.config = {
-      updateInterval: 2 * 60 * 1000, // 2 minutes
+      updateInterval: 30 * 1000, // 30 seconds for faster testing
       batchSize: 10, // Process 10 tokens at a time
     };
     this.provider = new ethers.JsonRpcProvider(config.bscTestnetRpc);
@@ -118,13 +118,15 @@ class TokenStatsUpdaterService extends EventEmitter {
       // Calculate 24h volume and trades
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
-      const [trades24hResult, tradesFor24h] = await Promise.all([
+      const [trades24hResult, tradesFor24h, allRecentTrades] = await Promise.all([
+        // Count trades in last 24h
         prisma.trade.count({
           where: {
             tokenAddress: tokenAddress.toLowerCase(),
             timestamp: { gte: oneDayAgo },
           },
         }),
+        // Get trades from last 24h for volume and price change calculation
         prisma.trade.findMany({
           where: {
             tokenAddress: tokenAddress.toLowerCase(),
@@ -140,6 +142,22 @@ class TokenStatsUpdaterService extends EventEmitter {
             timestamp: 'asc',
           },
         }),
+        // Get recent trades for current price calculation
+        prisma.trade.findMany({
+          where: {
+            tokenAddress: tokenAddress.toLowerCase(),
+          },
+          select: {
+            asterAmount: true,
+            tokenAmount: true,
+            timestamp: true,
+            isBuy: true,
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+          take: 10, // Get last 10 trades for better price calculation
+        }),
       ]);
 
       // Calculate 24h volume in ASTER
@@ -150,34 +168,39 @@ class TokenStatsUpdaterService extends EventEmitter {
         }, 0)
         .toFixed(6);
 
-      // Calculate price change 24h
-      let priceChange24h = '0';
-      if (tradesFor24h.length > 1) {
-        const oldestTrade = tradesFor24h[0];
-        const newestTrade = tradesFor24h[tradesFor24h.length - 1];
+      // Calculate current price from most recent trades
+      let currentPrice = '0';
+      if (allRecentTrades.length > 0) {
+        // Use average price from recent trades for more stability
+        const recentPrices = allRecentTrades
+          .map(trade => {
+            const asterAmount = parseFloat(trade.asterAmount || '0');
+            const tokenAmount = parseFloat(trade.tokenAmount || '0');
+            return tokenAmount > 0 ? asterAmount / tokenAmount : 0;
+          })
+          .filter(price => price > 0);
         
-        const calculatePrice = (trade: typeof oldestTrade) => {
-          const asterAmount = parseFloat(trade.asterAmount || '0');
-          const tokenAmount = parseFloat(trade.tokenAmount || '0');
-          return tokenAmount > 0 ? asterAmount / tokenAmount : 0;
-        };
-        
-        const oldPrice = calculatePrice(oldestTrade);
-        const currentPrice = calculatePrice(newestTrade);
-        
-        if (oldPrice > 0) {
-          priceChange24h = (((currentPrice - oldPrice) / oldPrice) * 100).toFixed(2);
+        if (recentPrices.length > 0) {
+          const avgPrice = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
+          currentPrice = avgPrice.toFixed(8);
         }
       }
 
-      // Calculate current price (from most recent trade)
-      let currentPrice = '0';
-      if (tradesFor24h.length > 0) {
-        const recentTrade = tradesFor24h[tradesFor24h.length - 1];
-        const asterAmount = parseFloat(recentTrade.asterAmount || '0');
-        const tokenAmount = parseFloat(recentTrade.tokenAmount || '0');
+      // Calculate price change 24h using current price vs 24h ago price
+      let priceChange24h = '0';
+      if (tradesFor24h.length > 0 && parseFloat(currentPrice) > 0) {
+        // Get the earliest trade in 24h window
+        const oldestTrade = tradesFor24h[0];
+        const asterAmount = parseFloat(oldestTrade.asterAmount || '0');
+        const tokenAmount = parseFloat(oldestTrade.tokenAmount || '0');
+        
         if (tokenAmount > 0) {
-          currentPrice = (asterAmount / tokenAmount).toFixed(8);
+          const oldPrice = asterAmount / tokenAmount;
+          const currentPriceNum = parseFloat(currentPrice);
+          
+          if (oldPrice > 0) {
+            priceChange24h = (((currentPriceNum - oldPrice) / oldPrice) * 100).toFixed(2);
+          }
         }
       }
 

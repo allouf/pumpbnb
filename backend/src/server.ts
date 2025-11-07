@@ -9,6 +9,7 @@ import { ohlcvAggregatorService } from './services/ohlcv-aggregator.service';
 import { holderUpdaterService } from './services/holder-updater.service';
 import { cacheWarmerService } from './services/cache-warmer.service';
 import { tokenStatsUpdaterService } from './services/token-stats-updater.service';
+import { offlineFallbackService } from './services/offline-fallback.service';
 
 const server = http.createServer(app);
 
@@ -24,6 +25,12 @@ async function startServer(): Promise<void> {
     logger.info('📊 [1/7] Initializing database connections...');
     await initializeDatabase();
     logger.info('✅ [1/7] Database connections established');
+    logger.info('');
+
+    // Initialize offline fallback service
+    logger.info('🔌 [1.5/7] Initializing offline fallback service...');
+    await offlineFallbackService.initialize();
+    logger.info('✅ [1.5/7] Offline fallback service initialized');
     logger.info('');
 
     // Initialize WebSocket server

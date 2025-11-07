@@ -46,6 +46,8 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
   const [tokens, setTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const [isOffline, setIsOffline] = useState(false)
+  const [offlineMessage, setOfflineMessage] = useState<string | null>(null)
   const pollingInterval = options?.pollingInterval || 30000
   const disablePolling = options?.disablePolling || false
   const filters = options?.filters || {}
@@ -107,6 +109,9 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
           throw new Error(data.message || 'Failed to fetch tokens')
         }
 
+        // Check if response is offline mode
+        const isOfflineResponse = data.offline === true
+        
         // Transform backend data to match Token interface
         const tokenList: Token[] = data.data.map((token: any) => ({
           address: token.address,
@@ -114,7 +119,7 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
           creator: token.creator,
           name: token.name,
           symbol: token.symbol,
-          timestamp: new Date(token.createdAt).getTime() / 1000,
+          timestamp: token.timestamp || new Date(token.createdAt).getTime() / 1000,
           description: token.description,
           imageUrl: token.imageUrl,
           isGraduated: token.isGraduated,
@@ -133,11 +138,13 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
           } : undefined,
         }))
 
-        console.log('[useTokenList] Loaded', tokenList.length, 'tokens')
+        console.log('[useTokenList] Loaded', tokenList.length, 'tokens', isOfflineResponse ? '(offline mode)' : '(online mode)')
 
         if (isMounted.current) {
           setTokens(tokenList)
           setError(null)
+          setIsOffline(isOfflineResponse)
+          setOfflineMessage(data.message || null)
         }
       } catch (err) {
         console.error('[useTokenList] Error:', err)
@@ -179,5 +186,5 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
     fetchTokensRef.current?.()
   }, [])
 
-  return { tokens, isLoading, error, refetch }
+  return { tokens, isLoading, error, refetch, isOffline, offlineMessage }
 }

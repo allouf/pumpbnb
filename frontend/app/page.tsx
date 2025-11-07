@@ -40,7 +40,7 @@ export default function Home() {
   }), [sortOption, showNsfw, JSON.stringify(advancedFilters)]);
 
   // Fetch all tokens with current filters - NO POLLING
-  const { tokens, isLoading, error } = useTokenList({ filters: tokenFilters, disablePolling: true });
+  const { tokens, isLoading, error, isOffline, offlineMessage } = useTokenList({ filters: tokenFilters, disablePolling: true });
 
   // Fetch trending tokens ONCE on page load only
   useEffect(() => {
@@ -132,6 +132,16 @@ export default function Home() {
       {error && (
         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
           <p className="text-red-500">Error loading tokens: {error.message}</p>
+        </div>
+      )}
+
+      {/* Offline Message */}
+      {isOffline && offlineMessage && (
+        <div className="bg-orange-500/10 border border-orange-500/50 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-orange-500">🔌</span>
+            <p className="text-orange-500">{offlineMessage}</p>
+          </div>
         </div>
       )}
 

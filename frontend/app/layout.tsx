@@ -3,6 +3,7 @@ import "./globals.css";
 import { Web3Provider } from "@/components/Web3Provider";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ToastProvider } from "@/components/ToastProvider";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 export const metadata: Metadata = {
   title: "ASTER FUN - Meme Coin Launchpad on BNB Chain",
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Web3Provider>
           <ToastProvider />
+          <OfflineIndicator />
           <MainLayout>
             {children}
           </MainLayout>

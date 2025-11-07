@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import tokensService from '../services/tokens.service';
+import { offlineFallbackService } from '../services/offline-fallback.service';
 import logger from '../utils/logger';
 
 class TokensController {
@@ -91,7 +92,7 @@ class TokensController {
    * GET /api/v2/tokens
    * Get all tokens with filtering and pagination
    */
-  async getTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTokens(req: Request, res: Response, _next: NextFunction): Promise<void> {
     try {
       const {
         page = '1',
@@ -107,27 +108,63 @@ class TokensController {
         maxVolume24h,
       } = req.query;
 
-      const result = await tokensService.getTokens({
-        page: parseInt(page as string),
-        limit: Math.min(parseInt(limit as string), 100),
-        sortBy: sortBy as any,
-        sortOrder: sortOrder as any,
-        isGraduated: isGraduated ? isGraduated === 'true' : undefined,
-        isNsfw: isNsfw ? isNsfw === 'true' : undefined,
-        search: search as string,
-        minMarketCap: minMarketCap ? parseFloat(minMarketCap as string) : undefined,
-        maxMarketCap: maxMarketCap ? parseFloat(maxMarketCap as string) : undefined,
-        minVolume24h: minVolume24h ? parseFloat(minVolume24h as string) : undefined,
-        maxVolume24h: maxVolume24h ? parseFloat(maxVolume24h as string) : undefined,
-      });
+      // Try regular service first, fallback to offline service
+      let result;
+      try {
+        result = await tokensService.getTokens({
+          page: parseInt(page as string),
+          limit: Math.min(parseInt(limit as string), 100),
+          sortBy: sortBy as any,
+          sortOrder: sortOrder as any,
+          isGraduated: isGraduated ? isGraduated === 'true' : undefined,
+          isNsfw: isNsfw ? isNsfw === 'true' : undefined,
+          search: search as string,
+          minMarketCap: minMarketCap ? parseFloat(minMarketCap as string) : undefined,
+          maxMarketCap: maxMarketCap ? parseFloat(maxMarketCap as string) : undefined,
+          minVolume24h: minVolume24h ? parseFloat(minVolume24h as string) : undefined,
+          maxVolume24h: maxVolume24h ? parseFloat(maxVolume24h as string) : undefined,
+        });
+
+        // If no data returned, try offline fallback
+        if (!result.data || result.data.length === 0) {
+          logger.warn('No tokens from regular service, trying offline fallback');
+          result = await offlineFallbackService.getTokensWithFallback({
+            page: parseInt(page as string),
+            limit: Math.min(parseInt(limit as string), 100),
+            sortBy: sortBy as string,
+            sortOrder: sortOrder as any,
+          });
+        }
+      } catch (serviceError) {
+        logger.warn('Regular tokens service failed, using offline fallback:', serviceError);
+        result = await offlineFallbackService.getTokensWithFallback({
+          page: parseInt(page as string),
+          limit: Math.min(parseInt(limit as string), 100),
+          sortBy: sortBy as string,
+          sortOrder: sortOrder as any,
+        });
+      }
 
       res.json({
         success: true,
         ...result,
       });
     } catch (error) {
-      logger.error('Error fetching tokens:', error);
-      next(error);
+      logger.error('Error fetching tokens (both regular and offline failed):', error);
+      // Return empty result instead of error to prevent complete failure
+      res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 50,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+        offline: true,
+        message: 'Service temporarily unavailable - please try again later',
+      });
     }
   }
 
@@ -167,22 +204,43 @@ class TokensController {
    * GET /api/v2/tokens/trending
    * Get trending tokens
    */
-  async getTrendingTokens(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTrendingTokens(req: Request, res: Response, _next: NextFunction): Promise<void> {
     try {
       const { limit = '10' } = req.query;
+      const limitNum = Math.min(parseInt(limit as string), 50);
 
-      const tokens = await tokensService.getTrendingTokens(
-        Math.min(parseInt(limit as string), 50)
-      );
+      let result;
+      try {
+        const tokens = await tokensService.getTrendingTokens(limitNum);
+        
+        if (!tokens || tokens.length === 0) {
+          logger.warn('No trending tokens from regular service, trying offline fallback');
+          result = await offlineFallbackService.getTrendingTokensWithFallback(limitNum);
+        } else {
+          result = {
+            success: true,
+            data: tokens,
+            offline: false,
+          };
+        }
+      } catch (serviceError) {
+        logger.warn('Regular trending service failed, using offline fallback:', serviceError);
+        result = await offlineFallbackService.getTrendingTokensWithFallback(limitNum);
+      }
 
       res.json({
-        success: true,
-        data: tokens,
-        count: tokens.length,
+        ...result,
+        count: result.data?.length || 0,
       });
     } catch (error) {
-      logger.error('Error fetching trending tokens:', error);
-      next(error);
+      logger.error('Error fetching trending tokens (both regular and offline failed):', error);
+      res.json({
+        success: true,
+        data: [],
+        count: 0,
+        offline: true,
+        message: 'Trending data temporarily unavailable',
+      });
     }
   }
 
