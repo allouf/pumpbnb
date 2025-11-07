@@ -38,10 +38,17 @@ router.get('/health', async (_req: Request, res: Response): Promise<void> => {
 
   // Check Redis
   try {
-    await redisClient.ping();
+    const pingResult = await redisClient.ping();
+    const dbSize = await redisClient.dbsize();
+    const info = await redisClient.info('stats');
+
+    // Extract total commands processed from info
+    const commandsMatch = info.match(/total_commands_processed:(\d+)/);
+    const totalCommands = commandsMatch ? parseInt(commandsMatch[1]) : 0;
+
     healthStatus.services.redis.status = 'healthy';
-    healthStatus.services.redis.message = '✅ Redis connection OK';
-    logger.info('[Health Check] ✅ Redis: Connected');
+    healthStatus.services.redis.message = `✅ Redis OK (${dbSize} keys, ${totalCommands} cmds)`;
+    logger.info(`[Health Check] ✅ Redis: Connected (${dbSize} keys cached, ${totalCommands} total commands)`);
   } catch (error: any) {
     healthStatus.services.redis.status = 'unhealthy';
     healthStatus.services.redis.message = `❌ Redis error: ${error.message}`;
@@ -155,6 +162,111 @@ router.get('/health/details', async (_req: Request, res: Response): Promise<void
     logger.error('[Health Details] Failed to get system details:', error);
     res.status(500).json({
       error: 'Failed to get system details',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * Redis cache statistics endpoint
+ */
+router.get('/health/redis', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // Check connection
+    const pingResult = await redisClient.ping();
+
+    // Get Redis info sections
+    const statsInfo = await redisClient.info('stats');
+    const memoryInfo = await redisClient.info('memory');
+    const clientsInfo = await redisClient.info('clients');
+
+    // Get database size
+    const dbSize = await redisClient.dbsize();
+
+    // Sample some cache keys to show what's cached
+    const allKeys = await redisClient.keys('*');
+    const sampleKeys = allKeys.slice(0, 20); // First 20 keys as sample
+
+    // Group keys by type
+    const keysByType: Record<string, number> = {};
+    for (const key of allKeys) {
+      const prefix = key.split(':')[0];
+      keysByType[prefix] = (keysByType[prefix] || 0) + 1;
+    }
+
+    // Parse stats
+    const parseInfo = (info: string) => {
+      const lines = info.split('\r\n');
+      const parsed: Record<string, string> = {};
+      for (const line of lines) {
+        if (line && !line.startsWith('#')) {
+          const [key, value] = line.split(':');
+          if (key && value) {
+            parsed[key] = value;
+          }
+        }
+      }
+      return parsed;
+    };
+
+    const stats = parseInfo(statsInfo);
+    const memory = parseInfo(memoryInfo);
+    const clients = parseInfo(clientsInfo);
+
+    const redisStatus = {
+      status: 'connected',
+      ping: pingResult,
+      timestamp: new Date().toISOString(),
+
+      cache: {
+        totalKeys: dbSize,
+        sampleKeys: sampleKeys,
+        keysByType: keysByType,
+      },
+
+      stats: {
+        totalConnectionsReceived: stats.total_connections_received || '0',
+        totalCommandsProcessed: stats.total_commands_processed || '0',
+        instantaneousOpsPerSec: stats.instantaneous_ops_per_sec || '0',
+        totalNetInputBytes: stats.total_net_input_bytes || '0',
+        totalNetOutputBytes: stats.total_net_output_bytes || '0',
+        keyspaceHits: stats.keyspace_hits || '0',
+        keyspaceMisses: stats.keyspace_misses || '0',
+      },
+
+      memory: {
+        usedMemory: memory.used_memory_human || '0',
+        usedMemoryPeak: memory.used_memory_peak_human || '0',
+        totalSystemMemory: memory.total_system_memory_human || '0',
+        maxmemory: memory.maxmemory_human || '0',
+      },
+
+      clients: {
+        connectedClients: clients.connected_clients || '0',
+        blockedClients: clients.blocked_clients || '0',
+      },
+    };
+
+    // Calculate cache hit rate
+    const hits = parseInt(stats.keyspace_hits || '0');
+    const misses = parseInt(stats.keyspace_misses || '0');
+    const total = hits + misses;
+    const hitRate = total > 0 ? ((hits / total) * 100).toFixed(2) : '0.00';
+
+    logger.info(`[Redis Stats] Keys: ${dbSize}, Hit Rate: ${hitRate}%, Commands: ${stats.total_commands_processed}`);
+
+    res.status(200).json({
+      ...redisStatus,
+      performance: {
+        cacheHitRate: `${hitRate}%`,
+        totalRequests: total,
+      },
+    });
+  } catch (error: any) {
+    logger.error('[Redis Stats] Failed to get Redis statistics:', error);
+    res.status(500).json({
+      status: 'error',
+      error: 'Failed to get Redis statistics',
       message: error.message,
     });
   }
