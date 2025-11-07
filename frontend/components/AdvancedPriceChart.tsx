@@ -67,7 +67,6 @@ export function AdvancedPriceChart({
   
   // Chart control toggles
   const [showTradeDisplay, setShowTradeDisplay] = useState(true)
-  const [showAllBubbles, setShowAllBubbles] = useState(false)
   const [displayMetric, setDisplayMetric] = useState<'Price' | 'MCap'>('Price')
 
   // Debug function to log current chart state
@@ -446,17 +445,36 @@ export function AdvancedPriceChart({
       }
     })
 
-    // Handle resize
+    // Handle resize and layout changes
     const handleResize = () => {
       if (chartContainerRef.current && chart) {
         chart.applyOptions({ width: chartContainerRef.current.clientWidth })
       }
     }
 
+    // Create a resize observer to handle sidebar expand/collapse
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === chartContainerRef.current && chart) {
+          // Debounce the resize to avoid too frequent updates
+          clearTimeout((window as any)._chartResizeTimeout)
+          ;(window as any)._chartResizeTimeout = setTimeout(() => {
+            chart.applyOptions({ width: entry.contentRect.width })
+          }, 100)
+        }
+      }
+    })
+
+    if (chartContainerRef.current) {
+      resizeObserver.observe(chartContainerRef.current)
+    }
+
     window.addEventListener('resize', handleResize)
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
+      clearTimeout((window as any)._chartResizeTimeout)
       if (chartRef.current) {
         chartRef.current.remove()
         chartCreatedRef.current = false
@@ -967,19 +985,6 @@ export function AdvancedPriceChart({
               Trade Display
             </button>
 
-            {/* Show All Bubbles Toggle */}
-            <button
-              onClick={() => setShowAllBubbles(!showAllBubbles)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition border ${
-                showAllBubbles
-                  ? 'bg-primary text-black border-primary'
-                  : 'bg-secondary text-gray-400 border-gray-700 hover:border-primary hover:text-white'
-              }`}
-              title="Show All Trade Bubbles"
-            >
-              Show All Bubbles
-            </button>
-
             {/* Price/MCap Toggle */}
             <div className="flex bg-secondary rounded p-0.5 border border-gray-700">
               <button
@@ -1320,7 +1325,7 @@ export function AdvancedPriceChart({
           </button>
         </div>
         
-        <div ref={chartContainerRef} className="w-full" />
+        <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
       {/* Stats Row Below Chart - Pump.fun Style */}

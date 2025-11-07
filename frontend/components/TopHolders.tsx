@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { ClickableWalletAddress } from './ClickableAddress'
 
 interface HolderApiResponse {
   holderAddress: string
@@ -100,9 +101,7 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHo
             return (
               <div key={holder.address} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">
-                    {holder.address.slice(0, 4)}...{holder.address.slice(-4)}
-                  </span>
+                  <ClickableWalletAddress address={holder.address} className="text-xs" />
                 </div>
                 <span className="text-sm font-bold text-white">
                   {(holder.percentage || 0).toFixed(2)}%
@@ -141,9 +140,7 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHo
                     #{index + 1}
                   </div>
                   <div>
-                    <p className="text-sm font-mono">
-                      {holder.address.slice(0, 6)}...{holder.address.slice(-4)}
-                    </p>
+                    <ClickableWalletAddress address={holder.address} className="text-sm" />
                     <p className="text-xs text-gray-400">
                       {parseFloat(holder.balance).toLocaleString()} {tokenSymbol}
                     </p>

@@ -20,6 +20,8 @@ import { TradingPanel } from '@/components/TradingPanel'
 import { CommentsSection } from '@/components/CommentsSection'
 import { RecentTrades } from '@/components/RecentTrades'
 import { TopHolders } from '@/components/TopHolders'
+import { SharePopup } from '@/components/SharePopup'
+import { ClickableWalletAddress } from '@/components/ClickableAddress'
 import { useTokenData } from '@/lib/hooks/useTokenData'
 import { useWatchTradeEvents } from '@/lib/hooks/useTokenEvents'
 
@@ -32,6 +34,7 @@ interface TokenPageClientProps {
 export function TokenPageClient({ address }: TokenPageClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>('trades')
   const [isFavorite, setIsFavorite] = useState(false)
+  const [showSharePopup, setShowSharePopup] = useState(false)
 
   // Fetch token data
   const { tokenData: apiData, isLoading: apiLoading, error: apiError } = useTokenData(address)
@@ -202,17 +205,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
   // Share function
   const handleShare = () => {
-    const url = window.location.href
-    if (navigator.share) {
-      navigator.share({
-        title: `${name} ($${symbol})`,
-        text: `Check out ${name} on ASTER FUN!`,
-        url,
-      })
-    } else {
-      navigator.clipboard.writeText(url)
-      alert('Link copied to clipboard!')
-    }
+    setShowSharePopup(true)
   }
 
   // Loading state
@@ -263,9 +256,9 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
         </button>
 
         {/* Pump.fun Style Layout - Chart Width Token Header */}
-        <div className="flex gap-6">
+        <div className="flex gap-6 min-h-0">
           {/* Left Column - Chart + Tabs + Token Info */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0 overflow-y-auto pr-2" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             {/* Token Info Header - Same Width as Chart */}
             <div className="bg-secondary-light rounded-xl p-4 mb-4">
               <div className="flex items-center gap-4">
@@ -275,10 +268,10 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                     <img
                       src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
                       alt={name}
-                      className="w-12 h-12 rounded-lg object-cover border border-gray-700"
+                      className="w-20 h-20 rounded-xl object-cover border-2 border-gray-600 shadow-lg"
                     />
                   ) : (
-                    <TokenAvatar symbol={symbol} size="lg" />
+                    <TokenAvatar symbol={symbol} size="xl" />
                   )}
                 </div>
 
@@ -290,13 +283,12 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <span className="font-medium">${symbol}</span>
                         <span>•</span>
-                        <span className="font-mono">
-                          {address.slice(0, 6)}...{address.slice(-4)}
-                        </span>
+                        <ClickableWalletAddress address={address} />
                         {creator && (
                           <>
                             <span>•</span>
-                            <span>by {creator.slice(0, 6)}...{creator.slice(-4)}</span>
+                            <span>by </span>
+                            <ClickableWalletAddress address={creator} />
                           </>
                         )}
                         <span>•</span>
@@ -449,8 +441,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
 
           {/* Right Column - Trading Panel */}
-          <div className="w-80 flex-shrink-0">
-            <div className="sticky top-24 space-y-4">
+          <div className="w-80 flex-shrink-0 overflow-y-auto pl-2" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+            <div className="space-y-4">
               {/* Trading Panel */}
               {bondingCurve ? (
                 <TradingPanel
@@ -544,6 +536,15 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
         </div>
       </div>
+      
+      {/* Share Popup */}
+      <SharePopup 
+        isOpen={showSharePopup}
+        onClose={() => setShowSharePopup(false)}
+        tokenName={name || ''}
+        tokenSymbol={symbol || ''}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+      />
     </div>
   )
 }

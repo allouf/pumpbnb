@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
+import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAddress'
 
 interface Trade {
   transactionHash: string
@@ -115,16 +116,19 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${trade.type === 'buy' ? 'bg-green-500' : 'bg-red-500'}`} />
                 <div>
-                  <p className="text-sm font-medium">
-                    <span className={trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                      {trade.type.toUpperCase()}
-                    </span>
-                    {' '}
-                    {parseFloat(trade.tokenAmount).toFixed(2)} {tokenSymbol}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {trade.user.slice(0, 6)}...{trade.user.slice(-4)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">
+                      <span className={trade.type === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                        {trade.type.toUpperCase()}
+                      </span>
+                      {' '}
+                      {parseFloat(trade.tokenAmount).toFixed(2)} {tokenSymbol}
+                    </p>
+                    <ClickableTransactionHash hash={trade.transactionHash} className="text-xs" />
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    <ClickableWalletAddress address={trade.user} className="text-xs" />
+                  </div>
                 </div>
               </div>
               <div className="text-right">

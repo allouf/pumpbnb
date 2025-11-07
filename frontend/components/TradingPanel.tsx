@@ -6,6 +6,7 @@ import { formatUnits, parseUnits } from 'viem'
 import type { Abi } from 'viem'
 import toast from 'react-hot-toast'
 import { SlippageSettings } from './SlippageSettings'
+import { AsterLogo } from './AsterLogo'
 import { calculateExpectedOutput, calculateMinOutput, calculatePriceImpact, SLIPPAGE_PRESETS } from '@/lib/utils/trading'
 import { CONTRACTS } from '@/lib/contracts'
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
@@ -42,20 +43,11 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy')
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState(SLIPPAGE_PRESETS.MEDIUM)
-  const [showUsd, setShowUsd] = useState(true) // Default to USD display
   const { usdRate } = useUsdPrice()
 
   // Calculate amount early so we can use it in contract reads
-  // Convert USD to ASTER for buy orders when USD display is enabled
   const getAsterAmount = () => {
     if (!amount || parseFloat(amount) <= 0) return BigInt(0)
-    
-    if (activeTab === 'buy' && showUsd) {
-      // Convert USD to ASTER
-      const asterAmount = parseFloat(amount) / usdRate
-      return parseUnits(asterAmount.toString(), 18)
-    }
-    
     return parseUnits(amount, 18)
   }
   
@@ -330,14 +322,6 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Currency Toggle */}
-          <button
-            onClick={() => setShowUsd(!showUsd)}
-            className="px-2 py-1 text-xs bg-gray-800 hover:bg-gray-700 rounded-md transition font-medium"
-            title="Toggle USD/ASTER display"
-          >
-            {showUsd ? 'USD' : 'ASTER'}
-          </button>
           <SlippageSettings slippage={slippage} onSlippageChange={setSlippage} />
         </div>
       </div>
@@ -346,26 +330,33 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         <div>
           <div className="flex justify-between items-center mb-2">
             <label className="block text-sm font-medium">
-              Amount ({activeTab === 'buy' ? (showUsd ? 'USD' : 'ASTER') : tokenSymbol})
+              Amount ({activeTab === 'buy' ? 'ASTER' : tokenSymbol})
             </label>
-            {amount && parseFloat(amount) > 0 && (
+            {amount && parseFloat(amount) > 0 && activeTab === 'buy' && (
               <div className="text-xs text-gray-400">
-                {activeTab === 'buy' && (
-                  showUsd 
-                    ? `≈ ${(parseFloat(amount) / usdRate).toFixed(4)} ASTER`
-                    : `≈ ${formatUsdPrice(asterToUsd(parseFloat(amount), usdRate))}`
-                )}
+                ≈ {formatUsdPrice(asterToUsd(parseFloat(amount), usdRate))}
               </div>
             )}
           </div>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder={showUsd && activeTab === 'buy' ? '0.00' : '0.0'}
-            step={showUsd && activeTab === 'buy' ? '0.01' : '0.01'}
-            className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none"
-          />
+          <div className="relative">
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.0"
+              step="0.01"
+              className="w-full px-4 py-3 pr-12 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none
+                        [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                        [-moz-appearance:textfield]"
+              style={{ appearance: 'textfield' }}
+            />
+            {activeTab === 'buy' && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                <AsterLogo size={16} />
+                <span className="text-xs text-gray-400 font-medium">ASTER</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-secondary rounded-lg p-4 text-sm space-y-2">
