@@ -69,19 +69,25 @@ model Trade {
 model TokenStats {
   id             String   @id @default(uuid())
   tokenAddress   String   @unique
-  price          String
-  marketCap      String
-  volume24h      String
+  price          String   // Price in ASTER
+  priceUsd       String   @default("0") // Price in USD
+  marketCap      String   // Market cap in ASTER
+  marketCapUsd   String   @default("0") // Market cap in USD
+  volume24h      String   // Volume in ASTER
+  volume24hUsd   String   @default("0") // Volume in USD
   trades24h      Int      @default(0)
   holders        Int      @default(0)
   liquidity      String
+  liquidityUsd   String   @default("0") // Liquidity in USD
   priceChange24h String   @default("0")
   updatedAt      DateTime @updatedAt
 
   token Token @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)
 
   @@index([volume24h])
+  @@index([volume24hUsd])
   @@index([marketCap])
+  @@index([marketCapUsd])
   @@index([updatedAt])
   @@map("token_stats")
 }

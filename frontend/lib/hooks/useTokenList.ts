@@ -3,11 +3,15 @@ import { cachedFetch } from '@/lib/utils/fetchWithRetry'
 
 export interface TokenStats {
   price: string
+  priceUsd?: string
   marketCap: string
+  marketCapUsd?: string
   volume24h: string
+  volume24hUsd?: string
   trades24h: number
   holders: number
   liquidity: string
+  liquidityUsd?: string
   priceChange24h: string
   priceChange1h?: string
   transactions?: number
@@ -126,11 +130,15 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
           isNsfw: token.isNsfw,
           stats: token.stats ? {
             price: token.stats.price || '0',
+            priceUsd: token.stats.priceUsd || '0',
             marketCap: token.stats.marketCap || '0',
+            marketCapUsd: token.stats.marketCapUsd || '0',
             volume24h: token.stats.volume24h || '0',
+            volume24hUsd: token.stats.volume24hUsd || '0',
             trades24h: token.stats.trades24h || 0,
             holders: token.stats.holders || 0,
             liquidity: token.stats.liquidity || '0',
+            liquidityUsd: token.stats.liquidityUsd || '0',
             priceChange24h: token.stats.priceChange24h || '0',
             priceChange1h: token.stats.priceChange1h,
             transactions: token.stats.trades24h || 0,

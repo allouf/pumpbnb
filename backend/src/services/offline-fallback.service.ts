@@ -16,11 +16,15 @@ const MOCK_TOKENS = [
     timestamp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
     stats: {
       price: '0.00000150',
+      priceUsd: '0.0000009',
       marketCap: '15.50',
+      marketCapUsd: '9.30',
       volume24h: '2.30',
+      volume24hUsd: '1.38',
       trades24h: 12,
       holders: 8,
       liquidity: '15.50',
+      liquidityUsd: '9.30',
       priceChange24h: '5.20',
     }
   },
@@ -37,11 +41,15 @@ const MOCK_TOKENS = [
     timestamp: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
     stats: {
       price: '0.00000089',
+      priceUsd: '0.00000053',
       marketCap: '8.90',
+      marketCapUsd: '5.34',
       volume24h: '1.45',
+      volume24hUsd: '0.87',
       trades24h: 7,
       holders: 5,
       liquidity: '8.90',
+      liquidityUsd: '5.34',
       priceChange24h: '-2.10',
     }
   },
@@ -58,11 +66,15 @@ const MOCK_TOKENS = [
     timestamp: Math.floor(Date.now() / 1000) - 10800, // 3 hours ago
     stats: {
       price: '0.00000045',
+      priceUsd: '0.00000027',
       marketCap: '4.50',
+      marketCapUsd: '2.70',
       volume24h: '0.80',
+      volume24hUsd: '0.48',
       trades24h: 3,
       holders: 3,
       liquidity: '4.50',
+      liquidityUsd: '2.70',
       priceChange24h: '0.00',
     }
   },
@@ -79,11 +91,15 @@ const MOCK_TOKENS = [
     timestamp: Math.floor(Date.now() / 1000) - 14400, // 4 hours ago
     stats: {
       price: '0.00000112',
+      priceUsd: '0.00000067',
       marketCap: '11.20',
+      marketCapUsd: '6.72',
       volume24h: '3.10',
+      volume24hUsd: '1.86',
       trades24h: 15,
       holders: 12,
       liquidity: '11.20',
+      liquidityUsd: '6.72',
       priceChange24h: '8.75',
     }
   }

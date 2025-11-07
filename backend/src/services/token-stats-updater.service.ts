@@ -227,28 +227,36 @@ class TokenStatsUpdaterService extends EventEmitter {
         },
       });
 
-      // Update token stats
+      // Update token stats with both ASTER and USD values
       await prisma.tokenStats.upsert({
         where: { tokenAddress: tokenAddress.toLowerCase() },
         update: {
           price: currentPrice,
+          priceUsd: priceUsd.toFixed(12),
           marketCap: marketCap,
+          marketCapUsd: marketCapUsd.toFixed(2),
           volume24h: volume24h,
+          volume24hUsd: usdPriceService.asterToUsd(parseFloat(volume24h)).toFixed(2),
           trades24h: trades24hResult,
           holders: holders || 1,
           priceChange24h: priceChange24h,
-          liquidity: asterReserves.toFixed(2), // Use ASTER reserves as liquidity
+          liquidity: asterReserves.toFixed(2),
+          liquidityUsd: marketCapUsd.toFixed(2), // Same as market cap for now
           updatedAt: new Date(),
         },
         create: {
           tokenAddress: tokenAddress.toLowerCase(),
           price: currentPrice,
+          priceUsd: priceUsd.toFixed(12),
           marketCap: marketCap,
+          marketCapUsd: marketCapUsd.toFixed(2),
           volume24h: volume24h,
+          volume24hUsd: usdPriceService.asterToUsd(parseFloat(volume24h)).toFixed(2),
           trades24h: trades24hResult,
           holders: holders || 1,
           priceChange24h: priceChange24h,
           liquidity: asterReserves.toFixed(2),
+          liquidityUsd: marketCapUsd.toFixed(2),
         },
       });
 

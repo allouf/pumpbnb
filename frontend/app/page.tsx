@@ -228,11 +228,11 @@ export default function Home() {
                             <span className="text-xs text-gray-600">📈</span>
                           </div>
                         </td>
-                        <td className="py-2 px-2 text-white font-medium text-xs">
-                          {stats ? formatMarketCap(stats.marketCap) : '$0'}
+                        <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap, 'ASTER')}`}>
+                          {stats?.marketCapUsd ? formatMarketCap(stats.marketCapUsd, 'USD') : '$0'}
                         </td>
                         <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price, { currency: 'ASTER' })}`}>
-                          {stats ? formatPrice(stats.price) : '$0'}
+                          {stats?.priceUsd ? formatPrice(stats.priceUsd, { currency: 'USD' }) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {(() => {
@@ -245,8 +245,8 @@ export default function Home() {
                             return `${hours}h`;
                           })()}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs">
-                          {stats ? formatVolume(stats.volume24h, 'ASTER') : '0 ASTER'}
+                        <td className="py-2 px-2 text-white text-xs" title={`${formatVolume(stats?.volume24h, 'ASTER')}`}>
+                          {stats?.volume24hUsd ? formatVolume(stats.volume24hUsd, 'USD') : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {stats?.trades24h || 0}
