@@ -153,76 +153,108 @@ export default function Home() {
           ) : (
             /* List View - Table Format like pump.fun */
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead className="text-gray-400 border-b border-gray-800">
                   <tr>
-                    <th className="text-left py-3 px-4">#</th>
-                    <th className="text-left py-3 px-4">COIN</th>
-                    <th className="text-left py-3 px-4">MCAP</th>
-                    <th className="text-left py-3 px-4">PRICE</th>
-                    <th className="text-left py-3 px-4">AGE</th>
-                    <th className="text-left py-3 px-4">24H VOL</th>
-                    <th className="text-left py-3 px-4">TRADERS</th>
-                    <th className="text-left py-3 px-4">TXNS</th>
-                    <th className="text-left py-3 px-4">STATUS</th>
+                    <th className="text-left py-2 px-2 text-xs">#</th>
+                    <th className="text-left py-2 px-2 text-xs">COIN</th>
+                    <th className="text-left py-2 px-2 text-xs">GRAPH</th>
+                    <th className="text-left py-2 px-2 text-xs">MCAP</th>
+                    <th className="text-left py-2 px-2 text-xs">PRICE</th>
+                    <th className="text-left py-2 px-2 text-xs">AGE</th>
+                    <th className="text-left py-2 px-2 text-xs">24H VOL</th>
+                    <th className="text-left py-2 px-2 text-xs">TRADES</th>
+                    <th className="text-left py-2 px-2 text-xs">1H</th>
+                    <th className="text-left py-2 px-2 text-xs">24H</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tokens.map((token, index) => (
-                    <tr
-                      key={token.address}
-                      className="border-b border-gray-800 hover:bg-secondary-light/30 transition-colors cursor-pointer"
-                      onClick={() => window.location.href = `/token/${token.address}`}
-                    >
-                      <td className="py-4 px-4 text-gray-500">#{index + 1}</td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={token.imageUrl || '/placeholder-token.png'}
-                            alt={token.name}
-                            className="w-10 h-10 rounded-full"
-                          />
-                          <div>
-                            <div className="font-semibold text-white">{token.name}</div>
-                            <div className="text-xs text-gray-400">{token.symbol}</div>
+                  {tokens.map((token, index) => {
+                    const stats = (token as any).stats;
+                    console.log('[Table] Token:', token.symbol, 'Stats:', stats);
+
+                    // Format numbers
+                    const formatNumber = (num: string | number | undefined) => {
+                      if (!num) return '0';
+                      const n = typeof num === 'string' ? parseFloat(num) : num;
+                      if (n >= 1000000) return `$${(n / 1000000).toFixed(2)}M`;
+                      if (n >= 1000) return `$${(n / 1000).toFixed(2)}K`;
+                      return `$${n.toFixed(2)}`;
+                    };
+
+                    const formatPercent = (num: string | number | undefined) => {
+                      if (!num) return '0%';
+                      const n = typeof num === 'string' ? parseFloat(num) : num;
+                      const sign = n >= 0 ? '+' : '';
+                      return `${sign}${n.toFixed(2)}%`;
+                    };
+
+                    const getPercentColor = (num: string | number | undefined) => {
+                      if (!num) return 'text-gray-400';
+                      const n = typeof num === 'string' ? parseFloat(num) : num;
+                      return n >= 0 ? 'text-green-500' : 'text-red-500';
+                    };
+
+                    return (
+                      <tr
+                        key={token.address}
+                        className="border-b border-gray-800 hover:bg-secondary-light/30 transition-colors cursor-pointer"
+                        onClick={() => window.location.href = `/token/${token.address}`}
+                      >
+                        <td className="py-2 px-2 text-gray-500 text-xs">#{index + 1}</td>
+                        <td className="py-2 px-2">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={token.imageUrl || '/api/placeholder/32/32'}
+                              alt={token.name}
+                              className="w-8 h-8 rounded-full object-cover bg-gray-800"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/api/placeholder/32/32';
+                              }}
+                            />
+                            <div className="min-w-0">
+                              <div className="font-medium text-white text-xs truncate">{token.name}</div>
+                              <div className="text-xs text-gray-400">{token.symbol}</div>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-white font-medium">
-                        ${((token as any).stats?.marketCap || '0')}
-                      </td>
-                      <td className="py-4 px-4 text-white">
-                        ${((token as any).stats?.currentPrice || '0')}
-                      </td>
-                      <td className="py-4 px-4 text-gray-400">
-                        {(() => {
-                          const now = Date.now();
-                          const created = token.timestamp * 1000;
-                          const diff = now - created;
-                          const hours = Math.floor(diff / (1000 * 60 * 60));
-                          const days = Math.floor(hours / 24);
-                          if (days > 0) return `${days}d`;
-                          return `${hours}h`;
-                        })()}
-                      </td>
-                      <td className="py-4 px-4 text-white">
-                        ${((token as any).stats?.volume24h || '0')}
-                      </td>
-                      <td className="py-4 px-4 text-gray-400">
-                        {((token as any).stats?.holders || '0')}
-                      </td>
-                      <td className="py-4 px-4 text-gray-400">
-                        {((token as any).stats?.transactions || '0')}
-                      </td>
-                      <td className="py-4 px-4">
-                        {token.isGraduated ? (
-                          <span className="text-green-500 text-xs font-semibold">GRADUATED</span>
-                        ) : (
-                          <span className="text-primary text-xs font-semibold">LIVE</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-2 px-2">
+                          <div className="w-16 h-8 bg-gray-800 rounded flex items-center justify-center">
+                            <span className="text-xs text-gray-600">📈</span>
+                          </div>
+                        </td>
+                        <td className="py-2 px-2 text-white font-medium text-xs">
+                          {formatNumber(stats?.marketCap)}
+                        </td>
+                        <td className="py-2 px-2 text-white text-xs">
+                          {formatNumber(stats?.currentPrice)}
+                        </td>
+                        <td className="py-2 px-2 text-gray-400 text-xs">
+                          {(() => {
+                            const now = Date.now();
+                            const created = token.timestamp * 1000;
+                            const diff = now - created;
+                            const hours = Math.floor(diff / (1000 * 60 * 60));
+                            const days = Math.floor(hours / 24);
+                            if (days > 0) return `${days}d`;
+                            return `${hours}h`;
+                          })()}
+                        </td>
+                        <td className="py-2 px-2 text-white text-xs">
+                          {formatNumber(stats?.volume24h)}
+                        </td>
+                        <td className="py-2 px-2 text-gray-400 text-xs">
+                          {stats?.transactions || '0'}
+                        </td>
+                        <td className={`py-2 px-2 text-xs font-medium ${getPercentColor(stats?.priceChange1h)}`}>
+                          {formatPercent(stats?.priceChange1h)}
+                        </td>
+                        <td className={`py-2 px-2 text-xs font-medium ${getPercentColor(stats?.priceChange24h)}`}>
+                          {formatPercent(stats?.priceChange24h)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
