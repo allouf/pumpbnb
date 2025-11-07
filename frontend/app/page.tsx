@@ -170,28 +170,32 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {tokens.map((token, index) => {
-                    const stats = (token as any).stats;
+                    const stats = token.stats;
                     console.log('[Table] Token:', token.symbol, 'Stats:', stats);
 
                     // Format numbers
                     const formatNumber = (num: string | number | undefined) => {
-                      if (!num) return '0';
+                      if (!num || num === '0') return '$0';
                       const n = typeof num === 'string' ? parseFloat(num) : num;
+                      if (isNaN(n) || n === 0) return '$0';
                       if (n >= 1000000) return `$${(n / 1000000).toFixed(2)}M`;
                       if (n >= 1000) return `$${(n / 1000).toFixed(2)}K`;
+                      if (n < 0.01) return `$${n.toFixed(6)}`;
                       return `$${n.toFixed(2)}`;
                     };
 
                     const formatPercent = (num: string | number | undefined) => {
-                      if (!num) return '0%';
+                      if (!num || num === '0') return '0%';
                       const n = typeof num === 'string' ? parseFloat(num) : num;
+                      if (isNaN(n)) return '0%';
                       const sign = n >= 0 ? '+' : '';
                       return `${sign}${n.toFixed(2)}%`;
                     };
 
                     const getPercentColor = (num: string | number | undefined) => {
-                      if (!num) return 'text-gray-400';
+                      if (!num || num === '0') return 'text-gray-400';
                       const n = typeof num === 'string' ? parseFloat(num) : num;
+                      if (isNaN(n)) return 'text-gray-400';
                       return n >= 0 ? 'text-green-500' : 'text-red-500';
                     };
 
@@ -204,14 +208,29 @@ export default function Home() {
                         <td className="py-2 px-2 text-gray-500 text-xs">#{index + 1}</td>
                         <td className="py-2 px-2">
                           <div className="flex items-center gap-2">
-                            <img
-                              src={token.imageUrl || '/api/placeholder/32/32'}
-                              alt={token.name}
-                              className="w-8 h-8 rounded-full object-cover bg-gray-800"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/api/placeholder/32/32';
-                              }}
-                            />
+                            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {token.imageUrl ? (
+                                <img
+                                  src={token.imageUrl}
+                                  alt={token.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent && !parent.querySelector('.fallback-icon')) {
+                                      const fallback = document.createElement('span');
+                                      fallback.className = 'fallback-icon text-gray-500 text-xs';
+                                      fallback.textContent = token.symbol.charAt(0).toUpperCase();
+                                      parent.appendChild(fallback);
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-gray-500 text-xs">{token.symbol.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
                             <div className="min-w-0">
                               <div className="font-medium text-white text-xs truncate">{token.name}</div>
                               <div className="text-xs text-gray-400">{token.symbol}</div>
@@ -224,10 +243,10 @@ export default function Home() {
                           </div>
                         </td>
                         <td className="py-2 px-2 text-white font-medium text-xs">
-                          {formatNumber(stats?.marketCap)}
+                          {stats ? formatNumber(stats.marketCap) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-white text-xs">
-                          {formatNumber(stats?.currentPrice)}
+                          {stats ? formatNumber(stats.price) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
                           {(() => {
@@ -241,10 +260,10 @@ export default function Home() {
                           })()}
                         </td>
                         <td className="py-2 px-2 text-white text-xs">
-                          {formatNumber(stats?.volume24h)}
+                          {stats ? formatNumber(stats.volume24h) : '$0'}
                         </td>
                         <td className="py-2 px-2 text-gray-400 text-xs">
-                          {stats?.transactions || '0'}
+                          {stats?.trades24h || 0}
                         </td>
                         <td className={`py-2 px-2 text-xs font-medium ${getPercentColor(stats?.priceChange1h)}`}>
                           {formatPercent(stats?.priceChange1h)}

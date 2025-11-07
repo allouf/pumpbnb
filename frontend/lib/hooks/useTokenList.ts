@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { cachedFetch } from '@/lib/utils/fetchWithRetry'
 
+export interface TokenStats {
+  price: string
+  marketCap: string
+  volume24h: string
+  trades24h: number
+  holders: number
+  liquidity: string
+  priceChange24h: string
+  priceChange1h?: string
+  transactions?: number
+  currentPrice?: string
+}
+
 export interface Token {
   address: string
   bondingCurve: string
@@ -12,6 +25,7 @@ export interface Token {
   imageUrl?: string
   isGraduated?: boolean
   isNsfw?: boolean
+  stats?: TokenStats
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -105,6 +119,18 @@ export function useTokenList(options?: { pollingInterval?: number; filters?: Tok
           imageUrl: token.imageUrl,
           isGraduated: token.isGraduated,
           isNsfw: token.isNsfw,
+          stats: token.stats ? {
+            price: token.stats.price || '0',
+            marketCap: token.stats.marketCap || '0',
+            volume24h: token.stats.volume24h || '0',
+            trades24h: token.stats.trades24h || 0,
+            holders: token.stats.holders || 0,
+            liquidity: token.stats.liquidity || '0',
+            priceChange24h: token.stats.priceChange24h || '0',
+            priceChange1h: token.stats.priceChange1h,
+            transactions: token.stats.trades24h || 0,
+            currentPrice: token.stats.price || '0',
+          } : undefined,
         }))
 
         console.log('[useTokenList] Loaded', tokenList.length, 'tokens')
