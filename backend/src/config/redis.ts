@@ -2,46 +2,70 @@ import Redis from 'ioredis';
 
 // Main Redis client for general caching
 export const redisClient = process.env.REDIS_URL
-  ? new Redis(process.env.REDIS_URL) // Use connection string if available (Render format)
+  ? new Redis(process.env.REDIS_URL, {
+      retryStrategy: (times: number) => {
+        if (times > 3) {
+          console.warn('⚠️ Redis connection failed after 3 attempts, continuing without cache');
+          return null; // Stop retrying
+        }
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      maxRetriesPerRequest: 3,
+      lazyConnect: true, // Don't block startup on Redis connection
+      enableReadyCheck: false,
+      connectTimeout: 5000, // 5 second timeout
+    })
   : new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       db: parseInt(process.env.REDIS_DB || '0'),
       retryStrategy: (times: number) => {
+        if (times > 3) return null;
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
       maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      connectTimeout: 5000,
     });
 
 // Separate client for pub/sub (Socket.io adapter)
 export const redisPubClient = process.env.REDIS_URL
-  ? new Redis(process.env.REDIS_URL)
+  ? new Redis(process.env.REDIS_URL, {
+      retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 50, 2000)),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      connectTimeout: 5000,
+    })
   : new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       db: parseInt(process.env.REDIS_DB || '0'),
-      retryStrategy: (times: number) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
+      retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 50, 2000)),
       maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      connectTimeout: 5000,
     });
 
 export const redisSubClient = process.env.REDIS_URL
-  ? new Redis(process.env.REDIS_URL)
+  ? new Redis(process.env.REDIS_URL, {
+      retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 50, 2000)),
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      connectTimeout: 5000,
+    })
   : new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       db: parseInt(process.env.REDIS_DB || '0'),
-      retryStrategy: (times: number) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
+      retryStrategy: (times: number) => (times > 3 ? null : Math.min(times * 50, 2000)),
       maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      connectTimeout: 5000,
     });
 
 // Handle connection events
@@ -61,26 +85,35 @@ redisSubClient.on('connect', () => {
   console.log('✅ Redis sub client connected');
 });
 
-// Cache helper functions
+// Cache helper functions with graceful fallback
 export const cache = {
   /**
    * Get cached data
    */
   async get<T>(key: string): Promise<T | null> {
-    const data = await redisClient.get(key);
-    if (!data) return null;
-    return JSON.parse(data) as T;
+    try {
+      const data = await redisClient.get(key);
+      if (!data) return null;
+      return JSON.parse(data) as T;
+    } catch (error) {
+      console.warn(`⚠️ Redis get failed for key ${key}, returning null:`, error);
+      return null;
+    }
   },
 
   /**
    * Set cached data with optional TTL (in seconds)
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
-    const serialized = JSON.stringify(value);
-    if (ttl) {
-      await redisClient.setex(key, ttl, serialized);
-    } else {
-      await redisClient.set(key, serialized);
+    try {
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await redisClient.setex(key, ttl, serialized);
+      } else {
+        await redisClient.set(key, serialized);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Redis set failed for key ${key}, continuing without cache:`, error);
     }
   },
 
@@ -88,16 +121,24 @@ export const cache = {
    * Delete cached data
    */
   async del(key: string): Promise<void> {
-    await redisClient.del(key);
+    try {
+      await redisClient.del(key);
+    } catch (error) {
+      console.warn(`⚠️ Redis del failed for key ${key}:`, error);
+    }
   },
 
   /**
    * Delete all keys matching pattern
    */
   async delPattern(pattern: string): Promise<void> {
-    const keys = await redisClient.keys(pattern);
-    if (keys.length > 0) {
-      await redisClient.del(...keys);
+    try {
+      const keys = await redisClient.keys(pattern);
+      if (keys.length > 0) {
+        await redisClient.del(...keys);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Redis delPattern failed for pattern ${pattern}:`, error);
     }
   },
 
@@ -105,44 +146,63 @@ export const cache = {
    * Check if key exists
    */
   async exists(key: string): Promise<boolean> {
-    const result = await redisClient.exists(key);
-    return result === 1;
+    try {
+      const result = await redisClient.exists(key);
+      return result === 1;
+    } catch (error) {
+      console.warn(`⚠️ Redis exists failed for key ${key}:`, error);
+      return false;
+    }
   },
 
   /**
    * Increment counter
    */
   async incr(key: string, ttl?: number): Promise<number> {
-    const result = await redisClient.incr(key);
-    if (ttl && result === 1) {
-      await redisClient.expire(key, ttl);
+    try {
+      const result = await redisClient.incr(key);
+      if (ttl && result === 1) {
+        await redisClient.expire(key, ttl);
+      }
+      return result;
+    } catch (error) {
+      console.warn(`⚠️ Redis incr failed for key ${key}:`, error);
+      return 0;
     }
-    return result;
   },
 
   /**
    * Get multiple keys
    */
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
-    if (keys.length === 0) return [];
-    const values = await redisClient.mget(keys);
-    return values.map((v) => (v ? JSON.parse(v) as T : null));
+    try {
+      if (keys.length === 0) return [];
+      const values = await redisClient.mget(keys);
+      return values.map((v) => (v ? JSON.parse(v) as T : null));
+    } catch (error) {
+      console.warn(`⚠️ Redis mget failed:`, error);
+      return keys.map(() => null);
+    }
   },
 
   /**
    * Set multiple keys
    */
   async mset(data: Record<string, any>, ttl?: number): Promise<void> {
-    const pairs: string[] = [];
-    for (const [key, value] of Object.entries(data)) {
-      pairs.push(key, JSON.stringify(value));
-    }
-    await redisClient.mset(pairs);
-
-    if (ttl) {
-      for (const key of Object.keys(data)) {
-        await redisClient.expire(key, ttl);
+    try {
+      const pairs: string[] = [];
+      for (const [key, value] of Object.entries(data)) {
+        pairs.push(key, JSON.stringify(value));
       }
+      await redisClient.mset(pairs);
+
+      if (ttl) {
+        for (const key of Object.keys(data)) {
+          await redisClient.expire(key, ttl);
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ Redis mset failed:`, error);
     }
   },
 };
