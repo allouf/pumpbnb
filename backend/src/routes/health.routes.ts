@@ -38,7 +38,7 @@ router.get('/health', async (_req: Request, res: Response): Promise<void> => {
 
   // Check Redis
   try {
-    const pingResult = await redisClient.ping();
+    await redisClient.ping();
     const dbSize = await redisClient.dbsize();
     const info = await redisClient.info('stats');
 
