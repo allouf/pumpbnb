@@ -44,8 +44,10 @@ export function SlippageSettings({ slippage, onSlippageChange }: SlippageSetting
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-80 bg-secondary-light border border-gray-700 rounded-lg p-4 z-50 shadow-xl">
+          <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-80 bg-secondary-light border border-gray-700 rounded-lg p-4 z-[101] shadow-xl transform">
+            {/* Arrow pointing up */}
+            <div className="absolute -top-2 right-4 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-secondary-light"></div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Slippage Tolerance</h3>
               <button

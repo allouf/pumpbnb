@@ -296,9 +296,9 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   }
 
   return (
-    <div className="bg-secondary-light p-6 rounded-xl">
+    <div className="bg-secondary-light p-6 rounded-xl relative overflow-visible">
       {/* Header with tabs and currency toggle */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 relative">
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('buy')}
@@ -322,7 +322,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           </button>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           <SlippageSettings slippage={slippage} onSlippageChange={setSlippage} />
         </div>
       </div>
@@ -353,7 +353,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             />
             {activeTab === 'buy' && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                <AsterLogo size={16} />
+                <AsterLogo size={20} />
                 <span className="text-xs text-gray-400 font-medium">ASTER</span>
               </div>
             )}

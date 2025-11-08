@@ -256,7 +256,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
         </button>
 
         {/* Pump.fun Style Layout - Chart Width Token Header */}
-        <div className="flex gap-6 min-h-0 overflow-x-hidden">
+        <div className="flex gap-6 min-h-0 overflow-x-hidden relative">
           {/* Left Column - Chart + Tabs + Token Info */}
           <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             {/* Token Info Header - Same Width as Chart */}
@@ -441,7 +441,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
 
           {/* Right Column - Trading Panel */}
-          <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden pl-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+          <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-visible pl-2 scrollbar-hide" style={{ maxHeight: 'calc(100vh - 120px)' }}>
             {/* Trading Panel - Aligned with token info header */}
             {bondingCurve ? (
               <TradingPanel
