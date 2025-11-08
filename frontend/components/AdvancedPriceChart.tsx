@@ -916,228 +916,210 @@ export function AdvancedPriceChart({
 
   return (
     <div className="bg-secondary-light rounded-xl overflow-hidden">
-      {/* Pump.fun Style: Inline OHLC Header */}
-      <div className="px-6 py-3 border-b border-gray-700">
-        {/* Top Controls Row */}
+      {/* Pump.fun Style Compact Header */}
+      <div className="px-4 py-2 border-b border-gray-700">
+        
+        {/* Row 1: Market Cap + 24h Change + Progress Bar to ATH */}
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            {/* Timeframe Selector */}
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-              className="bg-secondary text-white px-3 py-1.5 rounded text-xs font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
-            >
-              <option value="15m">15m</option>
-              <option value="1h">1h</option>
-              <option value="4h">4h</option>
-              <option value="1d">1d</option>
-              <option value="all">All</option>
-            </select>
-
-            {/* Chart Type Selector */}
-            <select
-              value={chartType}
-              onChange={(e) => switchChartType(e.target.value as ChartType)}
-              className="bg-secondary text-white px-3 py-1.5 rounded text-xs font-medium border border-gray-700 hover:border-primary transition cursor-pointer"
-            >
-              <option value="candlestick">Candlestick</option>
-              <option value="line">Line</option>
-              <option value="area">Area</option>
-            </select>
-
-            {/* USD/ASTER Toggle */}
-            <div className="flex bg-secondary rounded p-0.5">
-              <button
-                onClick={() => setPriceMode('ASTER')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  priceMode === 'ASTER'
-                    ? 'bg-primary text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                ASTER
-              </button>
-              <button
-                onClick={() => setPriceMode('USD')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  priceMode === 'USD'
-                    ? 'bg-primary text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                USD
-              </button>
+          <div className="flex items-center gap-4">
+            {/* Market Cap with 24h Change */}
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-white">
+                ${marketCap || '4.4K'}
+              </span>
+              <span className={`text-sm font-medium ${
+                marketCapChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}% 24h
+              </span>
             </div>
           </div>
-
-          {/* Additional Chart Controls - Right Side */}
+          
+          {/* Progress Bar to ATH with ATH Value */}
           <div className="flex items-center gap-2">
-            {/* Trade Display Toggle */}
-            <button
-              onClick={() => setShowTradeDisplay(!showTradeDisplay)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition border ${
-                showTradeDisplay
-                  ? 'bg-primary text-black border-primary'
-                  : 'bg-secondary text-gray-400 border-gray-700 hover:border-primary hover:text-white'
-              }`}
-              title="Toggle Trade Display"
-            >
-              Trade Display
-            </button>
-
-            {/* Price/MCap Toggle */}
-            <div className="flex bg-secondary rounded p-0.5 border border-gray-700">
-              <button
-                onClick={() => setDisplayMetric('Price')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  displayMetric === 'Price'
-                    ? 'bg-primary text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Price
-              </button>
-              <button
-                onClick={() => setDisplayMetric('MCap')}
-                className={`px-2 py-1 rounded text-xs font-medium transition ${
-                  displayMetric === 'MCap'
-                    ? 'bg-primary text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                MCap
-              </button>
+            <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary rounded-full transition-all duration-300"
+                style={{ 
+                  width: `${Math.min((parseFloat(marketCap || '0') / (ath || 100)) * 100, 100)}%` 
+                }}
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Fixed-Size OHLC Info Line - Prevents Layout Shifts */}
-        <div className="grid grid-cols-12 gap-2 text-xs mb-1 min-h-[20px]">
-          {/* Token Info - Fixed Width */}
-          <div className="col-span-3 flex items-center gap-1">
-            <span className="font-medium text-white truncate">
-              {tokenSymbol}/{priceMode === 'USD' ? 'USD' : 'ASTER'}
-            </span>
-            <span className="text-gray-400 text-xs">{timeframe === 'all' ? 'All' : timeframe}</span>
-          </div>
-          
-          {/* Time - Fixed Width */}
-          <div className="col-span-1 flex items-center">
-            <span className="text-blue-400 font-mono text-xs w-full">
-              {hoveredData ? new Date(hoveredData.time).toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute: '2-digit'}) : '--:--'}
-            </span>
-          </div>
-          
-          {/* Open - Fixed Width */}
-          <div className="col-span-2 flex items-center">
-            <span className="text-gray-400 text-xs mr-1">O:</span>
-            <span className="text-green-400 font-mono text-xs w-full">
-              {(hoveredData || currentOHLC) ? (
-                priceMode === 'USD' 
-                  ? `$${((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(4)}`
-                  : (hoveredData?.open || currentOHLC?.open || 0).toFixed(6)
-              ) : '-.------'}
-            </span>
-          </div>
-          
-          {/* High - Fixed Width */}
-          <div className="col-span-2 flex items-center">
-            <span className="text-gray-400 text-xs mr-1">H:</span>
-            <span className="text-green-400 font-mono text-xs w-full">
-              {(hoveredData || currentOHLC) ? (
-                priceMode === 'USD' 
-                  ? `$${((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(4)}`
-                  : (hoveredData?.high || currentOHLC?.high || 0).toFixed(6)
-              ) : '-.------'}
-            </span>
-          </div>
-          
-          {/* Low - Fixed Width */}
-          <div className="col-span-2 flex items-center">
-            <span className="text-gray-400 text-xs mr-1">L:</span>
-            <span className="text-red-400 font-mono text-xs w-full">
-              {(hoveredData || currentOHLC) ? (
-                priceMode === 'USD' 
-                  ? `$${((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(4)}`
-                  : (hoveredData?.low || currentOHLC?.low || 0).toFixed(6)
-              ) : '-.------'}
-            </span>
-          </div>
-          
-          {/* Close - Fixed Width */}
-          <div className="col-span-2 flex items-center">
-            <span className="text-gray-400 text-xs mr-1">C:</span>
-            <span className={`font-mono text-xs w-full ${
-              (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
-                ? 'text-green-400' : 'text-red-400'
-            }`}>
-              {(hoveredData || currentOHLC) ? (
-                priceMode === 'USD' 
-                  ? `$${((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(4)}`
-                  : (hoveredData?.close || currentOHLC?.close || 0).toFixed(6)
-              ) : '-.------'}
+            <span className="text-xs text-gray-400 font-medium">
+              ATH ${ath?.toFixed(1)}K
             </span>
           </div>
         </div>
         
-        {/* Market Cap and Stats Line - Pump.fun Style */}
-        <div className="flex items-center gap-6 text-xs min-h-[16px]">
-          {/* Market Cap */}
-          {marketCap && (
-            <div className="flex items-center">
-              <span className="text-gray-400 mr-1">Market Cap:</span>
-              <span className="text-primary font-bold">${marketCap}</span>
-              {marketCapChange24h !== 0 && (
-                <span className={`ml-2 font-medium ${
-                  marketCapChange24h >= 0 ? 'text-green-500' : 'text-red-500'
-                }`}>
-                  {marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}%
-                </span>
-              )}
-            </div>
-          )}
-          
-          {/* ATH */}
-          {ath && (
-            <div className="flex items-center">
-              <span className="text-gray-400 mr-1">ATH:</span>
-              <span className="text-primary font-bold">${ath.toFixed(2)}</span>
-            </div>
-          )}
-          
-          {/* 24h Volume */}
-          <div className="flex items-center">
-            <span className="text-gray-400 mr-1">Vol 24h:</span>
-            <span className="text-white font-mono">
-              {hoveredData ? (
+        {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB */}
+        <div className="flex items-center gap-2 mb-2">
+          {/* Duration Selector */}
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+            className="bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
+          >
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+            <option value="all">All</option>
+          </select>
+
+          {/* Chart Type Selector */}
+          <select
+            value={chartType}
+            onChange={(e) => switchChartType(e.target.value as ChartType)}
+            className="bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
+          >
+            <option value="line">Line</option>
+            <option value="candlestick">Candles</option>
+            <option value="area">Area</option>
+            <option value="columns">Columns</option>
+          </select>
+
+          {/* Price/MCap Toggle */}
+          <div className="flex bg-secondary rounded border border-gray-700">
+            <button
+              onClick={() => setDisplayMetric('Price')}
+              className={`px-2 py-1 text-xs font-medium transition ${
+                displayMetric === 'Price'
+                  ? 'bg-primary text-black rounded'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Price
+            </button>
+            <button
+              onClick={() => setDisplayMetric('MCap')}
+              className={`px-2 py-1 text-xs font-medium transition ${
+                displayMetric === 'MCap'
+                  ? 'bg-primary text-black rounded'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              MCap
+            </button>
+          </div>
+
+          {/* USD/BNB Toggle */}
+          <div className="flex bg-secondary rounded border border-gray-700">
+            <button
+              onClick={() => setPriceMode('USD')}
+              className={`px-2 py-1 text-xs font-medium transition ${
                 priceMode === 'USD'
-                  ? `$${(hoveredData.volume * ASTER_USD_PRICE).toFixed(2)}`
-                  : `${hoveredData.volume.toFixed(2)} ASTER`
-              ) : (
-                priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(2)} ASTER`
-              )}
-            </span>
+                  ? 'bg-primary text-black rounded'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              USD
+            </button>
+            <button
+              onClick={() => setPriceMode('ASTER')}
+              className={`px-2 py-1 text-xs font-medium transition ${
+                priceMode === 'ASTER'
+                  ? 'bg-primary text-black rounded'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              BNB
+            </button>
+          </div>
+        </div>
+        
+        {/* Row 3: Token Price Info + Security Menu */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Token/BNB Price (USD) */}
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium text-white">
+                {tokenSymbol}/BNB Price (USD)
+              </span>
+            </div>
+            
+            {/* 1h Change */}
+            <div className="text-xs">
+              <span className="text-gray-400 mr-1">1h:</span>
+              <span className={`font-medium ${
+                periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(2)}%
+              </span>
+            </div>
+            
+            {/* ASTER Price */}
+            <div className="text-xs">
+              <span className="text-white font-medium">
+                {priceMode === 'USD'
+                  ? `$${stats.currentPriceUSD.toFixed(6)}`
+                  : `${stats.currentPrice.toFixed(8)} ASTER`
+                }
+              </span>
+            </div>
           </div>
           
-          {/* Current Price */}
-          <div className="flex items-center">
-            <span className="text-gray-400 mr-1">Price:</span>
-            <span className="text-white font-mono">
-              {priceMode === 'USD'
-                ? `$${stats.currentPriceUSD.toFixed(6)}`
-                : `${stats.currentPrice.toFixed(8)} ASTER`
-              }
-            </span>
+          {/* Security Menu with Three Dots */}
+          <div className="relative">
+            <button
+              className="text-gray-400 hover:text-white transition p-1"
+              title="More options"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
           </div>
           
-          {/* 24h Change */}
-          <div className="flex items-center">
-            <span className="text-gray-400 mr-1">24h:</span>
-            <span className={`font-medium ${
-              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
-            </span>
+          {/* OHLC Values (Right Side) */}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">O</span>
+              <span className="text-green-400 font-mono">
+                {(hoveredData || currentOHLC) ? (
+                  priceMode === 'USD' 
+                    ? ((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(0)
+                    : (hoveredData?.open || currentOHLC?.open || 0).toFixed(0)
+                ) : '65.4K'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">H</span>
+              <span className="text-green-400 font-mono">
+                {(hoveredData || currentOHLC) ? (
+                  priceMode === 'USD' 
+                    ? ((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(0)
+                    : (hoveredData?.high || currentOHLC?.high || 0).toFixed(0)
+                ) : '76.9K'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">L</span>
+              <span className="text-green-400 font-mono">
+                {(hoveredData || currentOHLC) ? (
+                  priceMode === 'USD' 
+                    ? ((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(0)
+                    : (hoveredData?.low || currentOHLC?.low || 0).toFixed(0)
+                ) : '65.3K'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">C</span>
+              <span className={`font-mono ${
+                (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
+                  ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {(hoveredData || currentOHLC) ? (
+                  priceMode === 'USD' 
+                    ? ((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(0)
+                    : (hoveredData?.close || currentOHLC?.close || 0).toFixed(0)
+                ) : '68.3K'}
+              </span>
+            </div>
+            <div className="text-green-400 font-mono">
+              2.8K (+4.29%)
+            </div>
           </div>
         </div>
       </div>
