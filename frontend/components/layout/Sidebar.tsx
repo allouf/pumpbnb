@@ -13,8 +13,6 @@ import {
   EllipsisHorizontalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   Square3Stack3DIcon
 } from '@heroicons/react/24/outline';
 import {
@@ -62,7 +60,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
 
   return (
-    <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
       {/* Logo Section with Collapse Button */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between gap-2">
@@ -99,7 +97,8 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 overflow-y-auto">
+      <nav className="flex-1 px-2 py-4 overflow-y-hidden">
+        <div className="h-full overflow-y-auto scrollbar-hide">
         <ul className="space-y-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -138,24 +137,13 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
               <button
                 onClick={() => setIsMoreExpanded(!isMoreExpanded)}
                 className={`
-                  w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
+                  w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
                   text-gray-400 hover:text-white hover:bg-secondary-light
                 `}
                 title={isCollapsed ? 'More' : undefined}
               >
-                <div className="flex items-center gap-3">
-                  <EllipsisHorizontalIcon className="w-5 h-5 flex-shrink-0" />
-                  {!isCollapsed && <span className="whitespace-nowrap">More</span>}
-                </div>
-                {!isCollapsed && (
-                  <div className="transition-transform duration-200">
-                    {isMoreExpanded ? (
-                      <ChevronUpIcon className="w-4 h-4" />
-                    ) : (
-                      <ChevronDownIcon className="w-4 h-4" />
-                    )}
-                  </div>
-                )}
+                <EllipsisHorizontalIcon className="w-5 h-5 flex-shrink-0" />
+                {!isCollapsed && <span className="whitespace-nowrap">More</span>}
                 
                 {/* Tooltip for collapsed state */}
                 {isCollapsed && (
@@ -165,74 +153,84 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
                 )}
               </button>
               
-              {/* Dropdown Menu */}
-              {!isCollapsed && isMoreExpanded && (
-                <div className="mt-1 ml-8 space-y-1">
-                  {moreMenuItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-secondary-light rounded-lg transition-colors"
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                  
-                  {/* Social Links */}
-                  <div className="pt-2 mt-2 border-t border-gray-700">
-                    <div className="flex items-center gap-3 px-3 py-2">
-                      <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                        <span className="sr-only">Twitter</span>
-                        𝕏
-                      </a>
-                      <a href="https://t.me" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                        <span className="sr-only">Telegram</span>
-                        💬
-                      </a>
-                      <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                        <span className="sr-only">Discord</span>
-                        💬
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Collapsed state dropdown */}
-              {isCollapsed && isMoreExpanded && (
-                <div className="absolute left-full ml-2 top-0 bg-secondary-light border border-gray-700 rounded-lg shadow-lg p-2 z-50 min-w-[200px]">
-                  <div className="space-y-1">
-                    {moreMenuItems.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="block px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-secondary rounded transition-colors"
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                    
-                    {/* Social Links for collapsed */}
-                    <div className="pt-2 mt-2 border-t border-gray-700">
-                      <div className="flex items-center gap-3 px-3 py-2">
-                        <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                          𝕏
-                        </a>
-                        <a href="https://t.me" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                          💬
-                        </a>
-                        <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                          💬
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </li>
         </ul>
+        </div>
       </nav>
+      
+      {/* More Menu Popup Overlay */}
+      {isMoreExpanded && (
+        <>
+          {/* Full-screen overlay */}
+          <div className="fixed inset-0 z-[998] bg-black/50 backdrop-blur-sm flex items-center justify-center" onClick={() => setIsMoreExpanded(false)}>
+            {/* Popup content */}
+            <div 
+              className="bg-secondary-light border border-gray-700 rounded-xl p-6 w-80 mx-4 shadow-2xl transform animate-in zoom-in-95 duration-200" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white">More Options</h3>
+                <button
+                  onClick={() => setIsMoreExpanded(false)}
+                  className="text-gray-400 hover:text-white text-xl hover:bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center transition"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {/* Menu items */}
+              <div className="space-y-2 mb-6">
+                {moreMenuItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-secondary rounded-lg transition-colors"
+                    onClick={() => setIsMoreExpanded(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+              
+              {/* Social Links */}
+              <div className="pt-4 border-t border-gray-700">
+                <h4 className="text-sm font-medium text-gray-400 mb-3">Follow Us</h4>
+                <div className="flex items-center gap-4">
+                  <a 
+                    href="https://x.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <span className="text-lg">𝕏</span>
+                    <span className="text-sm">Twitter</span>
+                  </a>
+                  <a 
+                    href="https://t.me" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <span className="text-lg">💬</span>
+                    <span className="text-sm">Telegram</span>
+                  </a>
+                  <a 
+                    href="https://discord.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <span className="text-lg">💬</span>
+                    <span className="text-sm">Discord</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Create Coin Button */}
       <div className="p-2 border-t border-border">
