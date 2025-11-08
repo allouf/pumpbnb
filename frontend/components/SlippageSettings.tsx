@@ -44,15 +44,19 @@ export function SlippageSettings({ slippage, onSlippageChange }: SlippageSetting
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-secondary-light border border-gray-700 rounded-lg p-4 z-[101] shadow-xl transform">
-            {/* Arrow pointing up */}
-            <div className="absolute -top-2 right-4 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-secondary-light"></div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Slippage Tolerance</h3>
+          {/* Full-screen modal overlay */}
+          <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200" onClick={() => setIsOpen(false)}>
+            {/* Modal content */}
+            <div 
+              className="bg-secondary-light border border-gray-700 rounded-xl p-6 w-96 mx-4 shadow-2xl transform animate-in zoom-in-95 duration-200" 
+              onClick={(e) => e.stopPropagation()}
+            >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-white">Slippage Tolerance</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white text-xl hover:bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center transition"
+                title="Close"
               >
                 ✕
               </button>
@@ -140,6 +144,7 @@ export function SlippageSettings({ slippage, onSlippageChange }: SlippageSetting
             <p className="mt-3 text-xs text-gray-500">
               Slippage protects you from price changes during transaction confirmation.
             </p>
+            </div>
           </div>
         </>
       )}

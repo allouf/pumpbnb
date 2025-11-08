@@ -8,12 +8,16 @@ export function AsterLogo({ size = 20, className = "", useImage = true }: AsterL
   if (useImage) {
     return (
       <img 
-        src="/aster.svg" 
+        src="/aster.webp" 
         alt="ASTER" 
         width={size} 
         height={size} 
-        className={`rounded-full ${className}`}
+        className={`rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}
+        onError={(e) => {
+          // Fallback to SVG if webp doesn't exist
+          (e.target as HTMLImageElement).src = "/aster.svg"
+        }}
       />
     )
   }
