@@ -222,7 +222,8 @@ export function AdvancedPriceChart({
       firstTokensPerAster: firstPrice.toFixed(2),
       currentTokensPerAster: currentTokensPerAster.toFixed(2),
       change24h: change24h.toFixed(2) + '%',
-      validPricesCount: prices.length
+      validPricesCount: prices.length,
+      explanation: change24h < 0 ? 'NEGATIVE = Bonding curve working (fewer tokens per ASTER as more are bought)' : 'POSITIVE = Price discovery or selling pressure'
     })
     const high24hTokensPerAster = Math.max(...prices)
     const low24hTokensPerAster = Math.min(...prices)
@@ -702,8 +703,15 @@ export function AdvancedPriceChart({
         const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
         const tokensPerUSD = tokensPerAster / ASTER_USD_PRICE
         
-        // Use the price based on current mode
-        const displayPrice = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
+        // Validate the calculated price
+        const rawDisplayPrice = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
+        const displayPrice = isNaN(rawDisplayPrice) || !isFinite(rawDisplayPrice) || rawDisplayPrice <= 0 ? 0 : rawDisplayPrice
+        
+        // Skip this transaction if price is invalid
+        if (displayPrice === 0) {
+          console.warn('[AdvancedPriceChart] Invalid price calculated for transaction:', { asterAmount, tokenAmount, tokensPerAster, tokensPerUSD })
+          return
+        }
 
         // Round timestamp to interval
         const candleTime = Math.floor(tx.timestamp / intervalSeconds) * intervalSeconds
@@ -711,18 +719,18 @@ export function AdvancedPriceChart({
         const existing = candleMap.get(candleTime)
         if (!existing) {
           candleMap.set(candleTime, {
-            open: displayPrice,
-            high: displayPrice,
-            low: displayPrice,
-            close: displayPrice,
+            open: Math.round(displayPrice),     // Round to integer to avoid precision issues
+            high: Math.round(displayPrice),
+            low: Math.round(displayPrice),
+            close: Math.round(displayPrice),
             volume: asterAmount,
             lastTimestamp: tx.timestamp,
           })
         } else {
-          existing.high = Math.max(existing.high, displayPrice)
-          existing.low = Math.min(existing.low, displayPrice)
+          existing.high = Math.max(existing.high, Math.round(displayPrice))
+          existing.low = Math.min(existing.low, Math.round(displayPrice))
           if (tx.timestamp > existing.lastTimestamp) {
-            existing.close = displayPrice
+            existing.close = Math.round(displayPrice)
             existing.lastTimestamp = tx.timestamp
           }
           existing.volume += asterAmount
@@ -758,20 +766,32 @@ export function AdvancedPriceChart({
       }
     }
     
-    // Add actual candle data
+    // Add actual candle data with validation
     sortedCandles.forEach(([time, candle]) => {
-      candleData.push({
-        time: time as UTCTimestamp,
-        open: candle.open,
-        high: candle.high,
-        low: candle.low,
-        close: candle.close,
-      })
-      volumeData.push({
-        time: time as UTCTimestamp,
-        value: candle.volume,
-        color: candle.close >= candle.open ? '#00D4AA' : '#FF4747',
-      })
+      // Validate candle data before adding
+      const isValidCandle = 
+        typeof candle.open === 'number' && !isNaN(candle.open) &&
+        typeof candle.high === 'number' && !isNaN(candle.high) &&
+        typeof candle.low === 'number' && !isNaN(candle.low) &&
+        typeof candle.close === 'number' && !isNaN(candle.close) &&
+        candle.open > 0 && candle.high > 0 && candle.low > 0 && candle.close > 0
+      
+      if (isValidCandle) {
+        candleData.push({
+          time: time as UTCTimestamp,
+          open: Math.round(candle.open),  // Round to avoid floating point issues
+          high: Math.round(candle.high),
+          low: Math.round(candle.low),
+          close: Math.round(candle.close),
+        })
+        volumeData.push({
+          time: time as UTCTimestamp,
+          value: candle.volume,
+          color: candle.close >= candle.open ? '#00D4AA' : '#FF4747',
+        })
+      } else {
+        console.warn('[AdvancedPriceChart] Invalid candle data:', candle)
+      }
     })
 
     if (candleData.length > 0) {
