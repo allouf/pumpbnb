@@ -61,7 +61,7 @@ export function AdvancedPriceChart({
   const isInitialLoadRef = useRef(true)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
-  const [priceMode, setPriceMode] = useState<PriceMode>('ASTER')
+  const [priceMode, setPriceMode] = useState<PriceMode>('USD') // Default to USD
   const [chartType, setChartType] = useState<ChartType>('candlestick')
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
   
@@ -134,11 +134,17 @@ export function AdvancedPriceChart({
       }
     }
 
-    // Calculate prices for all transactions
+    // Calculate prices for all transactions with proper wei conversion
     const prices = transactions.map(tx => {
-      const asterAmount = Number(tx.asterAmountFormatted)
-      const tokenAmount = Number(tx.tokenAmountFormatted)
-      return tokenAmount > 0 ? asterAmount / tokenAmount : 0
+      // Convert from wei to proper decimal values
+      const asterAmount = Number(tx.asterAmountFormatted) // Already formatted from wei
+      const tokenAmount = Number(tx.tokenAmountFormatted) // Already formatted from wei
+      
+      // Calculate price in ASTER per token
+      const priceInAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+      
+      // Convert to USD (our main currency display)
+      return priceInAster * ASTER_USD_PRICE
     }).filter(p => p > 0)
 
     if (prices.length === 0) {
@@ -155,27 +161,33 @@ export function AdvancedPriceChart({
       }
     }
 
-    const currentPrice = prices[prices.length - 1]
-    const currentPriceUSD = currentPrice * ASTER_USD_PRICE
+    // Prices are already in USD from above calculation
+    const currentPriceUSD = prices[prices.length - 1]
+    const currentPriceAster = currentPriceUSD / ASTER_USD_PRICE
     const firstPrice = prices[0]
-    const change24h = firstPrice > 0 ? ((currentPrice - firstPrice) / firstPrice) * 100 : 0
-    const high24h = Math.max(...prices)
-    const low24h = Math.min(...prices)
-    const ath = high24h
-    const athUSD = ath * ASTER_USD_PRICE
-    const volume24h = transactions.reduce((sum, tx) => sum + Number(tx.asterAmountFormatted), 0)
-    const volume24hUSD = volume24h * ASTER_USD_PRICE
+    const change24h = firstPrice > 0 ? ((currentPriceUSD - firstPrice) / firstPrice) * 100 : 0
+    const high24hUSD = Math.max(...prices)
+    const low24hUSD = Math.min(...prices)
+    const athUSD = high24hUSD
+    const athAster = athUSD / ASTER_USD_PRICE
+    
+    // Volume calculation in both currencies
+    const volume24hAster = transactions.reduce((sum, tx) => sum + Number(tx.asterAmountFormatted), 0)
+    const volume24hUSD = volume24hAster * ASTER_USD_PRICE
 
     return {
-      currentPrice,
+      currentPrice: currentPriceAster,
       currentPriceUSD,
       change24h,
-      high24h,
-      low24h,
-      volume24h,
+      high24h: high24hUSD / ASTER_USD_PRICE, // Keep original structure
+      low24h: low24hUSD / ASTER_USD_PRICE,
+      volume24h: volume24hAster,
       volume24hUSD,
-      ath,
+      ath: athAster,
       athUSD,
+      // Add USD versions for direct access
+      high24hUSD,
+      low24hUSD,
     }
   }, [transactions])
 
@@ -232,34 +244,34 @@ export function AdvancedPriceChart({
     console.log('[AdvancedPriceChart] 📊 Creating chart instance...')
     const chart: any = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#1a1b1e' },
-        textColor: '#d1d4dc',
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#e5e7eb',    // Lighter text for better visibility
       },
       grid: {
-        vertLines: { color: '#2b2b43' },
-        horzLines: { color: '#2b2b43' },
+        vertLines: { color: 'rgba(75, 85, 99, 0.4)' },  // More subtle grid
+        horzLines: { color: 'rgba(75, 85, 99, 0.4)' },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 600,
+      height: 400, // Reduced height to be smaller than width
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
           width: 1,
-          color: '#758696',
-          style: 3,
-          labelBackgroundColor: '#F0B90B',
+          color: '#00D4AA',
+          style: 2,
+          labelBackgroundColor: '#1f2937',
         },
         horzLine: {
           width: 1,
-          color: '#758696',
-          style: 3,
-          labelBackgroundColor: '#F0B90B',
+          color: '#00D4AA',
+          style: 2,
+          labelBackgroundColor: '#1f2937',
         },
       },
       timeScale: {
         timeVisible: true,
-        secondsVisible: true,
-        borderColor: '#2b2b43',
+        secondsVisible: false,
+        borderColor: 'rgba(156, 163, 175, 0.3)',
         rightOffset: 20, // More space on right to show latest data clearly
         barSpacing: 12, // Better spacing between candles
         minBarSpacing: 0.5,
@@ -272,7 +284,8 @@ export function AdvancedPriceChart({
         shiftVisibleRangeOnNewBar: true,
       },
       rightPriceScale: {
-        borderColor: '#2b2b43',
+        borderColor: 'rgba(156, 163, 175, 0.3)',
+        textColor: '#9ca3af',
         visible: true,
         scaleMargins: {
           top: 0.20,
@@ -314,15 +327,17 @@ export function AdvancedPriceChart({
     try {
       let priceSeries
       const seriesOptions = {
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        borderVisible: false,
-        wickUpColor: '#26a69a',
-        wickDownColor: '#ef5350',
+        upColor: '#00D4AA',     // Bright green for bullish candles
+        downColor: '#FF4747',   // Bright red for bearish candles
+        borderVisible: true,
+        borderUpColor: '#00D4AA',
+        borderDownColor: '#FF4747',
+        wickUpColor: '#00D4AA',
+        wickDownColor: '#FF4747',
         priceFormat: {
           type: 'price',
-          precision: 8,
-          minMove: 0.00000001,
+          precision: priceMode === 'USD' ? 6 : 8,
+          minMove: priceMode === 'USD' ? 0.000001 : 0.00000001,
         },
       }
       
@@ -362,16 +377,17 @@ export function AdvancedPriceChart({
       throw error
     }
 
-    // Add volume series (Histogram)
+      // Add volume series (Histogram)
     console.log('[AdvancedPriceChart] 📊 Adding volume histogram series...')
     try {
       let volumeSeries
       const volumeOptions = {
-        color: '#26a69a',
+        color: 'rgba(0, 212, 170, 0.5)',  // Semi-transparent primary color
         priceFormat: {
           type: 'volume',
         },
         priceScaleId: 'volume',
+        base: 0,
       }
       
       // Try TradingView v5 API with histogram series constructor
@@ -418,30 +434,50 @@ export function AdvancedPriceChart({
       },
     })
 
-    // Add crosshair handler
+    // Add crosshair handler with improved OHLC data handling
     chart.subscribeCrosshairMove((param: any) => {
-      if (!param.time || !param.point) {
+      try {
+        if (!param.time || !param.point || !param.seriesData || param.seriesData.size === 0) {
+          setHoveredData(null)
+          return
+        }
+
+        if (!priceSeriesRef.current || !volumeSeriesRef.current) return
+
+        const priceData = param.seriesData.get(priceSeriesRef.current) as any
+        const volumeData = param.seriesData.get(volumeSeriesRef.current) as any
+
+        if (priceData && volumeData) {
+          const date = new Date((param.time as number) * 1000)
+          // Handle different data structures for candlestick vs line/area charts
+          const hasOHLC = priceData.open !== undefined && priceData.high !== undefined
+          
+          if (hasOHLC) {
+            // Candlestick data - values are already in the correct price mode from candle generation
+            setHoveredData({
+              open: priceData.open,
+              high: priceData.high,
+              low: priceData.low,
+              close: priceData.close,
+              volume: volumeData.value || 0,
+              time: date.toLocaleString(),
+            })
+          } else {
+            // Line/Area data - use value for all OHLC
+            const value = priceData.value || 0
+            setHoveredData({
+              open: value,
+              high: value,
+              low: value,
+              close: value,
+              volume: volumeData.value || 0,
+              time: date.toLocaleString(),
+            })
+          }
+        }
+      } catch (error) {
+        console.warn('[AdvancedPriceChart] Error in crosshair handler:', error)
         setHoveredData(null)
-        return
-      }
-
-      if (!priceSeriesRef.current || !volumeSeriesRef.current) return
-
-      const priceData = param.seriesData.get(priceSeriesRef.current) as any
-      const volumeData = param.seriesData.get(volumeSeriesRef.current) as any
-
-      if (priceData && volumeData) {
-        const date = new Date((param.time as number) * 1000)
-        // Handle different data structures for candlestick vs line/area charts
-        const hasOHLC = priceData.open !== undefined
-        setHoveredData({
-          open: hasOHLC ? priceData.open : priceData.value || 0,
-          high: hasOHLC ? priceData.high : priceData.value || 0,
-          low: hasOHLC ? priceData.low : priceData.value || 0,
-          close: hasOHLC ? priceData.close : priceData.value || 0,
-          volume: volumeData.value || 0,
-          time: date.toLocaleString(),
-        })
       }
     })
 
@@ -508,27 +544,37 @@ export function AdvancedPriceChart({
         case 'line':
           newSeries = chartRef.current.addSeries(LineSeries, {
             color: '#00D4AA',
-            lineWidth: 2,
+            lineWidth: 3,      // Thicker line for better visibility
             priceFormat,
+            crosshairMarkerVisible: true,
+            crosshairMarkerRadius: 6,
+            crosshairMarkerBorderColor: '#00D4AA',
+            crosshairMarkerBackgroundColor: '#00D4AA',
           })
           break
         case 'area':
           newSeries = chartRef.current.addSeries(AreaSeries, {
-            topColor: 'rgba(0, 212, 170, 0.4)',
+            topColor: 'rgba(0, 212, 170, 0.6)',      // More visible gradient
             bottomColor: 'rgba(0, 212, 170, 0.0)',
             lineColor: '#00D4AA',
-            lineWidth: 2,
+            lineWidth: 3,      // Thicker line
             priceFormat,
+            crosshairMarkerVisible: true,
+            crosshairMarkerRadius: 6,
+            crosshairMarkerBorderColor: '#00D4AA',
+            crosshairMarkerBackgroundColor: '#00D4AA',
           })
           break
         case 'candlestick':
         default:
           newSeries = chartRef.current.addSeries(CandlestickSeries, {
-            upColor: '#26a69a',
-            downColor: '#ef5350',
-            borderVisible: false,
-            wickUpColor: '#26a69a',
-            wickDownColor: '#ef5350',
+            upColor: '#00D4AA',     // Bright green for bullish candles
+            downColor: '#FF4747',   // Bright red for bearish candles
+            borderVisible: true,
+            borderUpColor: '#00D4AA',
+            borderDownColor: '#FF4747',
+            wickUpColor: '#00D4AA',
+            wickDownColor: '#FF4747',
             priceFormat,
           })
           break
@@ -564,19 +610,25 @@ export function AdvancedPriceChart({
     }
 
     const intervalSeconds = getCandleInterval()
-    const priceMultiplier = priceMode === 'USD' ? ASTER_USD_PRICE : 1
 
-    // Aggregate transactions into candlesticks
+    // Aggregate transactions into candlesticks with proper USD conversion
     const candleMap = new Map<number, {open: number, high: number, low: number, close: number, volume: number, lastTimestamp: number}>()
 
     filteredTransactions
       .filter(tx => tx.timestamp > 0)
       .sort((a, b) => a.timestamp - b.timestamp)
       .forEach(tx => {
-        const asterAmount = Number(tx.asterAmountFormatted)
-        const tokenAmount = Number(tx.tokenAmountFormatted)
-        let price = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        price *= priceMultiplier
+        const asterAmount = Number(tx.asterAmountFormatted) // Already converted from wei
+        const tokenAmount = Number(tx.tokenAmountFormatted) // Already converted from wei
+        
+        // Calculate price in ASTER first
+        const priceInAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        
+        // Always calculate both USD and ASTER prices for flexibility
+        const priceInUSD = priceInAster * ASTER_USD_PRICE
+        
+        // Use the price based on current mode
+        const displayPrice = priceMode === 'USD' ? priceInUSD : priceInAster
 
         // Round timestamp to interval
         const candleTime = Math.floor(tx.timestamp / intervalSeconds) * intervalSeconds
@@ -584,18 +636,18 @@ export function AdvancedPriceChart({
         const existing = candleMap.get(candleTime)
         if (!existing) {
           candleMap.set(candleTime, {
-            open: price,
-            high: price,
-            low: price,
-            close: price,
+            open: displayPrice,
+            high: displayPrice,
+            low: displayPrice,
+            close: displayPrice,
             volume: asterAmount,
             lastTimestamp: tx.timestamp,
           })
         } else {
-          existing.high = Math.max(existing.high, price)
-          existing.low = Math.min(existing.low, price)
+          existing.high = Math.max(existing.high, displayPrice)
+          existing.low = Math.min(existing.low, displayPrice)
           if (tx.timestamp > existing.lastTimestamp) {
-            existing.close = price
+            existing.close = displayPrice
             existing.lastTimestamp = tx.timestamp
           }
           existing.volume += asterAmount
@@ -1072,54 +1124,54 @@ export function AdvancedPriceChart({
             </button>
           </div>
           
-          {/* OHLC Values (Right Side) */}
+          {/* OHLC Values (Right Side) - Fixed with proper conversions */}
           <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">O</span>
-              <span className="text-green-400 font-mono">
-                {(hoveredData || currentOHLC) ? (
-                  priceMode === 'USD' 
-                    ? ((hoveredData?.open || currentOHLC?.open || 0) * ASTER_USD_PRICE).toFixed(0)
-                    : (hoveredData?.open || currentOHLC?.open || 0).toFixed(0)
-                ) : '65.4K'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">H</span>
-              <span className="text-green-400 font-mono">
-                {(hoveredData || currentOHLC) ? (
-                  priceMode === 'USD' 
-                    ? ((hoveredData?.high || currentOHLC?.high || 0) * ASTER_USD_PRICE).toFixed(0)
-                    : (hoveredData?.high || currentOHLC?.high || 0).toFixed(0)
-                ) : '76.9K'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">L</span>
-              <span className="text-green-400 font-mono">
-                {(hoveredData || currentOHLC) ? (
-                  priceMode === 'USD' 
-                    ? ((hoveredData?.low || currentOHLC?.low || 0) * ASTER_USD_PRICE).toFixed(0)
-                    : (hoveredData?.low || currentOHLC?.low || 0).toFixed(0)
-                ) : '65.3K'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">C</span>
-              <span className={`font-mono ${
-                (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
-                  ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {(hoveredData || currentOHLC) ? (
-                  priceMode === 'USD' 
-                    ? ((hoveredData?.close || currentOHLC?.close || 0) * ASTER_USD_PRICE).toFixed(0)
-                    : (hoveredData?.close || currentOHLC?.close || 0).toFixed(0)
-                ) : '68.3K'}
-              </span>
-            </div>
-            <div className="text-green-400 font-mono">
-              2.8K (+4.29%)
-            </div>
+            {(hoveredData || currentOHLC) ? (
+              <>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">O</span>
+                  <span className="text-white font-mono">
+                    {priceMode === 'USD' 
+                      ? `$${(hoveredData?.open || currentOHLC?.open || 0).toFixed(6)}`
+                      : `${(hoveredData?.open || currentOHLC?.open || 0).toFixed(8)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">H</span>
+                  <span className="text-green-400 font-mono">
+                    {priceMode === 'USD' 
+                      ? `$${(hoveredData?.high || currentOHLC?.high || 0).toFixed(6)}`
+                      : `${(hoveredData?.high || currentOHLC?.high || 0).toFixed(8)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">L</span>
+                  <span className="text-red-400 font-mono">
+                    {priceMode === 'USD' 
+                      ? `$${(hoveredData?.low || currentOHLC?.low || 0).toFixed(6)}`
+                      : `${(hoveredData?.low || currentOHLC?.low || 0).toFixed(8)}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">C</span>
+                  <span className={`font-mono ${
+                    (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
+                      ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {priceMode === 'USD' 
+                      ? `$${(hoveredData?.close || currentOHLC?.close || 0).toFixed(6)}`
+                      : `${(hoveredData?.close || currentOHLC?.close || 0).toFixed(8)}`}
+                  </span>
+                </div>
+                <div className={`font-mono ${
+                  stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
+                </div>
+              </>
+            ) : (
+              <span className="text-gray-500">Hover over chart to see OHLC</span>
+            )}
           </div>
         </div>
       </div>
@@ -1310,49 +1362,57 @@ export function AdvancedPriceChart({
         <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
-      {/* Stats Row Below Chart - Pump.fun Style */}
-      <div className="px-6 py-3 bg-secondary border-t border-gray-700">
-        <div className="flex items-center gap-6 text-sm">
-          <div>
-            <span className="text-gray-400">Vol 24h: </span>
-            <span className="font-bold text-white">
-              {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(2)}` : `${stats.volume24h.toFixed(4)} ASTER`}
-            </span>
+      {/* Compact Stats Row - Single Line Layout */}
+      <div className="px-4 py-2 bg-secondary border-t border-gray-700">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">Vol:</span>
+              <span className="font-medium text-white">
+                {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(1)}` : `${stats.volume24h.toFixed(2)} ASTER`}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-400">Price:</span>
+              <span className={`font-medium ${
+                stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {priceMode === 'USD'
+                  ? `$${stats.currentPriceUSD.toFixed(6)}`
+                  : `${stats.currentPrice.toFixed(8)}`
+                }
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">5m:</span>
+                <span className={`font-medium text-xs ${
+                  periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">1h:</span>
+                <span className={`font-medium text-xs ${
+                  periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">6h:</span>
+                <span className={`font-medium text-xs ${
+                  periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-gray-400">Price: </span>
-            <span className={`font-bold ${
-              stats.change24h >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {priceMode === 'USD'
-                ? `$${stats.currentPriceUSD.toFixed(6)}`
-                : `${stats.currentPrice.toFixed(8)} ASTER`
-              }
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-400">5m: </span>
-            <span className={`font-bold ${
-              periodChanges['5m'] >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(2)}%
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-400">1h: </span>
-            <span className={`font-bold ${
-              periodChanges['1h'] >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(2)}%
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-400">6h: </span>
-            <span className={`font-bold ${
-              periodChanges['6h'] >= 0 ? 'text-green-500' : 'text-red-500'
-            }`}>
-              {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(2)}%
-            </span>
+          <div className="flex items-center gap-4 text-gray-500">
+            <span>{filteredTransactions.length} trades</span>
+            <span>1 ASTER = ${ASTER_USD_PRICE.toFixed(2)}</span>
           </div>
         </div>
       </div>
