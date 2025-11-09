@@ -11,10 +11,19 @@ interface TradingViewChartProps {
 
 // TradingView widget configuration for crypto trading
 const createTradingViewWidget = (container: HTMLElement, symbol: string) => {
-  // Safely clear any existing content
-  while (container.firstChild) {
-    container.removeChild(container.firstChild)
+  // Check if container exists and is mounted
+  if (!container || !container.parentNode) {
+    return
   }
+
+  // Create a unique container div for the widget
+  const widgetContainer = document.createElement('div')
+  widgetContainer.style.height = '100%'
+  widgetContainer.style.width = '100%'
+  
+  // Clear container safely and add widget container
+  container.textContent = ''
+  container.appendChild(widgetContainer)
 
   const script = document.createElement('script')
   script.type = 'text/javascript'
@@ -71,7 +80,7 @@ const createTradingViewWidget = (container: HTMLElement, symbol: string) => {
   }
 
   script.innerHTML = JSON.stringify(config)
-  container.appendChild(script)
+  widgetContainer.appendChild(script)
 }
 
 export function TradingViewChart({ 
@@ -82,32 +91,37 @@ export function TradingViewChart({
 }: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [key, setKey] = useState(0) // Force re-render key
 
   useEffect(() => {
+    let mounted = true
+    
     if (containerRef.current && !isLoaded) {
-      // Add a small delay to ensure DOM is ready
       const timer = setTimeout(() => {
-        if (containerRef.current) {
-          createTradingViewWidget(containerRef.current, tokenSymbol)
-          setIsLoaded(true)
+        if (mounted && containerRef.current && containerRef.current.parentNode) {
+          try {
+            createTradingViewWidget(containerRef.current, tokenSymbol)
+            if (mounted) {
+              setIsLoaded(true)
+            }
+          } catch (error) {
+            console.warn('TradingView widget creation failed:', error)
+          }
         }
-      }, 100)
+      }, 200) // Increased delay for better stability
       
-      // Cleanup function
-      return () => clearTimeout(timer)
-    }
-  }, [tokenSymbol, isLoaded])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (containerRef.current) {
-        while (containerRef.current.firstChild) {
-          containerRef.current.removeChild(containerRef.current.firstChild)
-        }
+      return () => {
+        mounted = false
+        clearTimeout(timer)
       }
     }
-  }, [])
+  }, [tokenSymbol, key])
+
+  // Reset component when symbol changes
+  useEffect(() => {
+    setIsLoaded(false)
+    setKey(prev => prev + 1)
+  }, [tokenSymbol])
 
   // Recalculate progress for ATH progress bar
   const progressToATH = ath && marketCap 
@@ -175,6 +189,7 @@ export function TradingViewChart({
 
       {/* TradingView Chart Container */}
       <div 
+        key={key}
         ref={containerRef}
         className="relative w-full"
         style={{ height: '500px' }}
