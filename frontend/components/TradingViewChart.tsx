@@ -12,27 +12,38 @@ interface TradingViewChartProps {
 // TradingView widget configuration for crypto trading
 const createTradingViewWidget = (container: HTMLElement, symbol: string) => {
   // Check if container exists and is mounted
-  if (!container || !container.parentNode) {
-    return
+  if (!container || !container.parentNode || !document.body.contains(container)) {
+    console.warn('TradingView container not ready or not in DOM')
+    return false
   }
 
-  // Create a unique container div for the widget
-  const widgetContainer = document.createElement('div')
-  widgetContainer.style.height = '100%'
-  widgetContainer.style.width = '100%'
-  
-  // Clear container safely and add widget container
-  container.textContent = ''
-  container.appendChild(widgetContainer)
+  try {
+    // Create a unique container div for the widget with ID
+    const widgetId = `tradingview_${Math.random().toString(36).substr(2, 9)}`
+    const widgetContainer = document.createElement('div')
+    widgetContainer.id = widgetId
+    widgetContainer.style.height = '100%'
+    widgetContainer.style.width = '100%'
+    widgetContainer.style.position = 'relative'
+    
+    // Clear container safely and add widget container
+    while (container.firstChild) {
+      container.removeChild(container.firstChild)
+    }
+    container.appendChild(widgetContainer)
 
-  const script = document.createElement('script')
-  script.type = 'text/javascript'
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'
-  script.async = true
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'
+    script.async = true
+    script.defer = true
 
-  const config = {
-    "autosize": true,
-    "symbol": `BINANCE:${symbol}USDT`, // Default to USDT pair, can be customized
+    const config = {
+      "autosize": true,
+      "width": "100%",
+      "height": "500",
+      "symbol": `BINANCE:${symbol}USDT`, // Default to USDT pair, can be customized
+      "container_id": widgetId,
     "interval": "5",
     "timezone": "Etc/UTC",
     "theme": "dark",
@@ -79,8 +90,19 @@ const createTradingViewWidget = (container: HTMLElement, symbol: string) => {
     ]
   }
 
-  script.innerHTML = JSON.stringify(config)
-  widgetContainer.appendChild(script)
+    script.innerHTML = JSON.stringify(config)
+    
+    // Add error handler
+    script.onerror = (error) => {
+      console.error('TradingView script load error:', error)
+    }
+    
+    widgetContainer.appendChild(script)
+    return true
+  } catch (error) {
+    console.error('TradingView widget creation error:', error)
+    return false
+  }
 }
 
 export function TradingViewChart({ 
@@ -95,24 +117,21 @@ export function TradingViewChart({
 
   useEffect(() => {
     let mounted = true
+    let timer: NodeJS.Timeout | null = null
     
-    if (containerRef.current && !isLoaded) {
-      const timer = setTimeout(() => {
-        if (mounted && containerRef.current && containerRef.current.parentNode) {
-          try {
-            createTradingViewWidget(containerRef.current, tokenSymbol)
-            if (mounted) {
-              setIsLoaded(true)
-            }
-          } catch (error) {
-            console.warn('TradingView widget creation failed:', error)
+    if (containerRef.current && !isLoaded && typeof window !== 'undefined') {
+      timer = setTimeout(() => {
+        if (mounted && containerRef.current && document.body.contains(containerRef.current)) {
+          const success = createTradingViewWidget(containerRef.current, tokenSymbol)
+          if (mounted && success) {
+            setIsLoaded(true)
           }
         }
-      }, 200) // Increased delay for better stability
+      }, 300) // Increased delay for better stability
       
       return () => {
         mounted = false
-        clearTimeout(timer)
+        if (timer) clearTimeout(timer)
       }
     }
   }, [tokenSymbol, key])

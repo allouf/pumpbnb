@@ -1,3 +1,42 @@
-https://pumpbnb-backend.onrender.com/api/v2/tokens/0xb9ae69140d491898efe61a86f4011365a48f55ed/trades
 
-{"success":true,"data":[{"id":"a860d84f-66a9-4974-b15e-0bf55cc9eeae","tokenAddress":"0xb9ae69140d491898efe61a86f4011365a48f55ed","trader":"0x5f9ce34bb4909088bf2d3629249f2efa0d6a9f94","isBuy":true,"amountIn":"4000000000000000000","amountOut":"19226614061809024591506976","fee":"40000000000000000","timestamp":"2025-11-01T02:44:42.000Z","txHash":"0x0cfac273a1a8993eaae5b334ed295ddba218918864554dfa40100aaaf86ddc46","blockNumber":70824357,"price":null,"marketCap":null,"asterAmount":null,"tokenAmount":null},{"id":"6a744690-c6f3-4de8-b7a0-44535339bcef","tokenAddress":"0xb9ae69140d491898efe61a86f4011365a48f55ed","trader":"0x5f9ce34bb4909088bf2d3629249f2efa0d6a9f94","isBuy":true,"amountIn":"1000000000000000000","amountOut":"4925618189959699487536694","fee":"10000000000000000","timestamp":"2025-10-31T17:18:16.000Z","txHash":"0x9a81f3aef0a5ab2455dfc9d90eba9401df68f9654c16912b4d424715f52a5f7d","blockNumber":70779042,"price":null,"marketCap":null,"asterAmount":null,"tokenAmount":null}],"pagination":{"page":1,"limit":50,"total":2,"totalPages":1,"hasMore":false}}
+page-18a1023117b5dbba.js:1 [useTokenList] Effect triggered - filters changed
+page-18a1023117b5dbba.js:1 [useTokenList] Fetching tokens from: https://pumpbnb-backend.onrender.com/api/v2/tokens?limit=100&sortBy=volume24h&sortOrder=desc
+page-18a1023117b5dbba.js:1 [fetchWithRetry] Attempt 1/3 for https://pumpbnb-backend.onrender.com/api/v2/tokens?limit=100&sortBy=volume24h&sortOrder=desc
+page-18a1023117b5dbba.js:1 [Home] Fetching trending tokens...
+page-18a1023117b5dbba.js:1 [Home] Trending URL: https://pumpbnb-backend.onrender.com/api/v2/tokens/trending?limit=4
+page-18a1023117b5dbba.js:1 [fetchWithRetry] Attempt 1/4 for https://pumpbnb-backend.onrender.com/api/v2/tokens/trending?limit=4
+page-18a1023117b5dbba.js:1 [Home] Trending data received: Object
+page-18a1023117b5dbba.js:1 [Home] Trending tokens set: 4 tokens
+pumpbnb-frontend.onrender.com/:1 [Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
+/favicon.ico:1   Failed to load resource: the server responded with a status of 404 ()
+page-18a1023117b5dbba.js:1 [useTokenList] Loaded 4 tokens (online mode)
+page-0634c27542516854.js:1 Fetching token from API: https://pumpbnb-backend.onrender.com/api/tokens/0x8d00d3e20be61cdee4b602b7b032cfc64dcfd3b3
+page-4096da8d08393549.js:1 [useTransactionHistory] Missing both bondingCurveAddress and userAddress
+page-4096da8d08393549.js:1 [useTransactionHistory] Fetching from backend API...
+page-4096da8d08393549.js:1 [useTransactionHistory] Bonding curve: 0xDf41DA00149B6361bDc40023da88b6E8006f4aE7
+page-4096da8d08393549.js:1 [useTransactionHistory] User filter: none
+page-4096da8d08393549.js:1 [useTransactionHistory] Fetching: https://pumpbnb-backend.onrender.com/api/trades/0xDf41DA00149B6361bDc40023da88b6E8006f4aE7/history
+page-0634c27542516854.js:1 API Response status: 200 
+page-0634c27542516854.js:1 API Response data: Object
+page-0634c27542516854.js:1 [RecentTrades] Fetching trades for token: 0x8d00d3e20be61cdee4b602b7b032cfc64dcfd3b3
+page-0634c27542516854.js:1 [RecentTrades] API URL: https://pumpbnb-backend.onrender.com/api/v2/tokens/0x8d00d3e20be61cdee4b602b7b032cfc64dcfd3b3/trades?page=1&limit=10&sortBy=timestamp&sortOrder=desc
+page-0634c27542516854.js:1 [TradingPanel] 🔍 Transaction state changed: Object
+page-0634c27542516854.js:1 [TopHolders] Fetching holders for token: 0x8d00d3e20be61cdee4b602b7b032cfc64dcfd3b3
+page-0634c27542516854.js:1 [TopHolders] API URL: https://pumpbnb-backend.onrender.com/api/v2/tokens/0x8d00d3e20be61cdee4b602b7b032cfc64dcfd3b3/holders?limit=10
+page-4096da8d08393549.js:1 [useTransactionHistory] Fetching from backend API...
+page-4096da8d08393549.js:1 [useTransactionHistory] Bonding curve: 0xdf41da00149b6361bdc40023da88b6e8006f4ae7
+page-4096da8d08393549.js:1 [useTransactionHistory] User filter: none
+page-4096da8d08393549.js:1 [useTransactionHistory] Fetching: https://pumpbnb-backend.onrender.com/api/trades/0xdf41da00149b6361bdc40023da88b6e8006f4ae7/history
+page-4096da8d08393549.js:1 [useTransactionHistory] API Response received: Object
+page-4096da8d08393549.js:1 [useTransactionHistory] New trades detected: 19 (was 0)
+vendor-ee51240e9c864817.js:15  NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+vendor-ee51240e9c864817.js:15  App error: NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+window.console.error @ vendor-ee51240e9c864817.js:15
+page-0634c27542516854.js:1 [RecentTrades] API Response: Object
+page-0634c27542516854.js:1 [RecentTrades] Loaded 10 trades (filtered from 10 ), total: 19
+page-0634c27542516854.js:1 [RecentTrades] Pagination data: Object
+page-4096da8d08393549.js:1 [useTransactionHistory] API Response received: Object
+page-4096da8d08393549.js:1 [useTransactionHistory] New trades detected: 19 (was 0)
+page-0634c27542516854.js:1 [TopHolders] API Response: Object
+page-0634c27542516854.js:1 [TopHolders] Loaded 1 holders
+vendor-ee51240e9c864817.js:15  Cannot listen to the event from the provided iframe, contentWindow is not available

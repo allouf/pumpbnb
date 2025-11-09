@@ -3,10 +3,9 @@ const nextConfig = {
   // Optimize build performance
   experimental: {
     optimizePackageImports: ['lightweight-charts', 'recharts'],
+    // Enable for potential memory improvement during builds (Next.js 14.1.0+)
+    webpackBuildWorker: true,
   },
-
-  // Add empty turbopack config to silence Next.js 16 warning
-  turbopack: {},
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
@@ -54,12 +53,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'ipfs.io',
+        // Add a pathname wildcard to allow all images from this host
+        pathname: '**',
       },
     ],
   },
 
   // Disable source maps in production for faster builds
   productionBrowserSourceMaps: false,
+  // Also consider disabling server-side source maps for memory usage
+  experimental: {
+    serverSourceMaps: false,
+  },
 }
 
 module.exports = nextConfig
