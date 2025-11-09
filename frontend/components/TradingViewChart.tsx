@@ -11,8 +11,10 @@ interface TradingViewChartProps {
 
 // TradingView widget configuration for crypto trading
 const createTradingViewWidget = (container: HTMLElement, symbol: string) => {
-  // Clear any existing content
-  container.innerHTML = ''
+  // Safely clear any existing content
+  while (container.firstChild) {
+    container.removeChild(container.firstChild)
+  }
 
   const script = document.createElement('script')
   script.type = 'text/javascript'
@@ -84,14 +86,28 @@ export function TradingViewChart({
   useEffect(() => {
     if (containerRef.current && !isLoaded) {
       // Add a small delay to ensure DOM is ready
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (containerRef.current) {
           createTradingViewWidget(containerRef.current, tokenSymbol)
           setIsLoaded(true)
         }
       }, 100)
+      
+      // Cleanup function
+      return () => clearTimeout(timer)
     }
   }, [tokenSymbol, isLoaded])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (containerRef.current) {
+        while (containerRef.current.firstChild) {
+          containerRef.current.removeChild(containerRef.current.firstChild)
+        }
+      }
+    }
+  }, [])
 
   // Recalculate progress for ATH progress bar
   const progressToATH = ath && marketCap 
