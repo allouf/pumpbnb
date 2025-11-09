@@ -62,19 +62,21 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
           throw new Error(data.message || 'Failed to fetch trade history')
         }
 
-        // Convert backend data to Transaction format
-        const trades = data.data.map((trade: any) => ({
-          hash: trade.transactionHash,
-          type: trade.type,
-          user: trade.user,
-          tokenAmount: BigInt(trade.tokenAmount),
-          tokenAmountFormatted: (Number(trade.tokenAmount) / 1e18).toString(),
-          asterAmount: BigInt(trade.asterAmount),
-          asterAmountFormatted: (Number(trade.asterAmount) / 1e18).toString(),
-          timestamp: new Date(trade.timestamp).getTime() / 1000,
-          blockNumber: BigInt(trade.blockNumber),
-          bondingCurve: trade.bondingCurve,
-        }))
+        // Convert backend data to Transaction format with null handling
+        const trades = data.data
+          .filter((trade: any) => trade.asterAmount !== null && trade.tokenAmount !== null) // Filter out null trades
+          .map((trade: any) => ({
+            hash: trade.transactionHash || trade.txHash,
+            type: trade.isBuy ? 'buy' : 'sell',
+            user: trade.trader,
+            tokenAmount: BigInt(trade.tokenAmount),
+            tokenAmountFormatted: (Number(trade.tokenAmount) / 1e18).toString(),
+            asterAmount: BigInt(trade.asterAmount),
+            asterAmountFormatted: (Number(trade.asterAmount) / 1e18).toString(),
+            timestamp: new Date(trade.timestamp).getTime() / 1000,
+            blockNumber: BigInt(trade.blockNumber),
+            bondingCurve: trade.tokenAddress,
+          }))
 
         // Only update state if there are new trades (avoid unnecessary re-renders)
         if (trades.length !== transactions.length ||
