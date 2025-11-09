@@ -15,7 +15,7 @@ const PumpTokenABI = PumpTokenABIImport.abi as Abi
 const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 
 import { TokenAvatar } from '@/components/TokenAvatar'
-import { TradingViewChart } from '@/components/TradingViewChart'
+import { AdvancedPriceChart } from '@/components/AdvancedPriceChart'
 import { TradingPanel } from '@/components/TradingPanel'
 import { CommentsSection } from '@/components/CommentsSection'
 import { RecentTrades } from '@/components/RecentTrades'
@@ -390,9 +390,10 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
               </div>
             </div>
 
-            {/* Professional TradingView Chart */}
+            {/* Advanced Price Chart with Lightweight Charts */}
             <div className="bg-gray-900 rounded-xl overflow-hidden">
-              <TradingViewChart
+              <AdvancedPriceChart
+                bondingCurveAddress={bondingCurve}
                 tokenSymbol={symbol || 'BTC'}
                 marketCap={marketCap}
                 marketCapChange24h={marketCapStats.change24hPercent}
