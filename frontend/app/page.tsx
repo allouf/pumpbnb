@@ -204,13 +204,10 @@ export default function Home() {
                                   loading="lazy"
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
                                     const parent = target.parentElement;
                                     if (parent && !parent.querySelector('.fallback-icon')) {
-                                      const fallback = document.createElement('span');
-                                      fallback.className = 'fallback-icon text-gray-500 text-xs';
-                                      fallback.textContent = token.symbol.charAt(0).toUpperCase();
-                                      parent.appendChild(fallback);
+                                      // Safer DOM replacement instead of appendChild
+                                      parent.innerHTML = `<span class="fallback-icon text-gray-500 text-xs">${token.symbol.charAt(0).toUpperCase()}</span>`;
                                     }
                                   }}
                                 />
