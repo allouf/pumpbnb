@@ -15,7 +15,7 @@ const PumpTokenABI = PumpTokenABIImport.abi as Abi
 const TokenFactoryABI = TokenFactoryABIImport.abi as Abi
 
 import { TokenAvatar } from '@/components/TokenAvatar'
-import { AdvancedPriceChart } from '@/components/AdvancedPriceChart'
+import { TradingViewChart } from '@/components/TradingViewChart'
 import { TradingPanel } from '@/components/TradingPanel'
 import { CommentsSection } from '@/components/CommentsSection'
 import { RecentTrades } from '@/components/RecentTrades'
@@ -390,18 +390,15 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
               </div>
             </div>
 
-            {/* Enhanced Price Chart with Market Cap in Header */}
-            {bondingCurve && (
-              <div className="bg-gray-900 rounded-xl overflow-hidden">
-                <AdvancedPriceChart
-                  bondingCurveAddress={bondingCurve}
-                  tokenSymbol={symbol}
-                  marketCap={marketCap}
-                  marketCapChange24h={marketCapStats.change24hPercent}
-                  ath={marketCapStats.ath}
-                />
-              </div>
-            )}
+            {/* Professional TradingView Chart */}
+            <div className="bg-gray-900 rounded-xl overflow-hidden">
+              <TradingViewChart
+                tokenSymbol={symbol || 'BTC'}
+                marketCap={marketCap}
+                marketCapChange24h={marketCapStats.change24hPercent}
+                ath={marketCapStats.ath}
+              />
+            </div>
 
             {/* Tabs */}
             <div className="bg-secondary-light rounded-xl overflow-hidden mt-4">
