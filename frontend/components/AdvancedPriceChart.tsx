@@ -29,26 +29,21 @@ type ChartType = 'candlestick' | 'line' | 'area'
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
-// Smart price formatting function for compact display
-const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'USD'): string => {
-  if (price === 0) return currency === 'USD' ? '$0' : '0'
+// Smart price formatting function - now for TOKENS per ASTER/USD
+const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
+  if (price === 0) return '0'
   
-  const prefix = currency === 'USD' ? '$' : ''
-  const suffix = currency === 'ASTER' ? 'A' : '' // Use 'A' for ASTER to save space
-  
-  // For very small values, use compact scientific notation
-  if (Math.abs(price) < 0.0001) {
-    const exp = price.toExponential(1)
-    return `${prefix}${exp}${suffix}`
+  // For large values (millions), use K/M notation
+  if (Math.abs(price) >= 1000000) {
+    return `${(price / 1000000).toFixed(1)}M`
   }
   
-  // For small values, use fewer decimal places
-  if (Math.abs(price) < 0.01) {
-    return `${prefix}${price.toFixed(6)}${suffix}`
+  if (Math.abs(price) >= 1000) {
+    return `${(price / 1000).toFixed(1)}K`
   }
   
-  // For normal values, use standard formatting
-  return `${prefix}${price.toFixed(4)}${suffix}`
+  // For normal values
+  return `${price.toFixed(0)}`
 }
 
 export function AdvancedPriceChart({ 
@@ -83,7 +78,7 @@ export function AdvancedPriceChart({
   const isInitialLoadRef = useRef(true)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
-  const [priceMode, setPriceMode] = useState<PriceMode>('USD') // Default to USD
+  const [priceMode, setPriceMode] = useState<PriceMode>('ASTER') // Default to ASTER for meaningful values
   const [chartType, setChartType] = useState<ChartType>('candlestick')
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
   
@@ -180,7 +175,7 @@ export function AdvancedPriceChart({
     // Sort transactions by timestamp (oldest first) for proper price history
     const sortedTransactions = [...transactions].sort((a, b) => a.timestamp - b.timestamp)
     
-    // Calculate prices for all transactions with proper wei conversion
+    // Calculate prices for all transactions - TOKENS PER ASTER (meaningful values)
     const prices = sortedTransactions.map(tx => {
       // Handle null values and fallback to raw amounts if formatted ones are missing
       let asterAmount, tokenAmount
@@ -196,11 +191,10 @@ export function AdvancedPriceChart({
         return 0 // Skip transactions without proper amount data
       }
       
-      // Calculate price in ASTER per token
-      const priceInAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+      // Calculate TOKENS per ASTER (inverted - this gives meaningful numbers!)
+      const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
       
-      // Convert to USD (our main currency display)
-      return priceInAster * ASTER_USD_PRICE
+      return tokensPerAster // This will be a large meaningful number
     }).filter(p => p > 0)
 
     if (prices.length === 0) {
@@ -217,23 +211,23 @@ export function AdvancedPriceChart({
       }
     }
 
-    // Prices are already in USD from above calculation
-    const currentPriceUSD = prices[prices.length - 1]
-    const currentPriceAster = currentPriceUSD / ASTER_USD_PRICE
+    // Prices are now TOKENS per ASTER
+    const currentTokensPerAster = prices[prices.length - 1]
+    const currentTokensPerUSD = currentTokensPerAster / ASTER_USD_PRICE
     const firstPrice = prices[0]
-    const change24h = firstPrice > 0 ? ((currentPriceUSD - firstPrice) / firstPrice) * 100 : 0
+    const change24h = firstPrice > 0 ? ((currentTokensPerAster - firstPrice) / firstPrice) * 100 : 0
     
     // Debug price calculations
     console.log('[AdvancedPriceChart] 🔢 Price calculation debug:', {
-      firstPriceUSD: firstPrice.toFixed(12),
-      currentPriceUSD: currentPriceUSD.toFixed(12),
+      firstTokensPerAster: firstPrice.toFixed(2),
+      currentTokensPerAster: currentTokensPerAster.toFixed(2),
       change24h: change24h.toFixed(2) + '%',
       validPricesCount: prices.length
     })
-    const high24hUSD = Math.max(...prices)
-    const low24hUSD = Math.min(...prices)
-    const athUSD = high24hUSD
-    const athAster = athUSD / ASTER_USD_PRICE
+    const high24hTokensPerAster = Math.max(...prices)
+    const low24hTokensPerAster = Math.min(...prices)
+    const athTokensPerAster = high24hTokensPerAster
+    const athTokensPerUSD = athTokensPerAster / ASTER_USD_PRICE
     
     // Volume calculation in both currencies with null handling
     const volume24hAster = transactions.reduce((sum, tx) => {
@@ -248,18 +242,18 @@ export function AdvancedPriceChart({
     const volume24hUSD = volume24hAster * ASTER_USD_PRICE
 
     return {
-      currentPrice: currentPriceAster,
-      currentPriceUSD,
+      currentPrice: currentTokensPerAster,      // Tokens per ASTER
+      currentPriceUSD: currentTokensPerUSD,    // Tokens per USD  
       change24h,
-      high24h: high24hUSD / ASTER_USD_PRICE, // Keep original structure
-      low24h: low24hUSD / ASTER_USD_PRICE,
+      high24h: high24hTokensPerAster,
+      low24h: low24hTokensPerAster,
       volume24h: volume24hAster,
       volume24hUSD,
-      ath: athAster,
-      athUSD,
-      // Add USD versions for direct access
-      high24hUSD,
-      low24hUSD,
+      ath: athTokensPerAster,
+      athUSD: athTokensPerUSD,
+      // Keep USD versions
+      high24hUSD: high24hTokensPerAster / ASTER_USD_PRICE,
+      low24hUSD: low24hTokensPerAster / ASTER_USD_PRICE,
     }
   }, [transactions])
 
@@ -398,7 +392,7 @@ export function AdvancedPriceChart({
     
     try {
       let priceSeries
-      const seriesOptions = {
+      const priceSeriesOptions = {
         upColor: '#00D4AA',     // Bright green for bullish candles
         downColor: '#FF4747',   // Bright red for bearish candles
         borderVisible: true,
@@ -408,8 +402,8 @@ export function AdvancedPriceChart({
         wickDownColor: '#FF4747',
         priceFormat: {
           type: 'price',
-          precision: priceMode === 'USD' ? 6 : 8,
-          minMove: priceMode === 'USD' ? 0.000001 : 0.00000001,
+          precision: 0,    // No decimals for tokens count
+          minMove: 1,      // Minimum move is 1 token
         },
       }
       
@@ -417,7 +411,7 @@ export function AdvancedPriceChart({
       if (typeof chart.addSeries === 'function') {
         try {
           console.log('[AdvancedPriceChart] Trying addSeries with CandlestickSeries constructor')
-          priceSeries = chart.addSeries(CandlestickSeries, seriesOptions)
+          priceSeries = chart.addSeries(CandlestickSeries, priceSeriesOptions)
           console.log('[AdvancedPriceChart] ✅ CandlestickSeries constructor worked!')
         } catch (e) {
           console.log('[AdvancedPriceChart] ❌ CandlestickSeries constructor failed:', (e as Error).message)
@@ -428,7 +422,7 @@ export function AdvancedPriceChart({
           for (const seriesType of typeVariations) {
             try {
               console.log(`[AdvancedPriceChart] Trying addSeries('${seriesType}')`)
-              priceSeries = chart.addSeries(seriesType, seriesOptions)
+              priceSeries = chart.addSeries(seriesType, priceSeriesOptions)
               console.log(`[AdvancedPriceChart] ✅ addSeries('${seriesType}') worked!`)
               break
             } catch (e2) {
@@ -704,14 +698,12 @@ export function AdvancedPriceChart({
           return // Skip transactions without proper amount data
         }
         
-        // Calculate price in ASTER first
-        const priceInAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        
-        // Always calculate both USD and ASTER prices for flexibility
-        const priceInUSD = priceInAster * ASTER_USD_PRICE
+        // Calculate TOKENS per ASTER (this gives meaningful large numbers!)
+        const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
+        const tokensPerUSD = tokensPerAster / ASTER_USD_PRICE
         
         // Use the price based on current mode
-        const displayPrice = priceMode === 'USD' ? priceInUSD : priceInAster
+        const displayPrice = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
 
         // Round timestamp to interval
         const candleTime = Math.floor(tx.timestamp / intervalSeconds) * intervalSeconds
@@ -976,8 +968,9 @@ export function AdvancedPriceChart({
         return null // No valid data
       }
       
-      const priceInAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-      const price = priceMode === 'USD' ? priceInAster * ASTER_USD_PRICE : priceInAster
+      const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
+      const tokensPerUSD = tokensPerAster / ASTER_USD_PRICE
+      const price = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
       
       return {
         open: price,
@@ -1026,9 +1019,10 @@ export function AdvancedPriceChart({
           return
         }
         
-        const oldPrice = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        if (oldPrice > 0) {
-          changes[period] = ((currentPrice - oldPrice) / oldPrice) * 100
+        // Calculate tokens per ASTER for consistency
+        const oldTokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
+        if (oldTokensPerAster > 0) {
+          changes[period] = ((currentPrice - oldTokensPerAster) / oldTokensPerAster) * 100
         } else {
           changes[period] = 0
         }
@@ -1036,8 +1030,8 @@ export function AdvancedPriceChart({
         // Debug period changes
         console.log(`[AdvancedPriceChart] 📊 ${period} change:`, {
           oldTimestamp: new Date(oldTx.timestamp * 1000).toLocaleString(),
-          oldPrice: oldPrice.toFixed(12),
-          currentPrice: currentPrice.toFixed(12),
+          oldTokensPerAster: oldTokensPerAster.toFixed(2),
+          currentTokensPerAster: currentPrice.toFixed(2),
           change: changes[period].toFixed(2) + '%'
         })
       } else {
@@ -1177,8 +1171,18 @@ export function AdvancedPriceChart({
             </button>
           </div>
 
-          {/* USD/BNB Toggle */}
+          {/* USD/ASTER Toggle */}
           <div className="flex bg-secondary rounded border border-gray-700">
+            <button
+              onClick={() => setPriceMode('ASTER')}
+              className={`px-2 py-1 text-xs font-medium transition ${
+                priceMode === 'ASTER'
+                  ? 'bg-primary text-black rounded'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              ASTER
+            </button>
             <button
               onClick={() => setPriceMode('USD')}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1189,26 +1193,16 @@ export function AdvancedPriceChart({
             >
               USD
             </button>
-            <button
-              onClick={() => setPriceMode('ASTER')}
-              className={`px-2 py-1 text-xs font-medium transition ${
-                priceMode === 'ASTER'
-                  ? 'bg-primary text-black rounded'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              BNB
-            </button>
           </div>
         </div>
         
         {/* Row 3: Token Price Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Token/ASTER Price */}
+            {/* Tokens per ASTER Price */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
-                {tokenSymbol}/ASTER:
+                {tokenSymbol} per {priceMode}:
               </span>
               <span className="text-sm font-bold text-primary">
                 {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
