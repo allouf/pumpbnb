@@ -11,14 +11,29 @@ interface TradingViewChartProps {
 
 // React-based TradingView component without DOM manipulation
 const TradingViewWidget = ({ symbol }: { symbol: string }) => {
+  const [showTradingView, setShowTradingView] = useState(false)
   const [widgetId] = useState(() => `tv_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [error, setError] = useState(false)
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+  // Check if this is a major token that exists on TradingView
+  const getTradingViewSymbol = (tokenSymbol: string) => {
+    const knownSymbols = ['BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'LINK', 'UNI', 'CAKE', 'MATIC', 'AVAX']
+    return knownSymbols.includes(tokenSymbol.toUpperCase()) ? `BINANCE:${tokenSymbol.toUpperCase()}USDT` : null
+  }
 
-    // Create script element
+  const tradingViewSymbol = getTradingViewSymbol(symbol)
+
+  useEffect(() => {
+    // Only show TradingView for major tokens
+    if (tradingViewSymbol) {
+      setShowTradingView(true)
+    }
+  }, [tradingViewSymbol])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !showTradingView || !tradingViewSymbol) return
+
     const script = document.createElement('script')
     script.type = 'text/javascript'
     script.async = true
@@ -28,7 +43,7 @@ const TradingViewWidget = ({ symbol }: { symbol: string }) => {
       "autosize": true,
       "width": "100%", 
       "height": "500",
-      "symbol": `BINANCE:${symbol}USDT`,
+      "symbol": tradingViewSymbol,
       "container_id": widgetId,
       "interval": "5",
       "timezone": "Etc/UTC",
@@ -72,14 +87,11 @@ const TradingViewWidget = ({ symbol }: { symbol: string }) => {
     }
 
     script.innerHTML = JSON.stringify(config)
-    
     script.onload = () => setScriptLoaded(true)
     script.onerror = () => setError(true)
-    
     document.head.appendChild(script)
 
     return () => {
-      // Cleanup: remove script from head
       try {
         if (script.parentNode) {
           script.parentNode.removeChild(script)
@@ -88,8 +100,56 @@ const TradingViewWidget = ({ symbol }: { symbol: string }) => {
         // Ignore cleanup errors
       }
     }
-  }, [symbol, widgetId])
+  }, [showTradingView, tradingViewSymbol, widgetId])
 
+  // Show custom placeholder for meme tokens
+  if (!showTradingView) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-secondary-light">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-3">📈</div>
+          <h3 className="text-lg font-semibold text-white mb-2">{symbol} Token Chart</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            Custom token charts coming soon!
+          </p>
+        </div>
+        
+        {/* Mock Chart Visualization */}
+        <div className="w-full max-w-md bg-secondary rounded-lg p-4">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs text-gray-400">Price Activity</span>
+            <span className="text-xs text-green-400">↗ +12.5%</span>
+          </div>
+          
+          {/* Mock chart bars */}
+          <div className="flex items-end justify-between h-20 gap-1">
+            {[40, 65, 45, 80, 55, 75, 90, 70, 85, 60, 95, 80].map((height, i) => (
+              <div
+                key={i}
+                className={`w-2 rounded-t transition-all duration-300 ${
+                  i < 6 ? 'bg-red-400' : 'bg-green-400'
+                }`}
+                style={{ height: `${height}%` }}
+              />
+            ))}
+          </div>
+          
+          <div className="flex justify-between mt-2 text-xs text-gray-500">
+            <span>24h ago</span>
+            <span>Now</span>
+          </div>
+        </div>
+        
+        <div className="mt-4 text-center">
+          <p className="text-xs text-gray-500">
+            Trade data is available in the Trades tab below
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show TradingView for major tokens
   if (error) {
     return (
       <div className="flex items-center justify-center h-full bg-secondary-light text-red-400">
@@ -109,7 +169,7 @@ const TradingViewWidget = ({ symbol }: { symbol: string }) => {
         <div className="absolute inset-0 flex items-center justify-center bg-secondary-light">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
-            <p className="text-gray-400">Loading Chart...</p>
+            <p className="text-gray-400">Loading Professional Chart...</p>
           </div>
         </div>
       )}
