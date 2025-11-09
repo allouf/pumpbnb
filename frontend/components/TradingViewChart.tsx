@@ -1,12 +1,208 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 
 interface TradingViewChartProps {
   tokenSymbol: string
   marketCap?: string
   marketCapChange24h?: number
   ath?: number
+}
+
+interface TradeData {
+  timestamp: string
+  price: string
+  isBuy: boolean
+  tokenAmount: string
+  asterAmount: string
+}
+
+// Custom chart component for tokens using real trading data
+const CustomTokenChart = ({ symbol }: { symbol: string }) => {
+  const params = useParams()
+  const tokenAddress = params?.address as string
+  const [trades, setTrades] = useState<TradeData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [priceChange, setPriceChange] = useState(0)
+
+  useEffect(() => {
+    const fetchTrades = async () => {
+      if (!tokenAddress) return
+      
+      try {
+        setIsLoading(true)
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
+        const response = await fetch(`${apiUrl}/api/v2/tokens/${tokenAddress}/trades?limit=50&sortBy=timestamp&sortOrder=asc`)
+        const data = await response.json()
+        
+        if (data.success && data.data) {
+          const tradesData = data.data.map((trade: any) => ({
+            timestamp: trade.timestamp,
+            price: trade.price || '0',
+            isBuy: trade.isBuy,
+            tokenAmount: trade.tokenAmount || trade.amountOut,
+            asterAmount: trade.asterAmount || trade.amountIn
+          })).filter((trade: TradeData) => parseFloat(trade.price) > 0)
+          
+          setTrades(tradesData)
+          
+          // Calculate price change
+          if (tradesData.length >= 2) {
+            const firstPrice = parseFloat(tradesData[0].price)
+            const lastPrice = parseFloat(tradesData[tradesData.length - 1].price)
+            const change = ((lastPrice - firstPrice) / firstPrice) * 100
+            setPriceChange(change)
+          }
+        } else {
+          setError(true)
+        }
+      } catch (error) {
+        console.error('Failed to fetch trades for chart:', error)
+        setError(true)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTrades()
+  }, [tokenAddress])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-secondary-light">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-gray-400">Loading chart data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || trades.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-secondary-light">
+        <div className="text-center">
+          <div className="text-4xl mb-3">📈</div>
+          <h3 className="text-lg font-semibold text-white mb-2">{symbol} Chart</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            {trades.length === 0 ? 'No trading data available yet' : 'Unable to load chart data'}
+          </p>
+          <p className="text-xs text-gray-500">
+            Start trading to see the price chart
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Create chart data points
+  const chartPoints = trades.slice(-20) // Show last 20 trades
+  const maxPrice = Math.max(...chartPoints.map(t => parseFloat(t.price)))
+  const minPrice = Math.min(...chartPoints.map(t => parseFloat(t.price)))
+  const priceRange = maxPrice - minPrice || 1
+
+  return (
+    <div className="p-6 h-full bg-secondary-light">
+      {/* Chart Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-white">{symbol} Price Chart</h3>
+          <p className="text-sm text-gray-400">{trades.length} trades • Real-time data</p>
+        </div>
+        <div className="text-right">
+          <div className={`text-lg font-bold ${
+            priceChange >= 0 ? 'text-green-400' : 'text-red-400'
+          }`}>
+            {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(2)}%
+          </div>
+          <div className="text-xs text-gray-400">Price Change</div>
+        </div>
+      </div>
+
+      {/* Price Chart */}
+      <div className="relative h-64 bg-secondary rounded-lg p-4 mb-4">
+        <svg width="100%" height="100%" className="overflow-visible">
+          {/* Grid lines */}
+          {[0, 25, 50, 75, 100].map((y) => (
+            <line
+              key={y}
+              x1="0"
+              y1={`${y}%`}
+              x2="100%"
+              y2={`${y}%`}
+              stroke="#374151"
+              strokeWidth="0.5"
+              opacity="0.5"
+            />
+          ))}
+          
+          {/* Price line */}
+          <polyline
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2"
+            points={chartPoints.map((trade, index) => {
+              const x = (index / (chartPoints.length - 1)) * 100
+              const y = 100 - ((parseFloat(trade.price) - minPrice) / priceRange) * 100
+              return `${x},${y}`
+            }).join(' ')}
+          />
+          
+          {/* Data points */}
+          {chartPoints.map((trade, index) => {
+            const x = (index / (chartPoints.length - 1)) * 100
+            const y = 100 - ((parseFloat(trade.price) - minPrice) / priceRange) * 100
+            return (
+              <circle
+                key={index}
+                cx={`${x}%`}
+                cy={`${y}%`}
+                r="3"
+                fill={trade.isBuy ? '#10b981' : '#ef4444'}
+                className="hover:r-4 transition-all cursor-pointer"
+              >
+                <title>
+                  {trade.isBuy ? 'Buy' : 'Sell'}: {parseFloat(trade.price).toFixed(8)} ASTER
+                  \nTime: {new Date(trade.timestamp).toLocaleTimeString()}
+                </title>
+              </circle>
+            )
+          })}
+        </svg>
+        
+        {/* Y-axis labels */}
+        <div className="absolute left-1 top-0 h-full flex flex-col justify-between text-xs text-gray-500 py-4">
+          <span>{maxPrice.toFixed(8)}</span>
+          <span>{((maxPrice + minPrice) / 2).toFixed(8)}</span>
+          <span>{minPrice.toFixed(8)}</span>
+        </div>
+      </div>
+
+      {/* Chart Stats */}
+      <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="bg-secondary rounded-lg p-3">
+          <div className="text-lg font-bold text-white">
+            {parseFloat(chartPoints[chartPoints.length - 1]?.price || '0').toFixed(8)}
+          </div>
+          <div className="text-xs text-gray-400">Current Price</div>
+        </div>
+        <div className="bg-secondary rounded-lg p-3">
+          <div className="text-lg font-bold text-green-400">
+            {maxPrice.toFixed(8)}
+          </div>
+          <div className="text-xs text-gray-400">24h High</div>
+        </div>
+        <div className="bg-secondary rounded-lg p-3">
+          <div className="text-lg font-bold text-red-400">
+            {minPrice.toFixed(8)}
+          </div>
+          <div className="text-xs text-gray-400">24h Low</div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // React-based TradingView component without DOM manipulation
@@ -102,51 +298,9 @@ const TradingViewWidget = ({ symbol }: { symbol: string }) => {
     }
   }, [showTradingView, tradingViewSymbol, widgetId])
 
-  // Show custom placeholder for meme tokens
+  // Show custom chart with real data for meme tokens
   if (!showTradingView) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full bg-secondary-light">
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-3">📈</div>
-          <h3 className="text-lg font-semibold text-white mb-2">{symbol} Token Chart</h3>
-          <p className="text-gray-400 text-sm mb-4">
-            Custom token charts coming soon!
-          </p>
-        </div>
-        
-        {/* Mock Chart Visualization */}
-        <div className="w-full max-w-md bg-secondary rounded-lg p-4">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs text-gray-400">Price Activity</span>
-            <span className="text-xs text-green-400">↗ +12.5%</span>
-          </div>
-          
-          {/* Mock chart bars */}
-          <div className="flex items-end justify-between h-20 gap-1">
-            {[40, 65, 45, 80, 55, 75, 90, 70, 85, 60, 95, 80].map((height, i) => (
-              <div
-                key={i}
-                className={`w-2 rounded-t transition-all duration-300 ${
-                  i < 6 ? 'bg-red-400' : 'bg-green-400'
-                }`}
-                style={{ height: `${height}%` }}
-              />
-            ))}
-          </div>
-          
-          <div className="flex justify-between mt-2 text-xs text-gray-500">
-            <span>24h ago</span>
-            <span>Now</span>
-          </div>
-        </div>
-        
-        <div className="mt-4 text-center">
-          <p className="text-xs text-gray-500">
-            Trade data is available in the Trades tab below
-          </p>
-        </div>
-      </div>
-    )
+    return <CustomTokenChart symbol={symbol} />
   }
 
   // Show TradingView for major tokens

@@ -31,19 +31,22 @@ else {
 - ✅ **Complete technical analysis tools**
 
 #### **2. Custom Meme Tokens** (Your platform tokens)
-- ✅ **Beautiful custom chart placeholder**
-- ✅ **Mock price visualization with animated bars**
-- ✅ **"Coming Soon" messaging for future real charts**
-- ✅ **Directs users to Trades tab for real data**
+- ✅ **REAL CUSTOM CHART with live trading data**
+- ✅ **SVG-based price line chart with actual trade prices**
+- ✅ **Interactive data points** (hover for trade details)
+- ✅ **Real-time price change calculations**
+- ✅ **Current price, 24h high/low statistics**
+- ✅ **Buy/Sell indicators** (green/red data points)
 
 ## 🎨 **Custom Chart Features**
 
 For meme tokens, users now see:
-- 📈 **Professional-looking placeholder**
-- 🎯 **Token-specific branding** (`${SYMBOL} Token Chart`)
-- 📊 **Animated mock chart bars** (red/green visualization)
-- 💡 **Clear messaging** about where to find real trade data
-- 🔜 **"Coming soon" for future custom charts**
+- 📈 **REAL PRICE CHART** with actual trading data
+- 📊 **SVG Line Chart** showing price movement over time
+- 🟫 **Interactive Data Points** (hover to see trade details)
+- 🟢 **Buy Orders** (green dots) vs 🔴 **Sell Orders** (red dots)
+- 📅 **Real-time Updates** when new trades happen
+- 💹 **Live Statistics**: Current price, 24h high/low, price change %
 
 ## 🚀 **User Experience**
 
@@ -54,17 +57,17 @@ For meme tokens, users now see:
 
 ### **After (Fixed)**:
 - ✅ **Major tokens**: Full TradingView professional charts
-- ✅ **Meme tokens**: Beautiful custom placeholder
-- ✅ **Clear expectations**: Users know what to expect
-- ✅ **No more empty charts**: Always shows something meaningful
+- ✅ **Meme tokens**: REAL CUSTOM CHARTS with live trading data
+- ✅ **Interactive visualization**: Hover for trade details
+- ✅ **Always meaningful content**: Real data or "start trading" message
 
 ## 🔧 **Technical Benefits**
 
-1. **No More Empty Charts**: Every token shows appropriate visualization
-2. **Performance**: No failed TradingView loads for custom tokens
-3. **User Guidance**: Directs to Trades tab for real trading data
-4. **Scalable**: Easy to add real custom token charts in the future
-5. **Professional**: Maintains high-quality appearance
+1. **REAL DATA CHARTS**: Custom tokens show actual trading data visualization
+2. **Interactive Experience**: Users can hover over data points for trade details
+3. **Live Statistics**: Real-time price changes and trading metrics
+4. **Performance**: Efficient SVG-based charts, no external dependencies
+5. **Professional**: Clean, modern chart design matching the platform theme
 
 ## 🎉 **Ready to Use**
 
