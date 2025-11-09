@@ -29,25 +29,26 @@ type ChartType = 'candlestick' | 'line' | 'area'
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
-// Smart price formatting function for micro-values
+// Smart price formatting function for compact display
 const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'USD'): string => {
-  if (price === 0) return currency === 'USD' ? '$0.00' : '0.00 ASTER'
+  if (price === 0) return currency === 'USD' ? '$0' : '0'
   
   const prefix = currency === 'USD' ? '$' : ''
-  const suffix = currency === 'ASTER' ? ' ASTER' : ''
+  const suffix = currency === 'ASTER' ? 'A' : '' // Use 'A' for ASTER to save space
   
-  // For very small values, use scientific notation
+  // For very small values, use compact scientific notation
   if (Math.abs(price) < 0.0001) {
-    return `${prefix}${price.toExponential(2)}${suffix}`
+    const exp = price.toExponential(1)
+    return `${prefix}${exp}${suffix}`
   }
   
-  // For small values, use more decimal places
+  // For small values, use fewer decimal places
   if (Math.abs(price) < 0.01) {
-    return `${prefix}${price.toFixed(8)}${suffix}`
+    return `${prefix}${price.toFixed(6)}${suffix}`
   }
   
   // For normal values, use standard formatting
-  return `${prefix}${price.toFixed(6)}${suffix}`
+  return `${prefix}${price.toFixed(4)}${suffix}`
 }
 
 export function AdvancedPriceChart({ 
@@ -148,18 +149,15 @@ export function AdvancedPriceChart({
       total: transactions.length,
       withValidData: validTxs.length,
       withNullData: transactions.length - validTxs.length,
-      sampleValidTx: validTxs[0] ? {
-        asterAmount: validTxs[0].asterAmount,
-        tokenAmount: validTxs[0].tokenAmount,
-        asterAmountFormatted: validTxs[0].asterAmountFormatted,
-        tokenAmountFormatted: validTxs[0].tokenAmountFormatted
-      } : 'none',
-      sampleNullTx: transactions.find(tx => !tx.asterAmount && !tx.asterAmountFormatted) ? {
-        asterAmount: 'null',
-        tokenAmount: 'null',
-        asterAmountFormatted: 'null',
-        tokenAmountFormatted: 'null'
-      } : 'none'
+      firstTxTimestamp: validTxs[0] ? new Date(validTxs[0].timestamp * 1000).toLocaleString() : 'none',
+      lastTxTimestamp: validTxs[validTxs.length - 1] ? new Date(validTxs[validTxs.length - 1].timestamp * 1000).toLocaleString() : 'none',
+      pricesCalculated: validTxs.map(tx => {
+        const asterAmount = tx.asterAmountFormatted ? Number(tx.asterAmountFormatted) : Number(tx.asterAmount) / 1e18
+        const tokenAmount = tx.tokenAmountFormatted ? Number(tx.tokenAmountFormatted) : Number(tx.tokenAmount) / 1e18
+        const priceAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        const priceUSD = priceAster * ASTER_USD_PRICE
+        return { priceAster: priceAster.toFixed(12), priceUSD: priceUSD.toFixed(12), timestamp: new Date(tx.timestamp * 1000).toLocaleString() }
+      })
     })
   }
 
@@ -179,8 +177,11 @@ export function AdvancedPriceChart({
       }
     }
 
+    // Sort transactions by timestamp (oldest first) for proper price history
+    const sortedTransactions = [...transactions].sort((a, b) => a.timestamp - b.timestamp)
+    
     // Calculate prices for all transactions with proper wei conversion
-    const prices = transactions.map(tx => {
+    const prices = sortedTransactions.map(tx => {
       // Handle null values and fallback to raw amounts if formatted ones are missing
       let asterAmount, tokenAmount
       
@@ -221,6 +222,14 @@ export function AdvancedPriceChart({
     const currentPriceAster = currentPriceUSD / ASTER_USD_PRICE
     const firstPrice = prices[0]
     const change24h = firstPrice > 0 ? ((currentPriceUSD - firstPrice) / firstPrice) * 100 : 0
+    
+    // Debug price calculations
+    console.log('[AdvancedPriceChart] 🔢 Price calculation debug:', {
+      firstPriceUSD: firstPrice.toFixed(12),
+      currentPriceUSD: currentPriceUSD.toFixed(12),
+      change24h: change24h.toFixed(2) + '%',
+      validPricesCount: prices.length
+    })
     const high24hUSD = Math.max(...prices)
     const low24hUSD = Math.min(...prices)
     const athUSD = high24hUSD
@@ -996,7 +1005,14 @@ export function AdvancedPriceChart({
 
     Object.entries(periods).forEach(([period, seconds]) => {
       const cutoff = now - seconds
-      const oldTx = transactions.find(tx => tx.timestamp <= cutoff)
+      
+      // Find the transaction closest to the cutoff time (but before)
+      const validTxs = transactions.filter(tx => {
+        return (tx.asterAmountFormatted && tx.tokenAmountFormatted) || (tx.asterAmount && tx.tokenAmount)
+      }).sort((a, b) => b.timestamp - a.timestamp) // Sort newest first
+      
+      const oldTx = validTxs.find(tx => tx.timestamp <= cutoff)
+      
       if (oldTx && currentPrice > 0) {
         let asterAmount, tokenAmount
         if (oldTx.asterAmountFormatted && oldTx.tokenAmountFormatted) {
@@ -1016,8 +1032,17 @@ export function AdvancedPriceChart({
         } else {
           changes[period] = 0
         }
+        
+        // Debug period changes
+        console.log(`[AdvancedPriceChart] 📊 ${period} change:`, {
+          oldTimestamp: new Date(oldTx.timestamp * 1000).toLocaleString(),
+          oldPrice: oldPrice.toFixed(12),
+          currentPrice: currentPrice.toFixed(12),
+          change: changes[period].toFixed(2) + '%'
+        })
       } else {
         changes[period] = 0
+        console.log(`[AdvancedPriceChart] ❌ No transaction found for ${period} period (cutoff: ${new Date(cutoff * 1000).toLocaleString()})`)
       }
     })
 
@@ -1180,26 +1205,12 @@ export function AdvancedPriceChart({
         {/* Row 3: Token Price Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Token/BNB Price (USD) */}
-            <div className="flex items-center gap-1">
+            {/* Token/ASTER Price */}
+            <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
-                {tokenSymbol}/BNB Price (USD)
+                {tokenSymbol}/ASTER:
               </span>
-            </div>
-            
-            {/* 1h Change */}
-            <div className="text-xs">
-              <span className="text-gray-400 mr-1">1h:</span>
-              <span className={`font-medium ${
-                periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(2)}%
-              </span>
-            </div>
-            
-            {/* ASTER Price */}
-            <div className="text-xs">
-              <span className="text-white font-medium">
+              <span className="text-sm font-bold text-primary">
                 {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
               </span>
             </div>
@@ -1217,45 +1228,33 @@ export function AdvancedPriceChart({
             </button>
           </div>
           
-          {/* OHLC Values (Right Side) - Fixed with proper conversions */}
-          <div className="flex items-center gap-3 text-xs">
+          {/* OHLC Values (Right Side) - Compact layout */}
+          <div className="flex items-center gap-2 text-xs">
             {(hoveredData || currentOHLC) ? (
               <>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-400">O</span>
-                  <span className="text-white font-mono">
-                    {formatPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-400">H</span>
-                  <span className="text-green-400 font-mono">
-                    {formatPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-400">L</span>
-                  <span className="text-red-400 font-mono">
-                    {formatPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-400">C</span>
-                  <span className={`font-mono ${
-                    (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
-                      ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {formatPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)}
-                  </span>
-                </div>
-                <div className={`font-mono ${
+                <span className="font-mono text-gray-300">
+                  O:{formatPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)}
+                </span>
+                <span className="font-mono text-green-400">
+                  H:{formatPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)}
+                </span>
+                <span className="font-mono text-red-400">
+                  L:{formatPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)}
+                </span>
+                <span className={`font-mono ${
+                  (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
+                    ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  C:{formatPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)}
+                </span>
+                <span className={`font-mono ml-1 ${
                   stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
-                  {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%
-                </div>
+                  {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
+                </span>
               </>
             ) : (
-              <span className="text-gray-500">Hover over chart to see OHLC</span>
+              <span className="text-gray-500">Hover for OHLC</span>
             )}
           </div>
         </div>
