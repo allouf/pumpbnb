@@ -29,21 +29,28 @@ type ChartType = 'candlestick' | 'line' | 'area'
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
-// Smart price formatting function - now for TOKENS per ASTER/USD
+// Smart price formatting function - ASTER per token with scientific notation
 const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
   if (price === 0) return '0'
   
-  // For large values (millions), use K/M notation
-  if (Math.abs(price) >= 1000000) {
-    return `${(price / 1000000).toFixed(1)}M`
+  const prefix = currency === 'USD' ? '$' : ''
+  const suffix = currency === 'ASTER' ? ' ASTER' : ''
+  
+  // For very small values, use scientific notation like 3×10⁻⁷
+  if (Math.abs(price) < 0.0001) {
+    const exp = price.toExponential(1)
+    const [coefficient, exponent] = exp.split('e')
+    const expNum = parseInt(exponent)
+    return `${prefix}${coefficient}×10⁻${Math.abs(expNum)}${suffix}`
   }
   
-  if (Math.abs(price) >= 1000) {
-    return `${(price / 1000).toFixed(1)}K`
+  // For small values, use more decimal places
+  if (Math.abs(price) < 0.01) {
+    return `${prefix}${price.toFixed(8)}${suffix}`
   }
   
   // For normal values
-  return `${price.toFixed(0)}`
+  return `${prefix}${price.toFixed(6)}${suffix}`
 }
 
 export function AdvancedPriceChart({ 
@@ -175,7 +182,7 @@ export function AdvancedPriceChart({
     // Sort transactions by timestamp (oldest first) for proper price history
     const sortedTransactions = [...transactions].sort((a, b) => a.timestamp - b.timestamp)
     
-    // Calculate prices for all transactions - TOKENS PER ASTER (meaningful values)
+    // Calculate prices for all transactions - ASTER per token (traditional way)
     const prices = sortedTransactions.map(tx => {
       // Handle null values and fallback to raw amounts if formatted ones are missing
       let asterAmount, tokenAmount
@@ -191,10 +198,10 @@ export function AdvancedPriceChart({
         return 0 // Skip transactions without proper amount data
       }
       
-      // Calculate TOKENS per ASTER (inverted - this gives meaningful numbers!)
-      const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
+      // Calculate ASTER per token (traditional way - chart goes UP with buys)
+      const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
       
-      return tokensPerAster // This will be a large meaningful number
+      return asterPerToken // Small but meaningful number
     }).filter(p => p > 0)
 
     if (prices.length === 0) {
@@ -211,24 +218,24 @@ export function AdvancedPriceChart({
       }
     }
 
-    // Prices are now TOKENS per ASTER
-    const currentTokensPerAster = prices[prices.length - 1]
-    const currentTokensPerUSD = currentTokensPerAster / ASTER_USD_PRICE
+    // Prices are now ASTER per token (traditional)
+    const currentAsterPerToken = prices[prices.length - 1]
+    const currentUSDPerToken = currentAsterPerToken * ASTER_USD_PRICE
     const firstPrice = prices[0]
-    const change24h = firstPrice > 0 ? ((currentTokensPerAster - firstPrice) / firstPrice) * 100 : 0
+    const change24h = firstPrice > 0 ? ((currentAsterPerToken - firstPrice) / firstPrice) * 100 : 0
     
     // Debug price calculations
     console.log('[AdvancedPriceChart] 🔢 Price calculation debug:', {
-      firstTokensPerAster: firstPrice.toFixed(2),
-      currentTokensPerAster: currentTokensPerAster.toFixed(2),
+      firstAsterPerToken: firstPrice.toExponential(3),
+      currentAsterPerToken: currentAsterPerToken.toExponential(3),
       change24h: change24h.toFixed(2) + '%',
       validPricesCount: prices.length,
-      explanation: change24h < 0 ? 'NEGATIVE = Bonding curve working (fewer tokens per ASTER as more are bought)' : 'POSITIVE = Price discovery or selling pressure'
+      explanation: change24h > 0 ? 'POSITIVE = Token price going UP (more ASTER per token)' : 'NEGATIVE = Token price going DOWN'
     })
-    const high24hTokensPerAster = Math.max(...prices)
-    const low24hTokensPerAster = Math.min(...prices)
-    const athTokensPerAster = high24hTokensPerAster
-    const athTokensPerUSD = athTokensPerAster / ASTER_USD_PRICE
+    const high24hAsterPerToken = Math.max(...prices)
+    const low24hAsterPerToken = Math.min(...prices)
+    const athAsterPerToken = high24hAsterPerToken
+    const athUSDPerToken = athAsterPerToken * ASTER_USD_PRICE
     
     // Volume calculation in both currencies with null handling
     const volume24hAster = transactions.reduce((sum, tx) => {
@@ -243,18 +250,18 @@ export function AdvancedPriceChart({
     const volume24hUSD = volume24hAster * ASTER_USD_PRICE
 
     return {
-      currentPrice: currentTokensPerAster,      // Tokens per ASTER
-      currentPriceUSD: currentTokensPerUSD,    // Tokens per USD  
+      currentPrice: currentAsterPerToken,      // ASTER per token
+      currentPriceUSD: currentUSDPerToken,    // USD per token  
       change24h,
-      high24h: high24hTokensPerAster,
-      low24h: low24hTokensPerAster,
+      high24h: high24hAsterPerToken,
+      low24h: low24hAsterPerToken,
       volume24h: volume24hAster,
       volume24hUSD,
-      ath: athTokensPerAster,
-      athUSD: athTokensPerUSD,
+      ath: athAsterPerToken,
+      athUSD: athUSDPerToken,
       // Keep USD versions
-      high24hUSD: high24hTokensPerAster / ASTER_USD_PRICE,
-      low24hUSD: low24hTokensPerAster / ASTER_USD_PRICE,
+      high24hUSD: high24hAsterPerToken * ASTER_USD_PRICE,
+      low24hUSD: low24hAsterPerToken * ASTER_USD_PRICE,
     }
   }, [transactions])
 
@@ -403,8 +410,8 @@ export function AdvancedPriceChart({
         wickDownColor: '#FF4747',
         priceFormat: {
           type: 'price',
-          precision: 0,    // No decimals for tokens count
-          minMove: 1,      // Minimum move is 1 token
+          precision: 12,    // High precision for small values
+          minMove: 0.000000000001,      // Very small minimum move
         },
       }
       
@@ -699,17 +706,17 @@ export function AdvancedPriceChart({
           return // Skip transactions without proper amount data
         }
         
-        // Calculate TOKENS per ASTER (this gives meaningful large numbers!)
-        const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
-        const tokensPerUSD = tokensPerAster / ASTER_USD_PRICE
+        // Calculate ASTER per token (traditional way - chart goes UP with buys)
+        const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        const usdPerToken = asterPerToken * ASTER_USD_PRICE
         
         // Validate the calculated price
-        const rawDisplayPrice = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
+        const rawDisplayPrice = priceMode === 'USD' ? usdPerToken : asterPerToken
         const displayPrice = isNaN(rawDisplayPrice) || !isFinite(rawDisplayPrice) || rawDisplayPrice <= 0 ? 0 : rawDisplayPrice
         
         // Skip this transaction if price is invalid
         if (displayPrice === 0) {
-          console.warn('[AdvancedPriceChart] Invalid price calculated for transaction:', { asterAmount, tokenAmount, tokensPerAster, tokensPerUSD })
+          console.warn('[AdvancedPriceChart] Invalid price calculated for transaction:', { asterAmount, tokenAmount, asterPerToken, usdPerToken })
           return
         }
 
@@ -719,18 +726,18 @@ export function AdvancedPriceChart({
         const existing = candleMap.get(candleTime)
         if (!existing) {
           candleMap.set(candleTime, {
-            open: Math.round(displayPrice),     // Round to integer to avoid precision issues
-            high: Math.round(displayPrice),
-            low: Math.round(displayPrice),
-            close: Math.round(displayPrice),
+            open: displayPrice,     // Keep full precision for small values
+            high: displayPrice,
+            low: displayPrice,
+            close: displayPrice,
             volume: asterAmount,
             lastTimestamp: tx.timestamp,
           })
         } else {
-          existing.high = Math.max(existing.high, Math.round(displayPrice))
-          existing.low = Math.min(existing.low, Math.round(displayPrice))
+          existing.high = Math.max(existing.high, displayPrice)
+          existing.low = Math.min(existing.low, displayPrice)
           if (tx.timestamp > existing.lastTimestamp) {
-            existing.close = Math.round(displayPrice)
+            existing.close = displayPrice
             existing.lastTimestamp = tx.timestamp
           }
           existing.volume += asterAmount
@@ -779,10 +786,10 @@ export function AdvancedPriceChart({
       if (isValidCandle) {
         candleData.push({
           time: time as UTCTimestamp,
-          open: Math.round(candle.open),  // Round to avoid floating point issues
-          high: Math.round(candle.high),
-          low: Math.round(candle.low),
-          close: Math.round(candle.close),
+          open: candle.open,   // Keep full precision
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
         })
         volumeData.push({
           time: time as UTCTimestamp,
@@ -988,9 +995,9 @@ export function AdvancedPriceChart({
         return null // No valid data
       }
       
-      const tokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
-      const tokensPerUSD = tokensPerAster / ASTER_USD_PRICE
-      const price = priceMode === 'USD' ? tokensPerUSD : tokensPerAster
+      const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+      const usdPerToken = asterPerToken * ASTER_USD_PRICE
+      const price = priceMode === 'USD' ? usdPerToken : asterPerToken
       
       return {
         open: price,
@@ -1039,10 +1046,10 @@ export function AdvancedPriceChart({
           return
         }
         
-        // Calculate tokens per ASTER for consistency
-        const oldTokensPerAster = asterAmount > 0 ? tokenAmount / asterAmount : 0
-        if (oldTokensPerAster > 0) {
-          changes[period] = ((currentPrice - oldTokensPerAster) / oldTokensPerAster) * 100
+        // Calculate ASTER per token for consistency
+        const oldAsterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+        if (oldAsterPerToken > 0) {
+          changes[period] = ((currentPrice - oldAsterPerToken) / oldAsterPerToken) * 100
         } else {
           changes[period] = 0
         }
@@ -1050,8 +1057,8 @@ export function AdvancedPriceChart({
         // Debug period changes
         console.log(`[AdvancedPriceChart] 📊 ${period} change:`, {
           oldTimestamp: new Date(oldTx.timestamp * 1000).toLocaleString(),
-          oldTokensPerAster: oldTokensPerAster.toFixed(2),
-          currentTokensPerAster: currentPrice.toFixed(2),
+          oldAsterPerToken: oldAsterPerToken.toExponential(3),
+          currentAsterPerToken: currentPrice.toExponential(3),
           change: changes[period].toFixed(2) + '%'
         })
       } else {
@@ -1219,10 +1226,10 @@ export function AdvancedPriceChart({
         {/* Row 3: Token Price Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Tokens per ASTER Price */}
+            {/* ASTER per Token Price */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
-                {tokenSymbol} per {priceMode}:
+                {tokenSymbol} Price:
               </span>
               <span className="text-sm font-bold text-primary">
                 {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
