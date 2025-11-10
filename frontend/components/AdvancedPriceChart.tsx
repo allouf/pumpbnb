@@ -41,7 +41,9 @@ const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string
     const exp = price.toExponential(1)
     const [coefficient, exponent] = exp.split('e')
     const expNum = parseInt(exponent)
-    return `${prefix}${coefficient}×10⁻${Math.abs(expNum)}${suffix}`
+    // Remove unnecessary decimal if coefficient is whole number
+    const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
+    return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}${suffix}`
   }
   
   // For small values, use more decimal places
@@ -51,6 +53,25 @@ const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string
   
   // For normal values
   return `${prefix}${price.toFixed(6)}${suffix}`
+}
+
+// Compact price formatting for header (no suffix, cleaner)
+const formatCompactPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
+  if (price === 0) return '0'
+  
+  const prefix = currency === 'USD' ? '$' : ''
+  
+  // For very small values, use scientific notation
+  if (Math.abs(price) < 0.0001) {
+    const exp = price.toExponential(1)
+    const [coefficient, exponent] = exp.split('e')
+    const expNum = parseInt(exponent)
+    // Remove unnecessary decimal if coefficient is whole number
+    const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
+    return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}`
+  }
+  
+  return `${prefix}${price.toFixed(6)}`
 }
 
 export function AdvancedPriceChart({ 
@@ -319,53 +340,91 @@ export function AdvancedPriceChart({
     const chart: any = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#e5e7eb',    // Lighter text for better visibility
+        textColor: '#f3f4f6',    // Brighter text for better readability
+        fontSize: 12,
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
       },
       grid: {
-        vertLines: { color: 'rgba(75, 85, 99, 0.4)' },  // More subtle grid
-        horzLines: { color: 'rgba(75, 85, 99, 0.4)' },
+        vertLines: { 
+          color: 'rgba(107, 114, 128, 0.2)',  // Subtle gray grid lines
+          style: 0,  // Solid lines
+          visible: true,
+        },
+        horzLines: { 
+          color: 'rgba(107, 114, 128, 0.2)', 
+          style: 0,  // Solid lines
+          visible: true,
+        },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400, // Reduced height to be smaller than width
+      height: 400,
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          width: 1,
+          width: 2,
           color: '#00D4AA',
-          style: 2,
-          labelBackgroundColor: '#1f2937',
+          style: 0,  // Solid line
+          labelBackgroundColor: '#111827',
+          labelVisible: true,
         },
         horzLine: {
-          width: 1,
+          width: 2,
           color: '#00D4AA',
-          style: 2,
-          labelBackgroundColor: '#1f2937',
+          style: 0,  // Solid line
+          labelBackgroundColor: '#111827',
+          labelVisible: true,
         },
       },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: 'rgba(156, 163, 175, 0.3)',
-        rightOffset: 20, // More space on right to show latest data clearly
-        barSpacing: 12, // Better spacing between candles
+        borderColor: 'rgba(156, 163, 175, 0.5)',
+        borderVisible: true,
+        rightOffset: 25, // More space on right
+        barSpacing: 15, // Optimal spacing for candles
         minBarSpacing: 0.5,
         fixLeftEdge: false,
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
         rightBarStaysOnScroll: true,
         visible: true,
-        // Add time before token creation for better visibility
         shiftVisibleRangeOnNewBar: true,
+        tickMarkFormatter: (time: any) => {
+          const date = new Date(time * 1000)
+          return date.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit',
+            hour12: false 
+          })
+        },
       },
       rightPriceScale: {
-        borderColor: 'rgba(156, 163, 175, 0.3)',
-        textColor: '#9ca3af',
+        borderColor: 'rgba(156, 163, 175, 0.5)',
+        textColor: '#d1d5db',
         visible: true,
         scaleMargins: {
-          top: 0.20,
-          bottom: 0.35,
+          top: 0.15,
+          bottom: 0.30,
         },
         autoScale: true,
+        mode: 0, // Normal price scale mode
+        invertScale: false,
+        alignLabels: true,
+        borderVisible: true,
+        entireTextOnly: false,
+        minimumWidth: 0,
+        ticksVisible: true,
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
     })
 
@@ -401,18 +460,21 @@ export function AdvancedPriceChart({
     try {
       let priceSeries
       const priceSeriesOptions = {
-        upColor: '#00D4AA',     // Bright green for bullish candles
-        downColor: '#FF4747',   // Bright red for bearish candles
+        upColor: '#10b981',     // Emerald green for bullish candles
+        downColor: '#ef4444',   // Bright red for bearish candles
         borderVisible: true,
-        borderUpColor: '#00D4AA',
-        borderDownColor: '#FF4747',
-        wickUpColor: '#00D4AA',
-        wickDownColor: '#FF4747',
+        borderUpColor: '#059669', // Darker green for borders
+        borderDownColor: '#dc2626', // Darker red for borders
+        wickUpColor: '#10b981',
+        wickDownColor: '#ef4444',
         priceFormat: {
           type: 'price',
           precision: 12,    // High precision for small values
           minMove: 0.000000000001,      // Very small minimum move
         },
+        // Enhanced visual properties
+        priceLineVisible: false, // Hide price line for cleaner look
+        lastValueVisible: true,
       }
       
       // Try TradingView v5 API with series constructor
@@ -456,12 +518,15 @@ export function AdvancedPriceChart({
     try {
       let volumeSeries
       const volumeOptions = {
-        color: 'rgba(0, 212, 170, 0.5)',  // Semi-transparent primary color
+        color: 'rgba(16, 185, 129, 0.6)',  // Enhanced green with good opacity
         priceFormat: {
           type: 'volume',
         },
         priceScaleId: 'volume',
         base: 0,
+        // Enhanced volume bar appearance
+        lastValueVisible: false,
+        priceLineVisible: false,
       }
       
       // Try TradingView v5 API with histogram series constructor
@@ -617,39 +682,45 @@ export function AdvancedPriceChart({
       switch (newType) {
         case 'line':
           newSeries = chartRef.current.addSeries(LineSeries, {
-            color: '#00D4AA',
-            lineWidth: 3,      // Thicker line for better visibility
+            color: '#10b981',      // Emerald green consistent with candlesticks
+            lineWidth: 4,          // Thick line for visibility
             priceFormat,
             crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 6,
-            crosshairMarkerBorderColor: '#00D4AA',
-            crosshairMarkerBackgroundColor: '#00D4AA',
+            crosshairMarkerRadius: 8,
+            crosshairMarkerBorderColor: '#059669',
+            crosshairMarkerBackgroundColor: '#10b981',
+            lastValueVisible: true,
+            priceLineVisible: false,
           })
           break
         case 'area':
           newSeries = chartRef.current.addSeries(AreaSeries, {
-            topColor: 'rgba(0, 212, 170, 0.6)',      // More visible gradient
-            bottomColor: 'rgba(0, 212, 170, 0.0)',
-            lineColor: '#00D4AA',
-            lineWidth: 3,      // Thicker line
+            topColor: 'rgba(16, 185, 129, 0.8)',    // Rich green gradient
+            bottomColor: 'rgba(16, 185, 129, 0.1)', // Subtle fade to transparent
+            lineColor: '#10b981',
+            lineWidth: 4,      // Thick line for better visibility
             priceFormat,
             crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 6,
-            crosshairMarkerBorderColor: '#00D4AA',
-            crosshairMarkerBackgroundColor: '#00D4AA',
+            crosshairMarkerRadius: 8,
+            crosshairMarkerBorderColor: '#059669',
+            crosshairMarkerBackgroundColor: '#10b981',
+            lastValueVisible: true,
+            priceLineVisible: false,
           })
           break
         case 'candlestick':
         default:
           newSeries = chartRef.current.addSeries(CandlestickSeries, {
-            upColor: '#00D4AA',     // Bright green for bullish candles
-            downColor: '#FF4747',   // Bright red for bearish candles
+            upColor: '#10b981',     // Emerald green for bullish candles
+            downColor: '#ef4444',   // Bright red for bearish candles
             borderVisible: true,
-            borderUpColor: '#00D4AA',
-            borderDownColor: '#FF4747',
-            wickUpColor: '#00D4AA',
-            wickDownColor: '#FF4747',
+            borderUpColor: '#059669', // Darker green for borders
+            borderDownColor: '#dc2626', // Darker red for borders
+            wickUpColor: '#10b981',
+            wickDownColor: '#ef4444',
             priceFormat,
+            lastValueVisible: true,
+            priceLineVisible: false,
           })
           break
       }
@@ -1113,20 +1184,23 @@ export function AdvancedPriceChart({
       {/* Pump.fun Style Compact Header */}
       <div className="px-4 py-2 border-b border-gray-700">
         
-        {/* Row 1: Market Cap + 24h Change + Progress Bar to ATH */}
+        {/* Row 1: Market Cap (3-line format) + Progress Bar to ATH */}
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-4">
-            {/* Market Cap with 24h Change */}
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-white">
-                ${marketCap || '4.4K'}
-              </span>
-              <span className={`text-sm font-medium ${
-                marketCapChange24h >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}% 24h
-              </span>
-            </div>
+          <div className="flex flex-col">
+            {/* Line 1: Market Cap title */}
+            <span className="text-xs text-gray-400 font-medium">Market Cap</span>
+            
+            {/* Line 2: Market Cap value */}
+            <span className="text-xl font-bold text-white">
+              ${marketCap || '28.7K'}
+            </span>
+            
+            {/* Line 3: 24h change */}
+            <span className={`text-xs font-medium ${
+              marketCapChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {marketCapChange24h >= 0 ? '+' : ''}${Math.abs(marketCapChange24h).toFixed(1)}K ({marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}%) 24hr
+            </span>
           </div>
           
           {/* Progress Bar to ATH with ATH Value */}
@@ -1135,12 +1209,12 @@ export function AdvancedPriceChart({
               <div 
                 className="h-full bg-primary rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${Math.min((parseFloat(marketCap || '0') / (ath || 100)) * 100, 100)}%` 
+                  width: `${Math.min((parseFloat(marketCap?.replace('K', '').replace('$', '') || '0') / (ath || 100)) * 100, 100)}%` 
                 }}
               />
             </div>
             <span className="text-xs text-gray-400 font-medium">
-              ATH ${ath?.toFixed(1)}K
+              ATH ${stats.athUSD > 1000 ? (stats.athUSD/1000).toFixed(1) + 'K' : stats.athUSD.toFixed(2)}
             </span>
           </div>
         </div>
@@ -1226,12 +1300,12 @@ export function AdvancedPriceChart({
         {/* Row 3: Token Price Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* ASTER per Token Price */}
+            {/* Price without token symbol */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
-                {tokenSymbol} Price:
+                Price:
               </span>
-              <span className="text-sm font-bold text-primary">
+              <span className="text-lg font-bold text-primary">
                 {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
               </span>
             </div>
@@ -1249,26 +1323,23 @@ export function AdvancedPriceChart({
             </button>
           </div>
           
-          {/* OHLC Values (Right Side) - Compact layout */}
-          <div className="flex items-center gap-2 text-xs">
+          {/* OHLC Values (Right Side) - Ultra Compact on single line */}
+          <div className="flex items-center gap-1 text-xs">
             {(hoveredData || currentOHLC) ? (
               <>
-                <span className="font-mono text-gray-300">
-                  O:{formatPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)}
+                <span className="text-gray-400">
+                  O:{formatCompactPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)} {priceMode}
                 </span>
-                <span className="font-mono text-green-400">
-                  H:{formatPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)}
+                <span className="text-gray-400">
+                  H:{formatCompactPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)} {priceMode}
                 </span>
-                <span className="font-mono text-red-400">
-                  L:{formatPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)}
+                <span className="text-gray-400">
+                  L:{formatCompactPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)} {priceMode}
                 </span>
-                <span className={`font-mono ${
-                  (hoveredData?.close || currentOHLC?.close || 0) >= (hoveredData?.open || currentOHLC?.open || 0) 
-                    ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  C:{formatPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)}
+                <span className="text-gray-400">
+                  C:{formatCompactPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)} {priceMode}
                 </span>
-                <span className={`font-mono ml-1 ${
+                <span className={`font-medium ${
                   stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
