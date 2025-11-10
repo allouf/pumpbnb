@@ -1195,11 +1195,11 @@ export function AdvancedPriceChart({
               ${marketCap || '28.7K'}
             </span>
             
-            {/* Line 3: 24h change */}
+            {/* Line 3: 24h change - use actual price change from stats */}
             <span className={`text-xs font-medium ${
-              marketCapChange24h >= 0 ? 'text-green-400' : 'text-red-400'
+              stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {marketCapChange24h >= 0 ? '+' : ''}${Math.abs(marketCapChange24h).toFixed(1)}K ({marketCapChange24h >= 0 ? '+' : ''}{marketCapChange24h.toFixed(2)}%) 24hr
+              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}% 24hr
             </span>
           </div>
           
@@ -1209,12 +1209,12 @@ export function AdvancedPriceChart({
               <div 
                 className="h-full bg-primary rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${Math.min((parseFloat(marketCap?.replace('K', '').replace('$', '') || '0') / (ath || 100)) * 100, 100)}%` 
+                  width: `${Math.min((parseFloat(marketCap?.replace('K', '').replace('$', '') || '0') * 1000) / (stats.athUSD > 0 ? stats.athUSD : 1) * 100, 100)}%` 
                 }}
               />
             </div>
             <span className="text-xs text-gray-400 font-medium">
-              ATH ${stats.athUSD > 1000 ? (stats.athUSD/1000).toFixed(1) + 'K' : stats.athUSD.toFixed(2)}
+              ATH {formatPrice(stats.ath, 'ASTER')}
             </span>
           </div>
         </div>
@@ -1323,30 +1323,30 @@ export function AdvancedPriceChart({
             </button>
           </div>
           
-          {/* OHLC Values (Right Side) - Ultra Compact on single line */}
-          <div className="flex items-center gap-1 text-xs">
+          {/* OHLC Values (Right Side) - Ultra Compact, no wrapping */}
+          <div className="flex items-center gap-1 text-xs whitespace-nowrap">
             {(hoveredData || currentOHLC) ? (
-              <>
-                <span className="text-gray-400">
-                  O:{formatCompactPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)} {priceMode}
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400 text-xs">
+                  O:{formatCompactPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)}
                 </span>
-                <span className="text-gray-400">
-                  H:{formatCompactPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)} {priceMode}
+                <span className="text-gray-400 text-xs">
+                  H:{formatCompactPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)}
                 </span>
-                <span className="text-gray-400">
-                  L:{formatCompactPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)} {priceMode}
+                <span className="text-gray-400 text-xs">
+                  L:{formatCompactPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)}
                 </span>
-                <span className="text-gray-400">
-                  C:{formatCompactPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)} {priceMode}
+                <span className="text-gray-400 text-xs">
+                  C:{formatCompactPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)}
                 </span>
-                <span className={`font-medium ${
+                <span className={`text-xs font-medium ${
                   stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
                 </span>
-              </>
+              </div>
             ) : (
-              <span className="text-gray-500">Hover for OHLC</span>
+              <span className="text-gray-500 text-xs">Hover for OHLC</span>
             )}
           </div>
         </div>
