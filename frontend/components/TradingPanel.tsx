@@ -176,6 +176,9 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     ? currentAsterBalance < amountBigInt
     : currentTokenBalance < amountBigInt
 
+  // Track if current transaction is a trade (not approval)
+  const [pendingTradeHash, setPendingTradeHash] = useState<string | null>(null)
+
   // Handle transaction success
   useEffect(() => {
     if (isSuccess && hash) {
@@ -183,54 +186,59 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         hash,
         tokenAddress,
         activeTab,
+        isPendingTrade: pendingTradeHash === hash,
       })
 
       toast.success('Transaction successful!')
 
-      // Immediately index the trade for instant chart updates
-      console.log('[TradingPanel] 📊 Starting immediate trade indexing...', {
-        txHash: hash,
-        tokenAddress,
-        tradeType: activeTab,
-      })
-
-      indexTrade({
-        txHash: hash,
-        tokenAddress: tokenAddress,
-      }).then((result) => {
-        console.log('[TradingPanel] ✅ Trade indexed successfully!', result)
-      }).catch((error) => {
-        console.error('[TradingPanel] ❌ Failed to index trade:', {
-          error: error.message,
-          stack: error.stack,
+      // Only index if this was a trade transaction (not approval)
+      if (pendingTradeHash === hash) {
+        console.log('[TradingPanel] 📊 Starting immediate trade indexing...', {
           txHash: hash,
           tokenAddress,
           tradeType: activeTab,
         })
         
-        // Cache trade locally as fallback when backend indexing fails
-        console.log('[TradingPanel] 💾 Caching trade locally as fallback...')
-        try {
-          const tradeData = {
-            tokenAddress,
-            trader: address!,
-            isBuy: activeTab === 'buy',
-            amountIn: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
-            amountOut: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
-            fee: '0', // We don't have fee data here, but it's not critical for display
-            timestamp: new Date().toISOString(),
+        setPendingTradeHash(null) // Clear pending trade
+
+        indexTrade({
+          txHash: hash,
+          tokenAddress: tokenAddress,
+        }).then((result) => {
+          console.log('[TradingPanel] ✅ Trade indexed successfully!', result)
+        }).catch((error) => {
+          console.error('[TradingPanel] ❌ Failed to index trade:', {
+            error: error.message,
+            stack: error.stack,
             txHash: hash,
-            blockNumber: 0, // We don't have block number here
-            asterAmount: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
-            tokenAmount: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
-          }
+            tokenAddress,
+            tradeType: activeTab,
+          })
           
-          addLocalTrade(tradeData)
-          console.log('[TradingPanel] ✅ Trade cached locally successfully!')
-        } catch (cacheError) {
-          console.error('[TradingPanel] ❌ Failed to cache trade locally:', cacheError)
-        }
-      })
+          // Cache trade locally as fallback when backend indexing fails
+          console.log('[TradingPanel] 💾 Caching trade locally as fallback...')
+          try {
+            const tradeData = {
+              tokenAddress,
+              trader: address!,
+              isBuy: activeTab === 'buy',
+              amountIn: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
+              amountOut: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
+              fee: '0', // We don't have fee data here, but it's not critical for display
+              timestamp: new Date().toISOString(),
+              txHash: hash,
+              blockNumber: 0, // We don't have block number here
+              asterAmount: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
+              tokenAmount: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
+            }
+            
+            addLocalTrade(tradeData)
+            console.log('[TradingPanel] ✅ Trade cached locally successfully!')
+          } catch (cacheError) {
+            console.error('[TradingPanel] ❌ Failed to cache trade locally:', cacheError)
+          }
+        })
+      }
 
       setAmount('')
       refetchAsterAllowance()
@@ -238,7 +246,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab, address, amountBigInt, expectedOutput, addLocalTrade])
+  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab, address, amountBigInt, expectedOutput, addLocalTrade, pendingTradeHash])
 
   // Handle transaction errors
   useEffect(() => {
@@ -293,7 +301,8 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           functionName: 'buyWithAster',
           args: [amountBigInt, minOutput],
         }, {
-          onSuccess: () => {
+          onSuccess: (hash) => {
+            setPendingTradeHash(hash) // Mark this as a trade transaction
             toast.success('Buy successful!', { id: toastId })
           },
           onError: () => {
@@ -307,7 +316,8 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           functionName: 'sellForAster',
           args: [amountBigInt, minOutput],
         }, {
-          onSuccess: () => {
+          onSuccess: (hash) => {
+            setPendingTradeHash(hash) // Mark this as a trade transaction
             toast.success('Sell successful!', { id: toastId })
           },
           onError: () => {
