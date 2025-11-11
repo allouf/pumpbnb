@@ -6,6 +6,7 @@ import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAdd
 import { formatTradeAmount, formatAsterAmount } from '@/lib/utils/formatNumbers'
 import { Pagination } from './Pagination'
 import { useLocalTradeCache, LocalTrade } from '@/lib/hooks/useLocalTradeCache'
+import { TradeRecovery } from './TradeRecovery'
 
 interface Trade {
   id: string
@@ -37,6 +38,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20) // Fixed items per page for table
   const { localTrades } = useLocalTradeCache(tokenAddress)
+  const [showRecovery, setShowRecovery] = useState(false)
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -168,8 +170,8 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
 
   return (
     <div className="space-y-4">
-      {/* Size Filter Checkbox */}
-      <div className="flex items-center gap-2 mb-4">
+      {/* Size Filter Checkbox + Recovery Button */}
+      <div className="flex items-center justify-between mb-4">
         <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
           <input
             type="checkbox"
@@ -179,6 +181,14 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           />
           filter by size 0.05 ASTER
         </label>
+        
+        <button
+          onClick={() => setShowRecovery(true)}
+          className="px-3 py-1.5 bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 rounded-lg transition text-xs font-medium border border-yellow-500/30"
+          title="Recover missing trades from transaction hashes"
+        >
+          📡 Recover Missing Trades
+        </button>
       </div>
 
       {/* Trades Table - Pump.fun style */}
@@ -296,6 +306,14 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
             isLoading={isLoading}
           />
         </div>
+      )}
+      
+      {/* Recovery Modal */}
+      {showRecovery && (
+        <TradeRecovery 
+          tokenAddress={tokenAddress} 
+          onClose={() => setShowRecovery(false)}
+        />
       )}
     </div>
   )

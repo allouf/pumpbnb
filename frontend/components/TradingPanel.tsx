@@ -238,7 +238,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab])
+  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab, address, amountBigInt, expectedOutput, addLocalTrade])
 
   // Handle transaction errors
   useEffect(() => {
