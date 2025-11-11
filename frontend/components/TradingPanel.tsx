@@ -179,6 +179,30 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   // Track if current transaction is a trade (not approval)
   const [pendingTradeHash, setPendingTradeHash] = useState<string | null>(null)
 
+  // Track when a trade transaction is initiated
+  useEffect(() => {
+    if (hash && !pendingTradeHash) {
+      // This is a new transaction - check if it's a trade by checking the current function
+      // We can determine this by looking at the current button state and amount
+      const isTradeTransaction = !needsApproval && amount && parseFloat(amount) > 0
+      
+      if (isTradeTransaction) {
+        console.log('[TradingPanel] 🎯 Trade transaction detected, marking as pending:', {
+          hash,
+          activeTab,
+          amount,
+        })
+        setPendingTradeHash(hash)
+      } else {
+        console.log('[TradingPanel] 📝 Approval transaction detected:', {
+          hash,
+          activeTab,
+          needsApproval,
+        })
+      }
+    }
+  }, [hash, pendingTradeHash, needsApproval, amount, activeTab])
+
   // Handle transaction success
   useEffect(() => {
     if (isSuccess && hash) {
@@ -301,8 +325,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           functionName: 'buyWithAster',
           args: [amountBigInt, minOutput],
         }, {
-          onSuccess: (hash) => {
-            setPendingTradeHash(hash) // Mark this as a trade transaction
+          onSuccess: () => {
             toast.success('Buy successful!', { id: toastId })
           },
           onError: () => {
@@ -316,8 +339,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           functionName: 'sellForAster',
           args: [amountBigInt, minOutput],
         }, {
-          onSuccess: (hash) => {
-            setPendingTradeHash(hash) // Mark this as a trade transaction
+          onSuccess: () => {
             toast.success('Sell successful!', { id: toastId })
           },
           onError: () => {
