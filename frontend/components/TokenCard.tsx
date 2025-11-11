@@ -38,7 +38,8 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
   const progress = asterAmount; // Out of 100 ASTER
   const marketCap = asterAmount.toFixed(2);
   
-  const isNearGraduation = progress >= 80;
+  const isNearGraduation = progress >= 80 && progress < 100;
+  const isGraduated = progress >= 100;
   const progressPercentage = Math.min(progress, 100);
 
   // Format time ago
@@ -106,7 +107,7 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
           <span className="text-xs text-gray-500">
-            {isNearGraduation ? 'Graduating soon! 🚀' : 'Bonding curve progress:'}
+            {isGraduated ? '🎉 Graduated!' : isNearGraduation ? 'Graduating soon! 🚀' : 'Bonding curve progress:'}
           </span>
           <span className="text-xs font-medium text-gray-400">
             {progressPercentage.toFixed(1)}%

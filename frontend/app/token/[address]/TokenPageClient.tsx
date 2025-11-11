@@ -525,7 +525,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                       <span className="text-sm text-white">Liquidity pool</span>
                     </div>
                     <span className="text-sm font-bold text-primary">
-                      {progress >= 100 ? '85.00%' : (100 - progress).toFixed(2) + '%'}
+                      {progress >= 100 ? '15.00%' : Math.max(10, 80 - progress).toFixed(1) + '%'}
                     </span>
                   </div>
                   

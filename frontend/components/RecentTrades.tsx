@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAddress'
 import { formatTradeAmount, formatAsterAmount } from '@/lib/utils/formatNumbers'
+import { Pagination } from './Pagination'
 
 interface Trade {
   id: string
@@ -32,6 +33,8 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [sizeFilter, setSizeFilter] = useState(false) // Filter by size >= 0.05 ASTER
   const [allTrades, setAllTrades] = useState<Trade[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(20) // Fixed items per page for table
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -113,6 +116,11 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
     return `${Math.floor(diffSeconds / 86400)}d ago`
   }
 
+  // Paginate trades
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTrades = trades.slice(startIndex, endIndex)
+
   return (
     <div className="space-y-4">
       {/* Size Filter Checkbox */}
@@ -133,77 +141,82 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
         <table className="w-full text-xs">
           <thead>
             <tr className="text-gray-400 border-b border-gray-700">
-              <th className="text-left py-2 pl-2 font-medium">Account</th>
-              <th className="text-left py-2 font-medium">Type</th>
-              <th className="text-right py-2 font-medium">Amount (ASTER)</th>
-              <th className="text-right py-2 font-medium">Amount ({tokenSymbol})</th>
-              <th className="text-right py-2 font-medium">Time</th>
-              <th className="text-right py-2 pr-2 font-medium">Txn</th>
+              <th className="text-left py-3 pl-3 font-medium w-[25%]">Account</th>
+              <th className="text-center py-3 font-medium w-[10%]">Type</th>
+              <th className="text-right py-3 font-medium w-[15%]">Amount (ASTER)</th>
+              <th className="text-right py-3 font-medium w-[20%]">Amount ({tokenSymbol})</th>
+              <th className="text-right py-3 font-medium w-[15%]">Time</th>
+              <th className="text-right py-3 pr-3 font-medium w-[15%]">Txn</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               // Loading skeleton rows
-              Array.from({ length: 10 }).map((_, i) => (
+              Array.from({ length: itemsPerPage }).map((_, i) => (
                 <tr key={i} className="border-b border-gray-800 animate-pulse">
-                  <td className="py-2 pl-2">
+                  <td className="py-3 pl-3">
                     <div className="h-3 bg-gray-700 rounded w-20"></div>
                   </td>
-                  <td className="py-2">
-                    <div className="h-3 bg-gray-700 rounded w-10"></div>
+                  <td className="py-3 text-center">
+                    <div className="h-3 bg-gray-700 rounded w-8 mx-auto"></div>
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-3 text-right">
                     <div className="h-3 bg-gray-700 rounded w-12 ml-auto"></div>
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-3 text-right">
                     <div className="h-3 bg-gray-700 rounded w-16 ml-auto"></div>
                   </td>
-                  <td className="py-2 text-right">
+                  <td className="py-3 text-right">
                     <div className="h-3 bg-gray-700 rounded w-10 ml-auto"></div>
                   </td>
-                  <td className="py-2 pr-2 text-right">
+                  <td className="py-3 pr-3 text-right">
                     <div className="h-3 bg-gray-700 rounded w-12 ml-auto"></div>
                   </td>
                 </tr>
               ))
-            ) : trades.length === 0 ? (
+            ) : paginatedTrades.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center py-8 text-gray-400">
                   No trades {sizeFilter ? 'above 0.05 ASTER ' : ''}found
                 </td>
               </tr>
             ) : (
-              trades.slice(0, 50).map((trade) => { // Limit to 50 most recent trades
+              paginatedTrades.map((trade) => {
                 const tokenAmount = trade.isBuy ? trade.amountOut : trade.amountIn
                 const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
                 const asterValue = parseFloat(asterAmount) / 1e18
                 const tokenValue = parseFloat(tokenAmount) / 1e18
                 
                 return (
-                  <tr key={trade.txHash} className="border-b border-gray-800 hover:bg-gray-800/50 transition">
-                    <td className="py-2 pl-2">
+                  <tr key={trade.txHash} className="border-b border-gray-800 hover:bg-gray-800/30 transition">
+                    <td className="py-3 pl-3">
                       <ClickableWalletAddress 
                         address={trade.trader} 
                         className="text-primary hover:text-primary-light text-xs font-mono"
                       />
                     </td>
-                    <td className="py-2">
-                      <span className={`text-xs font-medium ${
-                        trade.isBuy ? 'text-green-400' : 'text-red-400'
+                    <td className="py-3 text-center">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                        trade.isBuy ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                       }`}>
                         {trade.isBuy ? 'Buy' : 'Sell'}
                       </span>
                     </td>
-                    <td className="py-2 text-right text-xs font-mono">
+                    <td className="py-3 text-right text-xs font-mono text-white">
                       {asterValue.toFixed(3)}
                     </td>
-                    <td className="py-2 text-right text-xs font-mono">
-                      {tokenValue > 1000 ? `${(tokenValue/1000).toFixed(1)}k` : tokenValue.toFixed(0)}
+                    <td className="py-3 text-right text-xs font-mono text-white">
+                      {tokenValue > 1000000 
+                        ? `${(tokenValue/1000000).toFixed(1)}M` 
+                        : tokenValue > 1000 
+                        ? `${(tokenValue/1000).toFixed(1)}k` 
+                        : tokenValue.toFixed(0)
+                      }
                     </td>
-                    <td className="py-2 text-right text-xs text-gray-400">
+                    <td className="py-3 text-right text-xs text-gray-400">
                       {formatTime(trade.timestamp)}
                     </td>
-                    <td className="py-2 pr-2 text-right">
+                    <td className="py-3 pr-3 text-right">
                       <ClickableTransactionHash 
                         hash={trade.txHash} 
                         className="text-primary hover:text-primary-light text-xs font-mono"
@@ -216,6 +229,22 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           </tbody>
         </table>
       </div>
+      
+      {/* Pagination */}
+      {trades.length > itemsPerPage && (
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(trades.length / itemsPerPage)}
+            totalItems={trades.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={() => {}} // Fixed items per page
+            itemsPerPageOptions={[20]} // Fixed options
+            isLoading={isLoading}
+          />
+        </div>
+      )}
     </div>
   )
 }
