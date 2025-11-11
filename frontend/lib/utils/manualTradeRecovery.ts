@@ -1,10 +1,20 @@
 import { PublicClient, createPublicClient, http, parseAbiItem, decodeEventLog } from 'viem'
-import { astar } from 'viem/chains'
+import { bscTestnet } from 'viem/chains'
 
-// Create public client for reading blockchain data
+// Create public client for reading blockchain data (BSC Testnet)
 const publicClient = createPublicClient({
-  chain: astar,
-  transport: http()
+  chain: {
+    ...bscTestnet,
+    rpcUrls: {
+      default: {
+        http: ['https://bsc-testnet-rpc.publicnode.com'],
+      },
+      public: {
+        http: ['https://bsc-testnet-rpc.publicnode.com'],
+      },
+    },
+  },
+  transport: http('https://bsc-testnet-rpc.publicnode.com')
 })
 
 // Bonding Curve events

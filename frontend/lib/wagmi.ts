@@ -6,10 +6,24 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 // WalletConnect project ID from cloud.walletconnect.com
 const projectId = '2365a77b538750a5741bacd4891ac5cf'
 
+// Use the same RPC as backend for consistency
+const customBscTestnet = {
+  ...bscTestnet,
+  rpcUrls: {
+    ...bscTestnet.rpcUrls,
+    default: {
+      http: ['https://bsc-testnet-rpc.publicnode.com']
+    },
+    public: {
+      http: ['https://bsc-testnet-rpc.publicnode.com']
+    }
+  }
+}
+
 export const config = getDefaultConfig({
   appName: 'ASTER FUN',
   projectId,
-  chains: [bscTestnet],
+  chains: [customBscTestnet],
   ssr: true, // Enable SSR support
 })
 
