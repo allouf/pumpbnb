@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAddress'
-import { Pagination, PaginationSkeleton } from './Pagination'
 import { formatTradeAmount, formatAsterAmount } from '@/lib/utils/formatNumbers'
 
 interface Trade {
@@ -31,10 +30,7 @@ interface RecentTradesProps {
 export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
   const [trades, setTrades] = useState<Trade[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [totalItems, setTotalItems] = useState(0)
+  const [sizeFilter, setSizeFilter] = useState(false) // Filter by size >= 0.05 ASTER
   const [allTrades, setAllTrades] = useState<Trade[]>([])
 
   useEffect(() => {
@@ -44,7 +40,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
         // Note: The backend doesn't support buy/sell filtering via type parameter
         // We'll filter on the frontend for now
-        const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/trades?page=${currentPage}&limit=${itemsPerPage}&sortBy=timestamp&sortOrder=desc`
+        const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/trades?sortBy=timestamp&sortOrder=desc`
 
         console.log('[RecentTrades] Fetching trades for token:', tokenAddress)
         console.log('[RecentTrades] API URL:', url)
@@ -58,21 +54,18 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           const allTradesData = data.data || []
           setAllTrades(allTradesData)
           
-          // Apply client-side buy/sell filtering since backend doesn't support it
+          // Apply size filtering if enabled
           let filteredTrades = allTradesData
-          if (filter === 'buy') {
-            filteredTrades = allTradesData.filter((trade: Trade) => trade.isBuy === true)
-          } else if (filter === 'sell') {
-            filteredTrades = allTradesData.filter((trade: Trade) => trade.isBuy === false)
+          if (sizeFilter) {
+            filteredTrades = allTradesData.filter((trade: Trade) => {
+              const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
+              const asterValue = parseFloat(asterAmount) / 1e18 // Convert from wei
+              return asterValue >= 0.05 // 0.05 ASTER minimum
+            })
           }
           
           setTrades(filteredTrades)
-          // For pagination: use actual total from API for 'all', filtered count for others
-          const totalFromAPI = data.pagination?.total || 0
-          const filteredTotal = filter === 'all' ? totalFromAPI : filteredTrades.length
-          setTotalItems(filteredTotal)
-          console.log('[RecentTrades] Loaded', filteredTrades.length, 'trades (filtered from', allTradesData.length, '), total:', filteredTotal)
-          console.log('[RecentTrades] Pagination data:', data.pagination)
+          console.log('[RecentTrades] Loaded', filteredTrades.length, 'trades')
         } else {
           console.error('[RecentTrades] API returned error:', data.error || data.message)
           console.error('[RecentTrades] Full error response:', JSON.stringify(data, null, 2))
@@ -89,217 +82,140 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
     
     // Remove auto-refresh to prevent glitchy UX
     // Users can manually refresh using the refresh button
-  }, [tokenAddress, currentPage, itemsPerPage]) // Removed filter from dependencies since it's handled separately
+  }, [tokenAddress]) // Simplified dependencies
 
-  // Handle filter changes with client-side filtering
+  // Handle size filter changes
   useEffect(() => {
-    setCurrentPage(1)
-    
-    // Apply filtering to existing trades without API call
     if (allTrades.length > 0) {
       let filteredTrades = allTrades
-      if (filter === 'buy') {
-        filteredTrades = allTrades.filter((trade: Trade) => trade.isBuy === true)
-      } else if (filter === 'sell') {
-        filteredTrades = allTrades.filter((trade: Trade) => trade.isBuy === false)
+      if (sizeFilter) {
+        filteredTrades = allTrades.filter((trade: Trade) => {
+          const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
+          const asterValue = parseFloat(asterAmount) / 1e18
+          return asterValue >= 0.05
+        })
       }
       
       setTrades(filteredTrades)
-      // Update total count for pagination
-      const totalFromAPI = totalItems // Keep the original total for 'all'
-      const filteredTotal = filter === 'all' ? totalFromAPI : filteredTrades.length
-      setTotalItems(filteredTotal)
-      
-      console.log('[RecentTrades] Filter changed to', filter, '- showing', filteredTrades.length, 'trades')
+      console.log('[RecentTrades] Size filter changed - showing', filteredTrades.length, 'trades')
     }
-  }, [filter]) // Removed allTrades from dependencies to prevent infinite loops
+  }, [sizeFilter, allTrades])
 
-  // Pagination handlers
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+  // Format time like pump.fun (e.g., "2s ago")
+  const formatTime = (timestamp: string) => {
+    const now = new Date().getTime()
+    const tradeTime = new Date(timestamp).getTime()
+    const diffSeconds = Math.floor((now - tradeTime) / 1000)
+    
+    if (diffSeconds < 60) return `${diffSeconds}s ago`
+    if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`
+    if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`
+    return `${Math.floor(diffSeconds / 86400)}d ago`
   }
-
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage)
-    setCurrentPage(1) // Reset to first page when changing items per page
-  }
-
-  const totalPages = Math.ceil(totalItems / itemsPerPage)
 
   return (
     <div className="space-y-4">
-      {/* Filter Buttons and Refresh */}
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === 'all' ? 'bg-primary text-black' : 'bg-secondary text-gray-400'
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setFilter('buy')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === 'buy' ? 'bg-green-500 text-white' : 'bg-secondary text-gray-400'
-          }`}
-        >
-          Buys
-        </button>
-        <button
-          onClick={() => setFilter('sell')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            filter === 'sell' ? 'bg-red-500 text-white' : 'bg-secondary text-gray-400'
-          }`}
-        >
-          Sells
-        </button>
-        </div>
-        
-        {/* Manual Refresh Button */}
-        <button
-          onClick={async () => {
-            if (!isLoading) {
-              setCurrentPage(1) // Reset to first page on refresh
-              setIsLoading(true)
-              
-              try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
-                const url = `${apiUrl}/api/v2/tokens/${tokenAddress}/trades?page=1&limit=${itemsPerPage}&sortBy=timestamp&sortOrder=desc`
-                
-                const response = await fetch(url)
-                const data = await response.json()
-                
-                if (data.success) {
-                  const allTradesData = data.data || []
-                  setAllTrades(allTradesData)
-                  
-                  // Apply client-side filtering for manual refresh too
-                  let filteredTrades = allTradesData
-                  if (filter === 'buy') {
-                    filteredTrades = allTradesData.filter((trade: Trade) => trade.isBuy === true)
-                  } else if (filter === 'sell') {
-                    filteredTrades = allTradesData.filter((trade: Trade) => trade.isBuy === false)
-                  }
-                  
-                  setTrades(filteredTrades)
-                  const totalFromAPI = data.pagination?.total || 0
-                  const filteredTotal = filter === 'all' ? totalFromAPI : filteredTrades.length
-                  setTotalItems(filteredTotal)
-                  console.log('[RecentTrades] Manual refresh loaded', filteredTrades.length, 'trades of total:', filteredTotal)
-                } else {
-                  console.error('[RecentTrades] Manual refresh error:', data.error || data.message)
-                }
-              } catch (error) {
-                console.error('[RecentTrades] Manual refresh failed:', error)
-              } finally {
-                setIsLoading(false)
-              }
-            }
-          }}
-          disabled={isLoading}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50 ${
-            isLoading 
-              ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-              : 'bg-secondary text-gray-400 hover:bg-secondary-light hover:text-white'
-          }`}
-          title="Refresh trades"
-        >
-          {isLoading ? (
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          )}
-        </button>
+      {/* Size Filter Checkbox */}
+      <div className="flex items-center gap-2 mb-4">
+        <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={sizeFilter}
+            onChange={(e) => setSizeFilter(e.target.checked)}
+            className="w-4 h-4 text-primary bg-secondary border-gray-600 rounded focus:ring-primary focus:ring-2"
+          />
+          filter by size 0.05 ASTER
+        </label>
       </div>
 
-      {/* Trades List */}
-      <div className="space-y-2">
-        {isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: itemsPerPage }).map((_, i) => (
-              <div key={i} className="bg-secondary p-4 rounded-lg animate-pulse">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-gray-700"></div>
-                    <div>
-                      <div className="h-4 w-24 bg-gray-700 rounded mb-1"></div>
-                      <div className="h-3 w-16 bg-gray-700 rounded"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="h-4 w-20 bg-gray-700 rounded mb-1"></div>
-                    <div className="h-3 w-12 bg-gray-700 rounded"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : trades.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <p>No {filter !== 'all' ? filter : ''} trades yet</p>
-          </div>
-        ) : (
-          trades.map((trade) => {
-            const tradeType = trade.isBuy ? 'buy' : 'sell'
-            const tokenAmount = trade.isBuy ? trade.amountOut : trade.amountIn
-            const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
-            
-            return (
-              <div
-                key={trade.txHash}
-                className="bg-secondary p-4 rounded-lg flex items-center justify-between hover:bg-secondary-light transition"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${trade.isBuy ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">
-                        <span className={trade.isBuy ? 'text-green-500' : 'text-red-500'}>
-                          {tradeType.toUpperCase()}
-                        </span>
-                        {' '}
-                        {formatTradeAmount(tokenAmount)} {tokenSymbol}
-                      </p>
-                      <ClickableTransactionHash hash={trade.txHash} className="text-xs" />
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      <ClickableWalletAddress address={trade.trader} className="text-xs" />
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium">
-                    {formatAsterAmount(asterAmount)} ASTER
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
-                  </p>
-                </div>
-              </div>
-            )
-          })
-        )}
+      {/* Trades Table - Pump.fun style */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-gray-400 border-b border-gray-700">
+              <th className="text-left py-2 pl-2 font-medium">Account</th>
+              <th className="text-left py-2 font-medium">Type</th>
+              <th className="text-right py-2 font-medium">Amount (ASTER)</th>
+              <th className="text-right py-2 font-medium">Amount ({tokenSymbol})</th>
+              <th className="text-right py-2 font-medium">Time</th>
+              <th className="text-right py-2 pr-2 font-medium">Txn</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              // Loading skeleton rows
+              Array.from({ length: 10 }).map((_, i) => (
+                <tr key={i} className="border-b border-gray-800 animate-pulse">
+                  <td className="py-2 pl-2">
+                    <div className="h-3 bg-gray-700 rounded w-20"></div>
+                  </td>
+                  <td className="py-2">
+                    <div className="h-3 bg-gray-700 rounded w-10"></div>
+                  </td>
+                  <td className="py-2 text-right">
+                    <div className="h-3 bg-gray-700 rounded w-12 ml-auto"></div>
+                  </td>
+                  <td className="py-2 text-right">
+                    <div className="h-3 bg-gray-700 rounded w-16 ml-auto"></div>
+                  </td>
+                  <td className="py-2 text-right">
+                    <div className="h-3 bg-gray-700 rounded w-10 ml-auto"></div>
+                  </td>
+                  <td className="py-2 pr-2 text-right">
+                    <div className="h-3 bg-gray-700 rounded w-12 ml-auto"></div>
+                  </td>
+                </tr>
+              ))
+            ) : trades.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-gray-400">
+                  No trades {sizeFilter ? 'above 0.05 ASTER ' : ''}found
+                </td>
+              </tr>
+            ) : (
+              trades.slice(0, 50).map((trade) => { // Limit to 50 most recent trades
+                const tokenAmount = trade.isBuy ? trade.amountOut : trade.amountIn
+                const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
+                const asterValue = parseFloat(asterAmount) / 1e18
+                const tokenValue = parseFloat(tokenAmount) / 1e18
+                
+                return (
+                  <tr key={trade.txHash} className="border-b border-gray-800 hover:bg-gray-800/50 transition">
+                    <td className="py-2 pl-2">
+                      <ClickableWalletAddress 
+                        address={trade.trader} 
+                        className="text-primary hover:text-primary-light text-xs font-mono"
+                      />
+                    </td>
+                    <td className="py-2">
+                      <span className={`text-xs font-medium ${
+                        trade.isBuy ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {trade.isBuy ? 'Buy' : 'Sell'}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right text-xs font-mono">
+                      {asterValue.toFixed(3)}
+                    </td>
+                    <td className="py-2 text-right text-xs font-mono">
+                      {tokenValue > 1000 ? `${(tokenValue/1000).toFixed(1)}k` : tokenValue.toFixed(0)}
+                    </td>
+                    <td className="py-2 text-right text-xs text-gray-400">
+                      {formatTime(trade.timestamp)}
+                    </td>
+                    <td className="py-2 pr-2 text-right">
+                      <ClickableTransactionHash 
+                        hash={trade.txHash} 
+                        className="text-primary hover:text-primary-light text-xs font-mono"
+                      />
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {/* Pagination - Show if we have more than one page of results */}
-      {totalItems > itemsPerPage && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-          onPageChange={handlePageChange}
-          onItemsPerPageChange={handleItemsPerPageChange}
-          itemsPerPageOptions={[5, 10, 20, 50]}
-          isLoading={isLoading}
-          className="border-t border-gray-700 mt-4 pt-4"
-        />
-      )}
-      
     </div>
   )
 }

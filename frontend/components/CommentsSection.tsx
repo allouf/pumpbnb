@@ -16,8 +16,7 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   const { comments, addComment, likeComment } = useComments(tokenAddress)
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,105 +53,107 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   }
 
   const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+    return `${addr.slice(0, 8)}...${addr.slice(-4)}`
   }
 
-  // Pagination logic
-  const paginatedComments = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    return comments.slice(startIndex, endIndex)
-  }, [comments, currentPage, itemsPerPage])
-
-  const totalPages = Math.ceil(comments.length / itemsPerPage)
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
-
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage)
-    setCurrentPage(1)
-  }
+  // Sort comments based on selected order
+  const sortedComments = useMemo(() => {
+    const sorted = [...comments]
+    if (sortOrder === 'newest') {
+      return sorted.sort((a, b) => b.timestamp - a.timestamp)
+    } else {
+      return sorted.sort((a, b) => a.timestamp - b.timestamp)
+    }
+  }, [comments, sortOrder])
 
   return (
-    <div className="bg-secondary-light rounded-xl p-6">
-      <h2 className="text-xl font-bold mb-6">
-        Comments ({comments.length})
-      </h2>
-
-      {/* Comment Form */}
-      {isConnected ? (
-        <form onSubmit={handleSubmit} className="mb-6">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Share your thoughts..."
-            rows={3}
-            className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none"
-            maxLength={500}
-          />
+    <div className="space-y-4">
+      {/* Comment Input - Long textbox */}
+      <div className="mb-6">
+        <textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          placeholder="Add a comment..."
+          rows={3}
+          className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none text-sm placeholder-gray-400"
+          maxLength={500}
+          disabled={!isConnected}
+        />
+        {isConnected ? (
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-400">
-              {newComment.length}/500 characters
+            <span className="text-xs text-gray-500">
+              {newComment.length}/500
             </span>
             <button
-              type="submit"
+              onClick={handleSubmit}
               disabled={isSubmitting || !newComment.trim()}
-              className="bg-primary text-black px-6 py-2 rounded-lg font-semibold hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary text-black px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
-              {isSubmitting ? 'Posting...' : 'Post Comment'}
+              {isSubmitting ? 'Posting...' : 'Post'}
             </button>
           </div>
-        </form>
-      ) : (
-        <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4 mb-6">
-          <p className="text-yellow-500 text-sm">Connect your wallet to post comments</p>
-        </div>
-      )}
+        ) : (
+          <p className="text-xs text-gray-500 mt-2">Connect wallet to comment</p>
+        )}
+      </div>
+
+      {/* Sort Button */}
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm text-gray-400">
+          {comments.length} comment{comments.length !== 1 ? 's' : ''}
+        </span>
+        <button
+          onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
+          className="text-sm text-gray-400 hover:text-white transition flex items-center gap-1"
+        >
+          Sort: {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+        </button>
+      </div>
 
       {/* Comments List */}
       <div className="space-y-4">
         {comments.length === 0 ? (
           <div className="text-center py-8">
-            <svg className="w-12 h-12 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
             <p className="text-gray-400">No comments yet</p>
             <p className="text-sm text-gray-500 mt-1">Be the first to share your thoughts!</p>
           </div>
         ) : (
-          comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="bg-secondary rounded-lg p-4 hover:bg-secondary-light transition"
-            >
-              <div className="flex items-start justify-between mb-2">
+          sortedComments.map((comment) => (
+            <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
+              {/* Comment Header */}
+              <div className="flex items-center gap-3 mb-2">
+                {/* User Avatar */}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-black font-bold text-xs">
+                  {comment.author.slice(2, 4).toUpperCase()}
+                </div>
+                
+                {/* User Info */}
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-black font-bold text-sm">
-                    {comment.author.slice(2, 4).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-mono text-sm text-gray-300">
-                      {formatAddress(comment.author)}
-                    </p>
-                    <p className="text-xs text-gray-500">{formatTime(comment.timestamp)}</p>
-                  </div>
+                  <span className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer">
+                    {formatAddress(comment.author)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatTime(comment.timestamp)}
+                  </span>
                 </div>
               </div>
-
-              <p className="text-gray-200 mb-3 whitespace-pre-wrap">{comment.content}</p>
-
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => handleLike(comment.id)}
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-primary transition"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-                  </svg>
-                  <span>{comment.likes}</span>
+              
+              {/* Comment Content */}
+              <p className="text-sm text-gray-200 mb-3 pl-11">
+                {comment.content}
+              </p>
+              
+              {/* Comment Actions */}
+              <div className="flex items-center gap-4 pl-11">
+                <button className="text-xs text-gray-400 hover:text-primary transition">
+                  Reply
                 </button>
+                <span className="text-xs text-gray-500">
+                  {comment.likes || 0}
+                </span>
               </div>
             </div>
           ))
