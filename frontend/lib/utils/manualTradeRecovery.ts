@@ -1,4 +1,4 @@
-import { PublicClient, createPublicClient, http, parseAbiItem } from 'viem'
+import { PublicClient, createPublicClient, http, parseAbiItem, decodeEventLog } from 'viem'
 import { astar } from 'viem/chains'
 
 // Create public client for reading blockchain data
@@ -68,7 +68,7 @@ export async function recoverTradeFromTxHash(
     try {
       const tradeLogs = receipt.logs.filter(log => {
         try {
-          const decoded = publicClient.decodeEventLog({
+          const decoded = decodeEventLog({
             abi: [TRADE_EVENT_ABI],
             data: log.data,
             topics: log.topics
@@ -80,7 +80,7 @@ export async function recoverTradeFromTxHash(
       })
 
       if (tradeLogs.length > 0) {
-        const decoded = publicClient.decodeEventLog({
+        const decoded = decodeEventLog({
           abi: [TRADE_EVENT_ABI],
           data: tradeLogs[0].data,
           topics: tradeLogs[0].topics
@@ -102,7 +102,7 @@ export async function recoverTradeFromTxHash(
       try {
         const buyLogs = receipt.logs.filter(log => {
           try {
-            const decoded = publicClient.decodeEventLog({
+            const decoded = decodeEventLog({
               abi: [BUY_EVENT_ABI],
               data: log.data,
               topics: log.topics
@@ -114,7 +114,7 @@ export async function recoverTradeFromTxHash(
         })
 
         if (buyLogs.length > 0) {
-          const decoded = publicClient.decodeEventLog({
+          const decoded = decodeEventLog({
             abi: [BUY_EVENT_ABI],
             data: buyLogs[0].data,
             topics: buyLogs[0].topics
@@ -137,7 +137,7 @@ export async function recoverTradeFromTxHash(
       try {
         const sellLogs = receipt.logs.filter(log => {
           try {
-            const decoded = publicClient.decodeEventLog({
+            const decoded = decodeEventLog({
               abi: [SELL_EVENT_ABI],
               data: log.data,
               topics: log.topics
@@ -149,7 +149,7 @@ export async function recoverTradeFromTxHash(
         })
 
         if (sellLogs.length > 0) {
-          const decoded = publicClient.decodeEventLog({
+          const decoded = decodeEventLog({
             abi: [SELL_EVENT_ABI],
             data: sellLogs[0].data,
             topics: sellLogs[0].topics
