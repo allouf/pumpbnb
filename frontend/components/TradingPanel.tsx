@@ -13,6 +13,7 @@ import BondingCurveABIImport from '@/lib/abis/BondingCurve.json'
 import { indexTrade } from '@/lib/api/indexer'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
 import { formatAsterAmount, formatPercentage } from '@/lib/utils/formatNumbers'
+import { useLocalTradeCache } from '@/lib/hooks/useLocalTradeCache'
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi
 
@@ -45,6 +46,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
   const [amount, setAmount] = useState('')
   const [slippage, setSlippage] = useState(SLIPPAGE_PRESETS.MEDIUM)
   const { usdRate } = useUsdPrice()
+  const { addLocalTrade } = useLocalTradeCache(tokenAddress)
 
   // Calculate amount early so we can use it in contract reads
   const getAsterAmount = () => {
@@ -205,6 +207,29 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           tokenAddress,
           tradeType: activeTab,
         })
+        
+        // Cache trade locally as fallback when backend indexing fails
+        console.log('[TradingPanel] 💾 Caching trade locally as fallback...')
+        try {
+          const tradeData = {
+            tokenAddress,
+            trader: address!,
+            isBuy: activeTab === 'buy',
+            amountIn: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
+            amountOut: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
+            fee: '0', // We don't have fee data here, but it's not critical for display
+            timestamp: new Date().toISOString(),
+            txHash: hash,
+            blockNumber: 0, // We don't have block number here
+            asterAmount: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
+            tokenAmount: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
+          }
+          
+          addLocalTrade(tradeData)
+          console.log('[TradingPanel] ✅ Trade cached locally successfully!')
+        } catch (cacheError) {
+          console.error('[TradingPanel] ❌ Failed to cache trade locally:', cacheError)
+        }
       })
 
       setAmount('')

@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ClickableWalletAddress, ClickableTransactionHash } from './ClickableAddress'
 import { formatTradeAmount, formatAsterAmount } from '@/lib/utils/formatNumbers'
 import { Pagination } from './Pagination'
+import { useLocalTradeCache, LocalTrade } from '@/lib/hooks/useLocalTradeCache'
 
 interface Trade {
   id: string
@@ -29,12 +30,13 @@ interface RecentTradesProps {
 }
 
 export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
-  const [trades, setTrades] = useState<Trade[]>([])
+  const [trades, setTrades] = useState<(Trade | LocalTrade)[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [sizeFilter, setSizeFilter] = useState(false) // Filter by size >= 0.05 ASTER
-  const [allTrades, setAllTrades] = useState<Trade[]>([])
+  const [allTrades, setAllTrades] = useState<(Trade | LocalTrade)[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(20) // Fixed items per page for table
+  const { localTrades } = useLocalTradeCache(tokenAddress)
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -54,13 +56,36 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
         console.log('[RecentTrades] API Response:', data)
 
         if (data.success) {
-          const allTradesData = data.data || []
-          setAllTrades(allTradesData)
+          const apiTrades = data.data || []
+          
+          // Merge API trades with local cached trades, removing duplicates
+          const mergedTrades = [...localTrades, ...apiTrades].reduce((unique: (Trade | LocalTrade)[], trade) => {
+            // Check if this trade already exists (by txHash)
+            const existingIndex = unique.findIndex(t => t.txHash === trade.txHash)
+            if (existingIndex >= 0) {
+              // If API trade exists, prefer it over local trade (more complete data)
+              if (!('isLocal' in trade)) {
+                unique[existingIndex] = trade
+              }
+            } else {
+              unique.push(trade)
+            }
+            return unique
+          }, [])
+          
+          // Sort by timestamp (newest first)
+          const sortedTrades = mergedTrades.sort((a, b) => {
+            const aTime = new Date(a.timestamp).getTime()
+            const bTime = new Date(b.timestamp).getTime()
+            return bTime - aTime
+          })
+          
+          setAllTrades(sortedTrades)
           
           // Apply size filtering if enabled
-          let filteredTrades = allTradesData
+          let filteredTrades = sortedTrades
           if (sizeFilter) {
-            filteredTrades = allTradesData.filter((trade: Trade) => {
+            filteredTrades = sortedTrades.filter((trade: Trade | LocalTrade) => {
               const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
               const asterValue = parseFloat(asterAmount) / 1e18 // Convert from wei
               return asterValue >= 0.05 // 0.05 ASTER minimum
@@ -68,7 +93,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
           }
           
           setTrades(filteredTrades)
-          console.log('[RecentTrades] Loaded', filteredTrades.length, 'trades')
+          console.log('[RecentTrades] Loaded', filteredTrades.length, 'trades (', localTrades.length, 'local +', apiTrades.length, 'API)')
         } else {
           console.error('[RecentTrades] API returned error:', data.error || data.message)
           console.error('[RecentTrades] Full error response:', JSON.stringify(data, null, 2))
@@ -87,12 +112,32 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
     // Users can manually refresh using the refresh button
   }, [tokenAddress]) // Simplified dependencies
 
-  // Handle size filter changes
+  // Handle size filter changes or when local trades update
   useEffect(() => {
-    if (allTrades.length > 0) {
-      let filteredTrades = allTrades
+    if (allTrades.length > 0 || localTrades.length > 0) {
+      // Re-merge trades when local trades change
+      const mergedTrades = [...localTrades, ...allTrades].reduce((unique: (Trade | LocalTrade)[], trade) => {
+        const existingIndex = unique.findIndex(t => t.txHash === trade.txHash)
+        if (existingIndex >= 0) {
+          if (!('isLocal' in trade)) {
+            unique[existingIndex] = trade
+          }
+        } else {
+          unique.push(trade)
+        }
+        return unique
+      }, [])
+      
+      // Sort by timestamp (newest first)
+      const sortedTrades = mergedTrades.sort((a, b) => {
+        const aTime = new Date(a.timestamp).getTime()
+        const bTime = new Date(b.timestamp).getTime()
+        return bTime - aTime
+      })
+      
+      let filteredTrades = sortedTrades
       if (sizeFilter) {
-        filteredTrades = allTrades.filter((trade: Trade) => {
+        filteredTrades = sortedTrades.filter((trade: Trade | LocalTrade) => {
           const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut
           const asterValue = parseFloat(asterAmount) / 1e18
           return asterValue >= 0.05
@@ -100,9 +145,9 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
       }
       
       setTrades(filteredTrades)
-      console.log('[RecentTrades] Size filter changed - showing', filteredTrades.length, 'trades')
+      console.log('[RecentTrades] Trades updated - showing', filteredTrades.length, 'trades (', localTrades.length, 'local)')
     }
-  }, [sizeFilter, allTrades])
+  }, [sizeFilter, allTrades, localTrades])
 
   // Format time like pump.fun (e.g., "2s ago")
   const formatTime = (timestamp: string) => {
@@ -196,11 +241,18 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
                       />
                     </td>
                     <td className="py-3 text-center">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                        trade.isBuy ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {trade.isBuy ? 'Buy' : 'Sell'}
-                      </span>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                          trade.isBuy ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {trade.isBuy ? 'Buy' : 'Sell'}
+                        </span>
+                        {('isLocal' in trade) && (
+                          <span className="text-xs text-yellow-400" title="Cached locally (indexing failed)">
+                            📱
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 text-right text-xs font-mono text-white">
                       {asterValue.toFixed(3)}
