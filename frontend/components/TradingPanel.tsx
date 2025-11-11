@@ -178,30 +178,26 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
 
   // Track if current transaction is a trade (not approval)
   const [pendingTradeHash, setPendingTradeHash] = useState<string | null>(null)
+  const [isTradeSubmitted, setIsTradeSubmitted] = useState(false)
 
-  // Track when a trade transaction is initiated
+  // Track when any new transaction appears and check if it's a trade
   useEffect(() => {
-    if (hash && !pendingTradeHash) {
-      // This is a new transaction - check if it's a trade by checking the current function
-      // We can determine this by looking at the current button state and amount
-      const isTradeTransaction = !needsApproval && amount && parseFloat(amount) > 0
-      
-      if (isTradeTransaction) {
-        console.log('[TradingPanel] 🎯 Trade transaction detected, marking as pending:', {
-          hash,
-          activeTab,
-          amount,
-        })
-        setPendingTradeHash(hash)
-      } else {
-        console.log('[TradingPanel] 📝 Approval transaction detected:', {
-          hash,
-          activeTab,
-          needsApproval,
-        })
-      }
+    if (hash && !pendingTradeHash && isTradeSubmitted) {
+      console.log('[TradingPanel] 🎯 Trade transaction hash received, marking as pending:', {
+        hash,
+        activeTab,
+        isTradeSubmitted
+      })
+      setPendingTradeHash(hash)
+      setIsTradeSubmitted(false) // Reset the flag
+    } else if (hash && !pendingTradeHash && !isTradeSubmitted) {
+      console.log('[TradingPanel] 📝 Non-trade transaction hash received (likely approval):', {
+        hash,
+        activeTab,
+        isTradeSubmitted
+      })
     }
-  }, [hash, pendingTradeHash, needsApproval, amount, activeTab])
+  }, [hash, pendingTradeHash, activeTab, isTradeSubmitted])
 
   // Handle transaction success
   useEffect(() => {
@@ -315,8 +311,17 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     e.preventDefault()
     if (!amount || !isConnected) return
 
+    console.log('[TradingPanel] 🎯 Starting trade transaction:', {
+      activeTab,
+      amount,
+      tokenSymbol
+    })
+
     try {
       const toastId = toast.loading(activeTab === 'buy' ? 'Buying tokens...' : 'Selling tokens...')
+
+      // Mark that we're submitting a trade transaction
+      setIsTradeSubmitted(true)
 
       if (activeTab === 'buy') {
         writeContract({
@@ -329,6 +334,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             toast.success('Buy successful!', { id: toastId })
           },
           onError: () => {
+            setIsTradeSubmitted(false) // Reset on error
             toast.error('Buy failed', { id: toastId })
           },
         })
@@ -343,6 +349,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
             toast.success('Sell successful!', { id: toastId })
           },
           onError: () => {
+            setIsTradeSubmitted(false) // Reset on error
             toast.error('Sell failed', { id: toastId })
           },
         })
