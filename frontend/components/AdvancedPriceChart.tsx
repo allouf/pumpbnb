@@ -23,7 +23,7 @@ interface AdvancedPriceChartProps {
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 type PriceMode = 'ASTER' | 'USD'
-type ChartType = 'candlestick' | 'line' | 'area'
+type ChartType = 'candlestick' | 'line' | 'area' | 'columns'
 
 // Mock ASTER USD price - can be replaced with real API
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
@@ -381,8 +381,8 @@ export function AdvancedPriceChart({
         borderColor: 'rgba(156, 163, 175, 0.5)',
         borderVisible: true,
         rightOffset: 25, // More space on right
-        barSpacing: 15, // Optimal spacing for candles
-        minBarSpacing: 0.5,
+        barSpacing: 20, // Increased spacing for more visible candles (was 15)
+        minBarSpacing: 4, // Prevent candles from becoming thin dashes (was 0.5)
         fixLeftEdge: false,
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
@@ -708,6 +708,15 @@ export function AdvancedPriceChart({
             priceLineVisible: false,
           })
           break
+        case 'columns':
+          newSeries = chartRef.current.addSeries(HistogramSeries, {
+            color: '#10b981',       // Default green color
+            priceFormat,
+            priceScaleId: 'right',
+            lastValueVisible: true,
+            priceLineVisible: false,
+          })
+          break
         case 'candlestick':
         default:
           newSeries = chartRef.current.addSeries(CandlestickSeries, {
@@ -882,6 +891,14 @@ export function AdvancedPriceChart({
             value: candle.close,
           }))
           priceSeriesRef.current.setData(lineData)
+        } else if (chartType === 'columns') {
+          // For columns/histogram charts, use close price with color based on trend
+          const histogramData = candleData.map(candle => ({
+            time: candle.time,
+            value: candle.close,
+            color: candle.close >= candle.open ? '#10b981' : '#ef4444',
+          }))
+          priceSeriesRef.current.setData(histogramData)
         } else {
           // For candlestick charts, use full OHLC data
           priceSeriesRef.current.setData(candleData)
