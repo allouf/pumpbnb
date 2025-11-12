@@ -77,7 +77,9 @@
       "Bash(python3:*)",
       "Bash(npx prisma format:*)",
       "Bash(timeout 5 curl:*)",
-      "Bash(timeout 10 bash:*)"
+      "Bash(timeout 10 bash:*)",
+      "WebFetch(domain:pumpbnb-backend.onrender.com)",
+      "Bash(timeout 20 curl:*)"
     ],
     "deny": [],
     "ask": []
