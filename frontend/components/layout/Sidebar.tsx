@@ -3,8 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  HomeIcon, 
+import { useAccount } from 'wagmi';
+import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
+import { useWalletAuth } from '@/lib/hooks/useWalletAuth';
+import {
+  HomeIcon,
   PlusIcon,
   ChartBarIcon,
   ClockIcon,
@@ -26,11 +29,9 @@ import {
   Square3Stack3DIcon as Square3Stack3DIconSolid
 } from '@heroicons/react/24/solid';
 
-import { ConnectButton } from '../ConnectButton';
-
 interface NavigationItem {
   name: string;
-  href: string;
+  href: string | ((address?: string) => string);
   icon: React.ElementType;
   iconSolid: React.ElementType;
 }
@@ -38,7 +39,12 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
-  { name: 'Portfolio', href: '/portfolio', icon: Square3Stack3DIcon, iconSolid: Square3Stack3DIconSolid },
+  {
+    name: 'Portfolio',
+    href: (address?: string) => address ? `/profile/${address}` : '/portfolio',
+    icon: Square3Stack3DIcon,
+    iconSolid: Square3Stack3DIconSolid
+  },
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
 ];
@@ -58,6 +64,18 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { user, isAuthenticating, authenticate } = useWalletAuth();
+
+  const handleLogin = async () => {
+    if (!isConnected) {
+      // Show connect wallet modal
+      document.querySelector<HTMLButtonElement>('[data-testid="rk-connect-button"]')?.click();
+    } else if (!user) {
+      // User is connected but not authenticated
+      await authenticate();
+    }
+  };
 
   return (
     <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
@@ -89,10 +107,48 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         </div>
       </div>
 
-      {/* Wallet Connection - Only show when expanded */}
+      {/* Login / Wallet Connection - Only show when expanded */}
       {!isCollapsed && (
         <div className="p-4 border-b border-border">
-          <ConnectButton />
+          {!isConnected || !user ? (
+            <button
+              onClick={handleLogin}
+              disabled={isAuthenticating}
+              className="w-full bg-primary text-black px-4 py-2.5 rounded-lg font-bold hover:bg-primary-dark transition disabled:opacity-50"
+            >
+              {isAuthenticating ? 'Authenticating...' : 'Log In'}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              {user.profileImage ? (
+                <Link href={`/profile/${user.walletAddress}`}>
+                  <img
+                    src={user.profileImage}
+                    alt={user.username || 'Profile'}
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
+                  />
+                </Link>
+              ) : (
+                <Link
+                  href={`/profile/${user.walletAddress}`}
+                  className="w-10 h-10 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
+                >
+                  <span className="text-sm font-bold text-black uppercase">
+                    {user.username?.[0] || user.walletAddress[2]}
+                  </span>
+                </Link>
+              )}
+              <div className="flex-1 min-w-0">
+                <RainbowConnectButton
+                  showBalance={false}
+                  accountStatus={{
+                    smallScreen: 'avatar',
+                    largeScreen: 'address',
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -101,17 +157,18 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         <div className="h-full overflow-y-auto scrollbar-hide">
         <ul className="space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const itemHref = typeof item.href === 'function' ? item.href(address) : item.href;
+            const isActive = pathname === itemHref;
             const Icon = isActive ? item.iconSolid : item.icon;
-            
+
             return (
               <li key={item.name}>
                 <Link
-                  href={item.href}
+                  href={itemHref}
                   className={`
                     flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative
-                    ${isActive 
-                      ? 'bg-primary text-black font-semibold' 
+                    ${isActive
+                      ? 'bg-primary text-black font-semibold'
                       : 'text-gray-400 hover:text-white hover:bg-secondary-light'
                     }
                   `}
@@ -119,7 +176,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
                 >
                   <Icon className="w-5 h-5 flex-shrink-0" />
                   {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
-                  
+
                   {/* Tooltip for collapsed state */}
                   {isCollapsed && (
                     <div className="absolute left-full ml-2 px-2 py-1 bg-secondary-light border border-gray-700 rounded text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">

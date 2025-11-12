@@ -6,6 +6,7 @@ import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
 import { FilterBar, FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
+import { HomeHeader } from '@/components/HomeHeader';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
 import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/utils/formatNumbers';
 import { getPercentChangeColor } from '@/lib/utils/formatters';
@@ -108,6 +109,9 @@ export default function Home() {
 
   return (
     <div className="space-y-6 min-h-screen">
+      {/* Header with Search and Login/Create Coin */}
+      <HomeHeader />
+
       {/* Trending Section */}
       {!isTrendingLoading && trendingTokens.length > 0 && (
         <TrendingSection tokens={trendingTokens} />
