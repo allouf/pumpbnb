@@ -79,7 +79,9 @@
       "Bash(timeout 5 curl:*)",
       "Bash(timeout 10 bash:*)",
       "WebFetch(domain:pumpbnb-backend.onrender.com)",
-      "Bash(timeout 20 curl:*)"
+      "Bash(timeout 20 curl:*)",
+      "Bash(timeout 15 npx prisma migrate dev:*)",
+      "Bash(if not exist \"backend\\prisma\\migrations\" mkdir \"backend\\prisma\\migrations\")"
     ],
     "deny": [],
     "ask": []

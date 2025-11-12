@@ -237,6 +237,36 @@ model OHLCVData {
   @@map("ohlcv_data")
 }
 
+model User {
+  id                  String   @id @default(uuid())
+  walletAddress       String   @unique
+  username            String?  @unique
+  bio                 String?
+  profileImage        String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  lastUsernameChange  DateTime?
+  followersCount      Int      @default(0)
+  followingCount      Int      @default(0)
+  createdTokensCount  Int      @default(0)
+
+  @@index([walletAddress])
+  @@index([username])
+  @@map("users")
+}
+
+model UserFollow {
+  id            String   @id @default(uuid())
+  followerAddress String
+  followingAddress String
+  createdAt     DateTime @default(now())
+
+  @@unique([followerAddress, followingAddress])
+  @@index([followerAddress])
+  @@index([followingAddress])
+  @@map("user_follows")
+}
+
 model UserSession {
   id             String   @id @default(uuid())
   userAddress    String

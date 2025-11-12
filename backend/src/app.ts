@@ -16,6 +16,8 @@ import ipfsRoutes from './routes/ipfs.routes';
 import adminRoutes from './routes/admin.routes';
 import indexerRoutes from './routes/indexer.routes';
 import migrationRoutes from './routes/migration.routes';
+import authRoutes from './routes/auth.routes';
+import profileRoutes from './routes/profile.routes';
 
 // Token Page Feature Routes
 import tokensV2Routes from './routes/tokens.routes';
@@ -76,6 +78,8 @@ app.use('/api/ipfs', ipfsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/indexer', indexerRoutes);
 app.use('/api/migrations', migrationRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Token Page Feature Routes (enhanced endpoints)
 app.use('/api/v2/tokens', tokensV2Routes); // Token info + trades + holders + comments + ohlcv
