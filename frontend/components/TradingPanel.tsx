@@ -38,9 +38,10 @@ interface TradingPanelProps {
   bondingCurveAddress: string
   tokenAddress: string
   tokenSymbol: string
+  onTradeSuccess?: (tradeType: 'buy' | 'sell', txHash: string) => void
 }
 
-export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }: TradingPanelProps) {
+export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, onTradeSuccess }: TradingPanelProps) {
   const { address, isConnected } = useAccount()
   const [activeTab, setActiveTab] = useState<'buy' | 'sell'>('buy')
   const [amount, setAmount] = useState('')
@@ -199,9 +200,12 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
     }
   }, [hash, pendingTradeHash, activeTab, isTradeSubmitted])
 
+  // Track processed transactions to prevent duplicate handling
+  const [processedHashes, setProcessedHashes] = useState<Set<string>>(new Set())
+
   // Handle transaction success
   useEffect(() => {
-    if (isSuccess && hash) {
+    if (isSuccess && hash && !processedHashes.has(hash)) {
       console.log('[TradingPanel] ✅ Transaction successful!', {
         hash,
         tokenAddress,
@@ -209,6 +213,9 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
         isPendingTrade: pendingTradeHash === hash,
       })
 
+      // Mark this hash as processed
+      setProcessedHashes(prev => new Set(prev).add(hash))
+      
       toast.success('Transaction successful!')
 
       // Only index if this was a trade transaction (not approval)
@@ -226,6 +233,10 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
           tokenAddress: tokenAddress,
         }).then((result) => {
           console.log('[TradingPanel] ✅ Trade indexed successfully!', result)
+          // Trigger callback for successful trade (to refresh holders, etc.)
+          if (onTradeSuccess) {
+            onTradeSuccess(activeTab, hash)
+          }
         }).catch((error) => {
           console.error('[TradingPanel] ❌ Failed to index trade:', {
             error: error.message,
@@ -266,7 +277,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress }:
       // Refetch reserves to update market cap and progress
       refetchReserves()
     }
-  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab, address, amountBigInt, expectedOutput, addLocalTrade, pendingTradeHash])
+  }, [isSuccess, hash, tokenAddress, refetchAsterAllowance, refetchTokenAllowance, refetchReserves, activeTab, address, amountBigInt, expectedOutput, addLocalTrade, pendingTradeHash, processedHashes, onTradeSuccess])
 
   // Handle transaction errors
   useEffect(() => {

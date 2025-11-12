@@ -26,9 +26,10 @@ interface TopHoldersProps {
   tokenAddress: string
   tokenSymbol: string
   compact?: boolean
+  refreshTrigger?: number
 }
 
-export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHoldersProps) {
+export function TopHolders({ tokenAddress, tokenSymbol, compact = false, refreshTrigger }: TopHoldersProps) {
   const [holders, setHolders] = useState<Holder[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [totalSupply, setTotalSupply] = useState('0')
@@ -74,7 +75,7 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false }: TopHo
     fetchHolders()
     const interval = setInterval(fetchHolders, 10000) // Refresh every 10 seconds
     return () => clearInterval(interval)
-  }, [tokenAddress])
+  }, [tokenAddress, refreshTrigger])
 
   if (isLoading) {
     return (

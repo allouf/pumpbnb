@@ -27,9 +27,10 @@ interface Trade {
 interface RecentTradesProps {
   tokenAddress: string
   tokenSymbol: string
+  refreshTrigger?: number
 }
 
-export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
+export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: RecentTradesProps) {
   const [trades, setTrades] = useState<(Trade | LocalTrade)[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [sizeFilter, setSizeFilter] = useState(false) // Filter by size >= 0.05 ASTER
@@ -105,12 +106,9 @@ export function RecentTrades({ tokenAddress, tokenSymbol }: RecentTradesProps) {
       }
     }
 
-    // Initial fetch only - no auto-refresh to prevent glitchy UX
+    // Initial fetch and when refreshTrigger changes
     fetchTrades()
-    
-    // Remove auto-refresh to prevent glitchy UX
-    // Users can manually refresh using the refresh button
-  }, [tokenAddress]) // Simplified dependencies
+  }, [tokenAddress, refreshTrigger]) // Added refreshTrigger to trigger immediate refresh
 
   // Handle size filter changes or when local trades update
   useEffect(() => {

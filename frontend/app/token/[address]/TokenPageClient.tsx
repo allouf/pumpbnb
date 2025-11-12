@@ -35,6 +35,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const [activeTab, setActiveTab] = useState<Tab>('trades')
   const [isFavorite, setIsFavorite] = useState(false)
   const [showSharePopup, setShowSharePopup] = useState(false)
+  const [holdersRefreshTrigger, setHoldersRefreshTrigger] = useState(0)
+  const [tradesRefreshTrigger, setTradesRefreshTrigger] = useState(0)
 
   // Fetch token data
   const { tokenData: apiData, isLoading: apiLoading, error: apiError } = useTokenData(address)
@@ -94,6 +96,18 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
       refetchReserves()
     }
   )
+
+  // Callback for when trades are successful
+  const handleTradeSuccess = (tradeType: 'buy' | 'sell', txHash: string) => {
+    console.log('[TokenPageClient] 🎯 Trade successful, triggering data refresh:', { tradeType, txHash })
+    
+    // Refetch reserves to update progress and market cap
+    refetchReserves()
+    
+    // Trigger immediate holders and trades refresh
+    setHoldersRefreshTrigger(prev => prev + 1)
+    setTradesRefreshTrigger(prev => prev + 1)
+  }
 
   // Calculate creation time - memoized
   const creationInfo = useMemo(() => {
@@ -430,7 +444,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
               {/* Tab Content */}
               <div className="p-6">
                 {activeTab === 'trades' && (
-                  <RecentTrades tokenAddress={address} tokenSymbol={symbol} />
+                  <RecentTrades tokenAddress={address} tokenSymbol={symbol} refreshTrigger={tradesRefreshTrigger} />
                 )}
 
                 {activeTab === 'comments' && (
@@ -448,6 +462,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                 bondingCurveAddress={bondingCurve}
                 tokenSymbol={symbol}
                 tokenAddress={address}
+                onTradeSuccess={handleTradeSuccess}
               />
             ) : (
               <div className="bg-secondary-light p-6 rounded-xl">
@@ -530,7 +545,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   </div>
                   
                   {/* Top Individual Holders */}
-                  <TopHolders tokenAddress={address} tokenSymbol={symbol} compact={true} />
+                  <TopHolders tokenAddress={address} tokenSymbol={symbol} compact={true} refreshTrigger={holdersRefreshTrigger} />
                 </div>
               </div>
             </div>
