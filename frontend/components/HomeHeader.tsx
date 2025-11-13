@@ -7,7 +7,11 @@ import { useWalletAuth } from '@/lib/hooks/useWalletAuth'
 import Link from 'next/link'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
-export function HomeHeader() {
+interface HomeHeaderProps {
+  onSearch?: (query: string) => void
+}
+
+export function HomeHeader({ onSearch }: HomeHeaderProps = {}) {
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
   const { isConnected } = useAccount()
@@ -20,9 +24,21 @@ export function HomeHeader() {
       if (searchQuery.startsWith('0x') && searchQuery.length === 42) {
         router.push(`/token/${searchQuery}`)
       } else {
-        // Otherwise search in tokens page
-        router.push(`/tokens?search=${encodeURIComponent(searchQuery)}`)
+        // Call the onSearch callback if provided (for home page)
+        // Otherwise redirect to tokens page (for other pages)
+        if (onSearch) {
+          onSearch(searchQuery)
+        } else {
+          router.push(`/tokens?search=${encodeURIComponent(searchQuery)}`)
+        }
       }
+    }
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    if (onSearch) {
+      onSearch('')
     }
   }
 
@@ -44,7 +60,7 @@ export function HomeHeader() {
           href="/create"
           className="bg-primary text-black px-6 py-2 rounded-lg font-bold hover:bg-primary-dark transition"
         >
-          [create a coin]
+          create a coin
         </Link>
 
         {!isConnected || !user ? (
@@ -53,7 +69,7 @@ export function HomeHeader() {
             disabled={isAuthenticating}
             className="bg-secondary text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-700 transition border border-gray-600"
           >
-            {isAuthenticating ? 'Authenticating...' : '[log in]'}
+            {isAuthenticating ? 'Authenticating...' : 'log in'}
           </button>
         ) : (
           <div className="flex items-center gap-3">
@@ -96,6 +112,15 @@ export function HomeHeader() {
             placeholder="Search for a token by name, symbol, or address..."
             className="w-full bg-secondary text-white px-4 py-3 pr-12 rounded-lg border border-gray-700 focus:border-primary outline-none text-sm"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-24 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition text-sm"
+            >
+              ✕
+            </button>
+          )}
           <button
             type="submit"
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-black px-4 py-1.5 rounded-md font-bold hover:bg-primary-dark transition text-sm"

@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
-import { FilterBar, FilterValues } from '@/components/FilterBar';
+import { ExploreSection } from '@/components/ExploreSection';
+import { FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
 import { HomeHeader } from '@/components/HomeHeader';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
@@ -18,6 +19,8 @@ export default function Home() {
   const [showAnimations, setShowAnimations] = useState(true);
   const [showNsfw, setShowNsfw] = useState(false);
   const [sortOption, setSortOption] = useState('featured');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'explore' | 'watchlist'>('explore');
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({
     minMcap: 0,
     maxMcap: 1000,
@@ -38,8 +41,9 @@ export default function Home() {
     maxMarketCap: advancedFilters.maxMcap < 1000 ? advancedFilters.maxMcap : undefined,
     minVolume24h: advancedFilters.minVolume > 0 ? advancedFilters.minVolume : undefined,
     maxVolume24h: advancedFilters.maxVolume < 500 ? advancedFilters.maxVolume : undefined,
+    search: searchQuery || undefined,
     limit: 100,
-  }), [sortOption, showNsfw, JSON.stringify(advancedFilters)]);
+  }), [sortOption, showNsfw, searchQuery, JSON.stringify(advancedFilters)]);
 
   // Fetch all tokens with current filters - NO POLLING
   const { tokens, isLoading, error, isOffline, offlineMessage } = useTokenList({ filters: tokenFilters, disablePolling: true });
@@ -107,23 +111,44 @@ export default function Home() {
     setAdvancedFilters(filters);
   };
 
+  // Handle search from header
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab: 'explore' | 'watchlist') => {
+    setActiveTab(tab);
+    // TODO: Implement watchlist functionality
+  };
+
   return (
     <div className="space-y-6 min-h-screen">
       {/* Header with Search and Login/Create Coin */}
-      <HomeHeader />
+      <HomeHeader onSearch={handleSearch} />
 
-      {/* Trending Section */}
-      {!isTrendingLoading && trendingTokens.length > 0 && (
+      {/* Trending Section - Only show when not searching */}
+      {!searchQuery && !isTrendingLoading && trendingTokens.length > 0 && (
         <TrendingSection tokens={trendingTokens} />
       )}
 
-      {/* Filter Bar */}
-      <FilterBar
+      {/* Explore Section with Tabs and Filters */}
+      <ExploreSection
         onFilterChange={handleFilterChange}
         onViewModeChange={setViewMode}
         onSortChange={handleSortChange}
         onAdvancedFilterChange={handleAdvancedFilterChange}
+        onTabChange={handleTabChange}
       />
+
+      {/* Section Title */}
+      {!isLoading && tokens.length > 0 && (
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            {searchQuery ? `Search results for "${searchQuery}"` : 'Featured Tokens'}
+          </h3>
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
@@ -274,9 +299,13 @@ export default function Home() {
       {/* Empty State */}
       {!isLoading && tokens.length === 0 && !error && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🚀</div>
-          <h3 className="text-xl font-semibold mb-2 text-white">No tokens yet</h3>
-          <p className="text-gray-400 mb-6">Be the first to create a token!</p>
+          <div className="text-6xl mb-4">{searchQuery ? '🔍' : '🚀'}</div>
+          <h3 className="text-xl font-semibold mb-2 text-white">
+            {searchQuery ? `No results found for "${searchQuery}"` : 'No tokens yet'}
+          </h3>
+          <p className="text-gray-400 mb-6">
+            {searchQuery ? 'Try a different search term or create your own token!' : 'Be the first to create a token!'}
+          </p>
           <a
             href="/create"
             className="inline-block bg-primary text-black px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition"
@@ -293,6 +322,7 @@ export default function Home() {
 function mapSortOptionToBackend(sortOption: string): string {
   const mapping: Record<string, string> = {
     featured: 'volume24h',
+    mayhem: 'trades24h', // Most active tokens by trade count
     createdAt: 'createdAt',
     lastTraded: 'lastTraded',
     oldestCoins: 'oldestCoins',

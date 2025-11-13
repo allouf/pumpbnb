@@ -18,9 +18,6 @@ export function Header() {
             <Link href="/create" className="hover:text-primary transition">
               Create Token
             </Link>
-            <Link href="/tokens" className="hover:text-primary transition">
-              Tokens
-            </Link>
             <Link href="/portfolio" className="hover:text-primary transition">
               Portfolio
             </Link>
