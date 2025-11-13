@@ -99,10 +99,10 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
     // Initial fetch
     fetchTransactions()
 
-    // Poll every 5 seconds for new trades
+    // Poll every 30 seconds for new trades (reduced from 5 seconds for smoother UX)
     const pollInterval = setInterval(() => {
       fetchTransactions()
-    }, 5000)
+    }, 30000)
 
     return () => clearInterval(pollInterval)
   }, [bondingCurveAddress, userAddress])

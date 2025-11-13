@@ -17,6 +17,49 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
   const [bio, setBio] = useState(user.bio || '')
   const [profileImage, setProfileImage] = useState(user.profileImage || '')
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const res = await fetch(`${API_URL}/api/upload/image`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload image')
+      }
+
+      setProfileImage(data.data.url)
+      toast.success('Image uploaded successfully!')
+    } catch (error: any) {
+      console.error('[EditProfileModal] Error uploading image:', error)
+      toast.error(error.message || 'Failed to upload image')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!username.trim()) {
@@ -155,26 +198,66 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
           {/* Profile Image */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              profile image URL
+              profile image
             </label>
-            <input
-              type="text"
-              value={profileImage}
-              onChange={(e) => setProfileImage(e.target.value)}
-              className="w-full bg-secondary text-white px-3 py-2 rounded-lg border border-gray-700 focus:border-primary outline-none"
-              placeholder="https://..."
-            />
+
+            {/* File Upload Button */}
+            <div className="mb-3">
+              <label className="cursor-pointer">
+                <div className="flex items-center gap-2 bg-secondary hover:bg-secondary-light border border-gray-700 rounded-lg px-4 py-2 transition">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span className="text-sm">
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Max 5MB • JPG, PNG, GIF
+              </p>
+            </div>
+
+            {/* Or URL Input */}
+            <div>
+              <p className="text-xs text-gray-400 mb-2">Or enter image URL:</p>
+              <input
+                type="text"
+                value={profileImage}
+                onChange={(e) => setProfileImage(e.target.value)}
+                className="w-full bg-secondary text-white px-3 py-2 rounded-lg border border-gray-700 focus:border-primary outline-none text-sm"
+                placeholder="https://..."
+              />
+            </div>
+
+            {/* Preview */}
             {profileImage && (
-              <div className="mt-2">
-                <p className="text-xs text-gray-500 mb-2">Preview:</p>
+              <div className="mt-3 flex items-center gap-3">
                 <img
                   src={profileImage}
                   alt="Preview"
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-primary"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
+                <div>
+                  <p className="text-xs text-gray-400">Preview</p>
+                  <button
+                    type="button"
+                    onClick={() => setProfileImage('')}
+                    className="text-xs text-red-500 hover:text-red-400 mt-1"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -182,10 +265,10 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
           {/* Save Button */}
           <button
             onClick={handleSave}
-            disabled={saving || showUsernameWarning || !username.trim()}
+            disabled={saving || uploading || showUsernameWarning || !username.trim()}
             className="w-full bg-primary text-black font-bold py-3 rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            {saving ? 'Saving...' : 'save changes'}
+            {saving ? 'Saving...' : uploading ? 'Uploading...' : 'save changes'}
           </button>
         </div>
       </div>

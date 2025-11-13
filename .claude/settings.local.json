@@ -83,7 +83,8 @@
       "Bash(timeout 15 npx prisma migrate dev:*)",
       "Bash(if not exist \"backend\\prisma\\migrations\" mkdir \"backend\\prisma\\migrations\")",
       "Bash(taskkill:*)",
-      "Bash(del /F /Q nul 2)"
+      "Bash(del /F /Q nul 2)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

@@ -145,6 +145,9 @@ export default function DashboardPage() {
 function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated?: (volume: number, revenue: number) => void }) {
   const { transactions, isLoading } = useTransactionHistory(token.bondingCurve)
 
+  // Keep previous values for smooth updates
+  const [displayStats, setDisplayStats] = useState({ volume: 0, revenue: 0, buyCount: 0, sellCount: 0, totalTrades: 0 })
+
   // Calculate stats from transactions
   const totalVolume = transactions.reduce((sum, tx) =>
     sum + Number(formatUnits(tx.asterAmount, 18)), 0
@@ -153,16 +156,29 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
   // Creator earns 0.3% (30 bps) of trading volume during bonding curve phase
   const creatorRevenue = totalVolume * 0.003
 
-  // Report stats to parent
-  useEffect(() => {
-    if (!isLoading && onStatsCalculated) {
-      onStatsCalculated(totalVolume, creatorRevenue)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalVolume, creatorRevenue, isLoading])
-
   const buyCount = transactions.filter(tx => tx.type === 'buy').length
   const sellCount = transactions.filter(tx => tx.type === 'sell').length
+
+  // Update display stats only when we have actual data
+  useEffect(() => {
+    if (transactions.length > 0) {
+      setDisplayStats({
+        volume: totalVolume,
+        revenue: creatorRevenue,
+        buyCount,
+        sellCount,
+        totalTrades: transactions.length
+      })
+    }
+  }, [transactions.length, totalVolume, creatorRevenue, buyCount, sellCount])
+
+  // Report stats to parent
+  useEffect(() => {
+    if (onStatsCalculated) {
+      onStatsCalculated(displayStats.volume, displayStats.revenue)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayStats.volume, displayStats.revenue])
 
   return (
     <Link
@@ -171,7 +187,26 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4 flex-1">
-          <TokenAvatar symbol={token.symbol} size="lg" />
+          {token.imageUrl ? (
+            <img
+              src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+              alt={token.name}
+              className="w-16 h-16 rounded-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center';
+                  fallback.innerHTML = `<span class="text-2xl font-bold text-gray-300">${token.symbol.charAt(0).toUpperCase()}</span>`;
+                  parent.appendChild(fallback);
+                }
+              }}
+            />
+          ) : (
+            <TokenAvatar symbol={token.symbol} size="lg" />
+          )}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
               <h3 className="text-2xl font-bold group-hover:text-primary transition">
@@ -184,27 +219,27 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
               <div>
                 <p className="text-xs text-gray-400 mb-1">Trading Volume</p>
                 <p className="font-semibold text-green-500">
-                  {isLoading ? '...' : totalVolume.toFixed(2)} ASTER
+                  {displayStats.volume.toFixed(2)} ASTER
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Your Revenue</p>
                 <p className="font-semibold text-primary">
-                  {isLoading ? '...' : creatorRevenue.toFixed(4)} ASTER
+                  {displayStats.revenue.toFixed(4)} ASTER
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Total Trades</p>
                 <p className="font-semibold">
-                  {isLoading ? '...' : transactions.length}
+                  {displayStats.totalTrades}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-400 mb-1">Buy/Sell</p>
                 <p className="font-semibold">
-                  <span className="text-green-500">{buyCount}</span>
+                  <span className="text-green-500">{displayStats.buyCount}</span>
                   {' / '}
-                  <span className="text-red-500">{sellCount}</span>
+                  <span className="text-red-500">{displayStats.sellCount}</span>
                 </p>
               </div>
             </div>
