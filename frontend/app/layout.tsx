@@ -5,6 +5,9 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ToastProvider } from "@/components/ToastProvider";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 
+// Force dynamic rendering to avoid SSR issues with wallet connectors
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "ASTER FUN - Meme Coin Launchpad on BNB Chain",
   description: "Launch and trade meme coins on BNB Chain with automated bonding curves and PancakeSwap graduation",
