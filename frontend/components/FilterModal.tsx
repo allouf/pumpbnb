@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { RangeSlider } from './RangeSlider';
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -64,104 +65,34 @@ export function FilterModal({ isOpen, onClose, onApply, initialFilters }: Filter
 
         {/* Market Cap Filter */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-3">
+          <label className="block text-sm font-medium text-gray-300 mb-4">
             Market Cap (ASTER)
           </label>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Min</label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={filters.minMcap}
-                onChange={(e) => setFilters({ ...filters, minMcap: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-secondary-light border border-gray-700 rounded-lg text-white focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Max</label>
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={filters.maxMcap}
-                onChange={(e) => setFilters({ ...filters, maxMcap: parseFloat(e.target.value) || 1000 })}
-                className="w-full px-3 py-2 bg-secondary-light border border-gray-700 rounded-lg text-white focus:border-primary focus:outline-none"
-              />
-            </div>
-          </div>
-          
-          {/* MCap Slider */}
-          <div className="px-1">
-            <input
-              type="range"
-              min="0"
-              max="1000"
-              value={filters.minMcap}
-              onChange={(e) => setFilters({ ...filters, minMcap: parseFloat(e.target.value) })}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
-            />
-            <input
-              type="range"
-              min="0"
-              max="1000"
-              value={filters.maxMcap}
-              onChange={(e) => setFilters({ ...filters, maxMcap: parseFloat(e.target.value) })}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-2"
-            />
-          </div>
+          <RangeSlider
+            min={0}
+            max={1000}
+            step={10}
+            minValue={filters.minMcap}
+            maxValue={filters.maxMcap}
+            onChange={(min, max) => setFilters({ ...filters, minMcap: min, maxMcap: max })}
+            unit="ASTER"
+          />
         </div>
 
         {/* 24h Volume Filter */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-3">
+          <label className="block text-sm font-medium text-gray-300 mb-4">
             24h Volume (ASTER)
           </label>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Min</label>
-              <input
-                type="number"
-                min="0"
-                max="500"
-                value={filters.minVolume}
-                onChange={(e) => setFilters({ ...filters, minVolume: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-secondary-light border border-gray-700 rounded-lg text-white focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Max</label>
-              <input
-                type="number"
-                min="0"
-                max="500"
-                value={filters.maxVolume}
-                onChange={(e) => setFilters({ ...filters, maxVolume: parseFloat(e.target.value) || 500 })}
-                className="w-full px-3 py-2 bg-secondary-light border border-gray-700 rounded-lg text-white focus:border-primary focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Volume Slider */}
-          <div className="px-1">
-            <input
-              type="range"
-              min="0"
-              max="500"
-              value={filters.minVolume}
-              onChange={(e) => setFilters({ ...filters, minVolume: parseFloat(e.target.value) })}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
-            />
-            <input
-              type="range"
-              min="0"
-              max="500"
-              value={filters.maxVolume}
-              onChange={(e) => setFilters({ ...filters, maxVolume: parseFloat(e.target.value) })}
-              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb mt-2"
-            />
-          </div>
+          <RangeSlider
+            min={0}
+            max={500}
+            step={5}
+            minValue={filters.minVolume}
+            maxValue={filters.maxVolume}
+            onChange={(min, max) => setFilters({ ...filters, minVolume: min, maxVolume: max })}
+            unit="ASTER"
+          />
         </div>
 
         {/* Action Buttons */}
@@ -180,27 +111,6 @@ export function FilterModal({ isOpen, onClose, onApply, initialFilters }: Filter
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        .slider-thumb::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #ffc800;
-          cursor: pointer;
-          border: 2px solid #000;
-        }
-
-        .slider-thumb::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #ffc800;
-          cursor: pointer;
-          border: 2px solid #000;
-        }
-      `}</style>
     </div>
   );
 }
