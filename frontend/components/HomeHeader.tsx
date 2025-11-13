@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { useWalletAuth } from '@/lib/hooks/useWalletAuth'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import Link from 'next/link'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
@@ -16,6 +17,7 @@ export function HomeHeader({ onSearch }: HomeHeaderProps = {}) {
   const router = useRouter()
   const { isConnected } = useAccount()
   const { user, isAuthenticating, authenticate } = useWalletAuth()
+  const { openConnectModal } = useConnectModal()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,11 +46,17 @@ export function HomeHeader({ onSearch }: HomeHeaderProps = {}) {
 
   const handleLogin = async () => {
     if (!isConnected) {
-      // Show connect wallet modal
-      document.querySelector<HTMLButtonElement>('[data-testid="rk-connect-button"]')?.click()
+      // Show connect wallet modal using RainbowKit's hook
+      if (openConnectModal) {
+        openConnectModal()
+      }
     } else if (!user) {
       // User is connected but not authenticated, trigger authentication
-      await authenticate()
+      try {
+        await authenticate()
+      } catch (error) {
+        console.error('Authentication failed:', error)
+      }
     }
   }
 

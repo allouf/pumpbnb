@@ -65,17 +65,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
   const pathname = usePathname();
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
   const { address, isConnected } = useAccount();
-  const { user, isAuthenticating, authenticate } = useWalletAuth();
-
-  const handleLogin = async () => {
-    if (!isConnected) {
-      // Show connect wallet modal
-      document.querySelector<HTMLButtonElement>('[data-testid="rk-connect-button"]')?.click();
-    } else if (!user) {
-      // User is connected but not authenticated
-      await authenticate();
-    }
-  };
+  const { user } = useWalletAuth();
 
   return (
     <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
@@ -107,48 +97,38 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         </div>
       </div>
 
-      {/* Login / Wallet Connection - Only show when expanded */}
-      {!isCollapsed && (
+      {/* Wallet Connection - Only show when expanded */}
+      {!isCollapsed && isConnected && user && (
         <div className="p-4 border-b border-border">
-          {!isConnected || !user ? (
-            <button
-              onClick={handleLogin}
-              disabled={isAuthenticating}
-              className="w-full bg-primary text-black px-4 py-2.5 rounded-lg font-bold hover:bg-primary-dark transition disabled:opacity-50"
-            >
-              {isAuthenticating ? 'Authenticating...' : 'Log In'}
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              {user.profileImage ? (
-                <Link href={`/profile/${user.walletAddress}`}>
-                  <img
-                    src={user.profileImage}
-                    alt={user.username || 'Profile'}
-                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
-                  />
-                </Link>
-              ) : (
-                <Link
-                  href={`/profile/${user.walletAddress}`}
-                  className="w-10 h-10 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
-                >
-                  <span className="text-sm font-bold text-black uppercase">
-                    {user.username?.[0] || user.walletAddress[2]}
-                  </span>
-                </Link>
-              )}
-              <div className="flex-1 min-w-0">
-                <RainbowConnectButton
-                  showBalance={false}
-                  accountStatus={{
-                    smallScreen: 'avatar',
-                    largeScreen: 'address',
-                  }}
+          <div className="flex items-center gap-2">
+            {user.profileImage ? (
+              <Link href={`/profile/${user.walletAddress}`}>
+                <img
+                  src={user.profileImage}
+                  alt={user.username || 'Profile'}
+                  className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
                 />
-              </div>
+              </Link>
+            ) : (
+              <Link
+                href={`/profile/${user.walletAddress}`}
+                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
+              >
+                <span className="text-sm font-bold text-black uppercase">
+                  {user.username?.[0] || user.walletAddress[2]}
+                </span>
+              </Link>
+            )}
+            <div className="flex-1 min-w-0">
+              <RainbowConnectButton
+                showBalance={false}
+                accountStatus={{
+                  smallScreen: 'avatar',
+                  largeScreen: 'address',
+                }}
+              />
             </div>
-          )}
+          </div>
         </div>
       )}
 

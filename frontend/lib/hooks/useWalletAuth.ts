@@ -124,7 +124,7 @@ export function useWalletAuth() {
     localStorage.removeItem('pumpbnb_user_address')
   }
 
-  // Auto-authenticate if wallet connects and no user
+  // Restore user from localStorage on wallet connect
   useEffect(() => {
     if (isConnected && address && !user) {
       // Check localStorage first
@@ -135,9 +135,8 @@ export function useWalletAuth() {
         console.log('[useWalletAuth] 📦 Restoring user from localStorage')
         setUser(JSON.parse(storedUser))
       } else {
-        // Auto-authenticate on connect
-        console.log('[useWalletAuth] 🚀 Auto-authenticating...')
-        authenticate()
+        // Don't auto-authenticate - user must click "log in" button
+        console.log('[useWalletAuth] ⏳ Wallet connected, waiting for user to log in...')
       }
     } else if (!isConnected && user) {
       // Clear user when disconnected
