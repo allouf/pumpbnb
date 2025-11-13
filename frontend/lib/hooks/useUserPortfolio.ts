@@ -11,6 +11,7 @@ export interface TokenHolding {
   bondingCurveAddress: string
   name: string
   symbol: string
+  imageUrl?: string
   balance: bigint
   balanceFormatted: string
   valueInAster: bigint
@@ -59,6 +60,7 @@ export function useUserPortfolio() {
           bondingCurveAddress: '', // Backend doesn't provide this yet
           name: item.name || 'Unknown',
           symbol: item.symbol || 'UNKNOWN',
+          imageUrl: item.imageUrl || item.image || undefined,
           balance: BigInt(item.balance || 0),
           balanceFormatted: formatUnits(BigInt(item.balance || 0), 18),
           valueInAster: BigInt(item.value || 0),

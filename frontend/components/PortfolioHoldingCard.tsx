@@ -27,7 +27,26 @@ export function PortfolioHoldingCard({ holding }: PortfolioHoldingCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-3">
-            <TokenAvatar symbol={holding.symbol} size="md" />
+            {holding.imageUrl ? (
+              <img
+                src={holding.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                alt={holding.name}
+                className="w-12 h-12 rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center';
+                    fallback.innerHTML = `<span class="text-xl font-bold text-gray-300">${holding.symbol.charAt(0).toUpperCase()}</span>`;
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
+            ) : (
+              <TokenAvatar symbol={holding.symbol} size="md" />
+            )}
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-bold group-hover:text-primary transition">
