@@ -81,7 +81,9 @@
       "WebFetch(domain:pumpbnb-backend.onrender.com)",
       "Bash(timeout 20 curl:*)",
       "Bash(timeout 15 npx prisma migrate dev:*)",
-      "Bash(if not exist \"backend\\prisma\\migrations\" mkdir \"backend\\prisma\\migrations\")"
+      "Bash(if not exist \"backend\\prisma\\migrations\" mkdir \"backend\\prisma\\migrations\")",
+      "Bash(taskkill:*)",
+      "Bash(del /F /Q nul 2)"
     ],
     "deny": [],
     "ask": []
