@@ -98,159 +98,159 @@ export function ExploreSection({
           </button>
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Filter Pills */}
-            <button
-              onClick={() => handleSortChange('featured')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'featured'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>🔥</span>
-              Featured
-            </button>
+        {/* Filter Buttons - All on One Line */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+          {/* Filter Pills */}
+          <button
+            onClick={() => handleSortChange('featured')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'featured'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">🔥</span>
+            Featured
+          </button>
 
-            <button
-              onClick={() => handleSortChange('mayhem')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'mayhem'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>🔥</span>
-              Mayhem
-            </button>
+          <button
+            onClick={() => handleSortChange('mayhem')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'mayhem'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">🔥</span>
+            Mayhem
+          </button>
 
-            <button
-              onClick={() => handleSortChange('currentlyLive')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'currentlyLive'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Live now
-            </button>
+          <button
+            onClick={() => handleSortChange('currentlyLive')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'currentlyLive'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+            Live now
+          </button>
 
-            <button
-              onClick={() => handleSortChange('highestMcap')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'highestMcap'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>💰</span>
-              Most valuable
-            </button>
+          <button
+            onClick={() => handleSortChange('highestMcap')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'highestMcap'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">💰</span>
+            Most valuable
+          </button>
 
-            <button
-              onClick={() => handleSortChange('createdAt')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'createdAt'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>✨</span>
-              New coins
-            </button>
+          <button
+            onClick={() => handleSortChange('createdAt')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'createdAt'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">✨</span>
+            New coins
+          </button>
 
-            <button
-              onClick={() => handleSortChange('oldestCoins')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'oldestCoins'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>🚀</span>
-              Oldest coins
-            </button>
+          <button
+            onClick={() => handleSortChange('oldestCoins')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'oldestCoins'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">🚀</span>
+            Oldest coins
+          </button>
 
-            <button
-              onClick={() => handleSortChange('lastReply')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                sortOption === 'lastReply'
-                  ? 'bg-primary text-black'
-                  : 'bg-secondary-light text-white hover:bg-secondary-light/80'
-              }`}
-            >
-              <span>💬</span>
-              Last reply
-            </button>
+          <button
+            onClick={() => handleSortChange('lastReply')}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 whitespace-nowrap flex-shrink-0 ${
+              sortOption === 'lastReply'
+                ? 'bg-primary text-black'
+                : 'bg-secondary-light text-white hover:bg-secondary-light/80'
+            }`}
+          >
+            <span className="text-sm">💬</span>
+            Last reply
+          </button>
 
-            {/* NSFW Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-secondary-light rounded-lg hover:bg-secondary-light/80 transition-colors">
-              <span className="text-sm text-white font-medium">Nsfw</span>
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={showNsfw}
-                  onChange={handleNsfwToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-              </div>
-            </label>
-
-            {/* Animations Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-secondary-light rounded-lg hover:bg-secondary-light/80 transition-colors">
-              <span className="text-sm text-white font-medium">Animations</span>
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={showAnimations}
-                  onChange={handleAnimationsToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-              </div>
-            </label>
-          </div>
-
-          {/* Right Side Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsFilterModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-secondary-light rounded-lg transition-colors"
-            >
-              <FunnelIcon className="w-4 h-4" />
-              <span>Filter</span>
-            </button>
-
-            <div className="flex border border-gray-700 rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleViewModeChange('grid')}
-                className={`p-2 transition-colors cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-primary text-black font-bold'
-                    : 'text-gray-400 hover:text-white hover:bg-secondary-light'
-                }`}
-                aria-label="Grid view"
-                title="Grid view"
-              >
-                <Squares2X2Icon className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => handleViewModeChange('list')}
-                className={`p-2 transition-colors cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-primary text-black font-bold'
-                    : 'text-gray-400 hover:text-white hover:bg-secondary-light'
-                }`}
-                aria-label="List view"
-                title="List view"
-              >
-                <ListBulletIcon className="w-5 h-5" />
-              </button>
+          {/* NSFW Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 bg-secondary-light rounded-md hover:bg-secondary-light/80 transition-colors whitespace-nowrap flex-shrink-0">
+            <span className="text-xs text-white font-medium">Nsfw</span>
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={showNsfw}
+                onChange={handleNsfwToggle}
+                className="sr-only peer"
+              />
+              <div className="w-7 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:start-[1px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-primary"></div>
             </div>
+          </label>
+
+          {/* Animations Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 bg-secondary-light rounded-md hover:bg-secondary-light/80 transition-colors whitespace-nowrap flex-shrink-0">
+            <span className="text-xs text-white font-medium">Animations</span>
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={showAnimations}
+                onChange={handleAnimationsToggle}
+                className="sr-only peer"
+              />
+              <div className="w-7 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:start-[1px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-primary"></div>
+            </div>
+          </label>
+
+          {/* Separator */}
+          <div className="h-6 w-px bg-gray-700 flex-shrink-0"></div>
+
+          {/* Filter Button */}
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-gray-400 hover:text-white hover:bg-secondary-light rounded-md transition-colors whitespace-nowrap flex-shrink-0"
+          >
+            <FunnelIcon className="w-3.5 h-3.5" />
+            <span>Filter</span>
+          </button>
+
+          {/* View Mode Toggles */}
+          <div className="flex border border-gray-700 rounded-md overflow-hidden flex-shrink-0">
+            <button
+              onClick={() => handleViewModeChange('grid')}
+              className={`p-1.5 transition-colors cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-primary text-black font-bold'
+                  : 'text-gray-400 hover:text-white hover:bg-secondary-light'
+              }`}
+              aria-label="Grid view"
+              title="Grid view"
+            >
+              <Squares2X2Icon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleViewModeChange('list')}
+              className={`p-1.5 transition-colors cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-primary text-black font-bold'
+                  : 'text-gray-400 hover:text-white hover:bg-secondary-light'
+              }`}
+              aria-label="List view"
+              title="List view"
+            >
+              <ListBulletIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
