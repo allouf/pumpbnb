@@ -9,7 +9,7 @@
     "start": "npx prisma migrate deploy && node dist/server.js",
     "start:simple": "node dist/server.js",
     "start:migrate": "npx prisma generate && npx tsc && npx prisma migrate deploy && node dist/server.js",
-    "start:reset": "npx prisma db push --force-reset --skip-generate --accept-data-loss && node dist/server.js",
+    "start:reset": "npx prisma migrate reset --force --skip-seed && node dist/server.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
