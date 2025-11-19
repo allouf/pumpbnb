@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { TopBar } from './TopBar';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,9 @@ export function MainLayout({ children }: MainLayoutProps) {
         
         {/* Main Content Area - Takes remaining space */}
         <div className="flex-1 min-w-0 overflow-x-hidden">
+          {/* Top Bar with wallet connect and user icon */}
+          <TopBar />
+
           {/* Main Content */}
           <main className="min-h-screen pb-20 md:pb-0">
             <div className="p-4 md:p-6">

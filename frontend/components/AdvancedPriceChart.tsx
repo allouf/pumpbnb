@@ -31,11 +31,12 @@ const ASTER_USD_PRICE = 1.22
 
 // Smart price formatting function - ASTER per token with scientific notation
 const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
-  if (price === 0) return '0'
-  
+  // Handle undefined, null, NaN, or 0
+  if (price === undefined || price === null || isNaN(price) || price === 0) return '0'
+
   const prefix = currency === 'USD' ? '$' : ''
   const suffix = currency === 'ASTER' ? ' ASTER' : ''
-  
+
   // For very small values, use scientific notation like 3×10⁻⁷
   if (Math.abs(price) < 0.0001) {
     const exp = price.toExponential(1)
@@ -45,22 +46,23 @@ const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string
     const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
     return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}${suffix}`
   }
-  
+
   // For small values, use more decimal places
   if (Math.abs(price) < 0.01) {
     return `${prefix}${price.toFixed(8)}${suffix}`
   }
-  
+
   // For normal values
   return `${prefix}${price.toFixed(6)}${suffix}`
 }
 
 // Compact price formatting for header (no suffix, cleaner)
 const formatCompactPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
-  if (price === 0) return '0'
-  
+  // Handle undefined, null, NaN, or 0
+  if (price === undefined || price === null || isNaN(price) || price === 0) return '0'
+
   const prefix = currency === 'USD' ? '$' : ''
-  
+
   // For very small values, use scientific notation
   if (Math.abs(price) < 0.0001) {
     const exp = price.toExponential(1)
@@ -70,7 +72,7 @@ const formatCompactPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'):
     const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
     return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}`
   }
-  
+
   return `${prefix}${price.toFixed(6)}`
 }
 
@@ -1345,16 +1347,16 @@ export function AdvancedPriceChart({
             {(hoveredData || currentOHLC) ? (
               <div className="flex items-center gap-1">
                 <span className="text-gray-400 text-xs">
-                  O:{formatCompactPrice(hoveredData?.open || currentOHLC?.open || 0, priceMode)}
+                  O:{formatCompactPrice(hoveredData?.open ?? currentOHLC?.open ?? 0, priceMode)}
                 </span>
                 <span className="text-gray-400 text-xs">
-                  H:{formatCompactPrice(hoveredData?.high || currentOHLC?.high || 0, priceMode)}
+                  H:{formatCompactPrice(hoveredData?.high ?? currentOHLC?.high ?? 0, priceMode)}
                 </span>
                 <span className="text-gray-400 text-xs">
-                  L:{formatCompactPrice(hoveredData?.low || currentOHLC?.low || 0, priceMode)}
+                  L:{formatCompactPrice(hoveredData?.low ?? currentOHLC?.low ?? 0, priceMode)}
                 </span>
                 <span className="text-gray-400 text-xs">
-                  C:{formatCompactPrice(hoveredData?.close || currentOHLC?.close || 0, priceMode)}
+                  C:{formatCompactPrice(hoveredData?.close ?? currentOHLC?.close ?? 0, priceMode)}
                 </span>
                 <span className={`text-xs font-medium ${
                   stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'

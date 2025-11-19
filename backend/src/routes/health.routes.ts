@@ -8,6 +8,25 @@ import config from '../config';
 const router = Router();
 
 /**
+ * Root endpoint - simple server status
+ */
+router.get('/', (_req: Request, res: Response): void => {
+  res.status(200).json({
+    status: 'running',
+    name: 'PumpBNB API',
+    version: '1.0.0',
+    message: 'Server is running successfully',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      healthDetails: '/health/details',
+      healthRedis: '/health/redis',
+      api: '/api/*'
+    }
+  });
+});
+
+/**
  * Health check endpoint - provides detailed system status
  */
 router.get('/health', async (_req: Request, res: Response): Promise<void> => {

@@ -3,35 +3,25 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAccount } from 'wagmi';
-import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
-import { useWalletAuth } from '@/lib/hooks/useWalletAuth';
 import {
   HomeIcon,
   PlusIcon,
   ChartBarIcon,
   ClockIcon,
-  UserIcon,
-  QuestionMarkCircleIcon,
   EllipsisHorizontalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Square3Stack3DIcon
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
   PlusIcon as PlusIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   ClockIcon as ClockIconSolid,
-  UserIcon as UserIconSolid,
-  QuestionMarkCircleIcon as SupportIconSolid,
-  EllipsisHorizontalIcon as MoreIconSolid,
-  Square3Stack3DIcon as Square3Stack3DIconSolid
 } from '@heroicons/react/24/solid';
 
 interface NavigationItem {
   name: string;
-  href: string | ((address?: string) => string);
+  href: string;
   icon: React.ElementType;
   iconSolid: React.ElementType;
 }
@@ -39,12 +29,6 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
-  {
-    name: 'Portfolio',
-    href: (address?: string) => address ? `/profile/${address}` : '/portfolio',
-    icon: Square3Stack3DIcon,
-    iconSolid: Square3Stack3DIconSolid
-  },
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
 ];
@@ -64,8 +48,6 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
-  const { address, isConnected } = useAccount();
-  const { user } = useWalletAuth();
 
   return (
     <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
@@ -97,47 +79,12 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         </div>
       </div>
 
-      {/* Wallet Connection - Only show when expanded */}
-      {!isCollapsed && isConnected && user && (
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            {user.profileImage ? (
-              <Link href={`/profile/${user.walletAddress}`}>
-                <img
-                  src={user.profileImage}
-                  alt={user.username || 'Profile'}
-                  className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
-                />
-              </Link>
-            ) : (
-              <Link
-                href={`/profile/${user.walletAddress}`}
-                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
-              >
-                <span className="text-sm font-bold text-black uppercase">
-                  {user.username?.[0] || user.walletAddress[2]}
-                </span>
-              </Link>
-            )}
-            <div className="flex-1 min-w-0">
-              <RainbowConnectButton
-                showBalance={false}
-                accountStatus={{
-                  smallScreen: 'avatar',
-                  largeScreen: 'address',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 overflow-y-hidden">
         <div className="h-full overflow-y-auto scrollbar-hide">
         <ul className="space-y-1">
           {navigation.map((item) => {
-            const itemHref = typeof item.href === 'function' ? item.href(address) : item.href;
+            const itemHref = item.href as string;
             const isActive = pathname === itemHref;
             const Icon = isActive ? item.iconSolid : item.icon;
 
