@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAccount } from 'wagmi';
 import {
   HomeIcon,
   PlusIcon,
   ChartBarIcon,
   ClockIcon,
+  UserIcon,
   EllipsisHorizontalIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -17,11 +19,12 @@ import {
   PlusIcon as PlusIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   ClockIcon as ClockIconSolid,
+  UserIcon as UserIconSolid,
 } from '@heroicons/react/24/solid';
 
 interface NavigationItem {
   name: string;
-  href: string;
+  href: string | ((address?: string) => string);
   icon: React.ElementType;
   iconSolid: React.ElementType;
 }
@@ -29,6 +32,12 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
+  {
+    name: 'Profile',
+    href: (address?: string) => address ? `/profile/${address}` : '/profile',
+    icon: UserIcon,
+    iconSolid: UserIconSolid
+  },
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
 ];
@@ -48,6 +57,7 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
+  const { address } = useAccount();
 
   return (
     <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
@@ -84,7 +94,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         <div className="h-full overflow-y-auto scrollbar-hide">
         <ul className="space-y-1">
           {navigation.map((item) => {
-            const itemHref = item.href as string;
+            const itemHref = typeof item.href === 'function' ? item.href(address) : item.href;
             const isActive = pathname === itemHref;
             const Icon = isActive ? item.iconSolid : item.icon;
 

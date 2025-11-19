@@ -380,7 +380,21 @@ export function ProfilePageClient({ address }: { address: string }) {
                   {token.stats && (
                     <div className="text-right">
                       <div className="text-sm font-bold">
-                        ${(Number(token.stats.marketCapUsd) / 1000).toFixed(1)}K
+                        {(() => {
+                          const marketCapUsd = Number(token.stats.marketCapUsd || 0);
+                          const marketCapAster = Number(token.stats.marketCap || 0);
+
+                          // Show USD if > $1, otherwise show ASTER
+                          if (marketCapUsd >= 1) {
+                            if (marketCapUsd >= 1000) {
+                              return `$${(marketCapUsd / 1000).toFixed(1)}K`;
+                            }
+                            return `$${marketCapUsd.toFixed(2)}`;
+                          } else if (marketCapAster > 0) {
+                            return `${marketCapAster.toFixed(2)} ASTER`;
+                          }
+                          return '$0';
+                        })()}
                       </div>
                       <div className="text-xs text-gray-400">MCap</div>
                     </div>
