@@ -888,25 +888,79 @@ export function AdvancedPriceChart({
         // Set data based on chart type
         if (chartType === 'line' || chartType === 'area') {
           // For line/area charts, we only need time and value (close price)
-          const lineData = candleData.map(candle => ({
-            time: candle.time,
-            value: candle.close,
-          }))
+          // Additional validation to ensure no undefined/NaN values
+          const lineData = candleData
+            .filter(candle => {
+              const isValid = typeof candle.close === 'number' &&
+                             !isNaN(candle.close) &&
+                             isFinite(candle.close) &&
+                             candle.close > 0
+              if (!isValid) {
+                console.warn('[AdvancedPriceChart] Filtering out invalid line data:', candle)
+              }
+              return isValid
+            })
+            .map(candle => ({
+              time: candle.time,
+              value: candle.close,
+            }))
+
+          if (lineData.length === 0) {
+            console.error('[AdvancedPriceChart] No valid line data after filtering')
+            return
+          }
+
           priceSeriesRef.current.setData(lineData)
         } else if (chartType === 'columns') {
           // For columns/histogram charts, use close price with color based on trend
-          const histogramData = candleData.map(candle => ({
-            time: candle.time,
-            value: candle.close,
-            color: candle.close >= candle.open ? '#10b981' : '#ef4444',
-          }))
+          // Additional validation to ensure no undefined/NaN values
+          const histogramData = candleData
+            .filter(candle => {
+              const isValid = typeof candle.close === 'number' &&
+                             !isNaN(candle.close) &&
+                             isFinite(candle.close) &&
+                             candle.close > 0 &&
+                             typeof candle.open === 'number' &&
+                             !isNaN(candle.open) &&
+                             isFinite(candle.open)
+              if (!isValid) {
+                console.warn('[AdvancedPriceChart] Filtering out invalid histogram data:', candle)
+              }
+              return isValid
+            })
+            .map(candle => ({
+              time: candle.time,
+              value: candle.close,
+              color: candle.close >= candle.open ? '#10b981' : '#ef4444',
+            }))
+
+          if (histogramData.length === 0) {
+            console.error('[AdvancedPriceChart] No valid histogram data after filtering')
+            return
+          }
+
           priceSeriesRef.current.setData(histogramData)
         } else {
           // For candlestick charts, use full OHLC data
+          // Data is already validated when added to candleData array
           priceSeriesRef.current.setData(candleData)
         }
         
-        volumeSeriesRef.current.setData(volumeData)
+        // Validate volume data before setting
+        const validVolumeData = volumeData.filter(vol => {
+          const isValid = typeof vol.value === 'number' &&
+                         !isNaN(vol.value) &&
+                         isFinite(vol.value) &&
+                         vol.value >= 0
+          if (!isValid) {
+            console.warn('[AdvancedPriceChart] Filtering out invalid volume data:', vol)
+          }
+          return isValid
+        })
+
+        if (validVolumeData.length > 0) {
+          volumeSeriesRef.current.setData(validVolumeData)
+        }
         
         // Fit content ONLY on initial load to show all candles with OPTIMAL visibility
         if (isInitialLoadRef.current && chartRef.current) {
