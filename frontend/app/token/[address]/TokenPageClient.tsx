@@ -256,8 +256,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   }
 
   return (
-    <div className="py-6 overflow-x-hidden">
-      <div className="container mx-auto px-4 max-w-full">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="container mx-auto px-4 max-w-full flex-shrink-0">
         {/* Back button */}
         <button
           onClick={() => window.history.back()}
@@ -268,11 +268,13 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </svg>
           Back
         </button>
+      </div>
 
-        {/* Pump.fun Style Layout - Chart Width Token Header */}
-        <div className="flex gap-6 overflow-x-hidden">
-          {/* Left Column - Chart + Tabs + Token Info */}
-          <div className="flex-1 min-w-0 overflow-x-hidden pr-2">
+      {/* Pump.fun Style Layout - Chart Width Token Header */}
+      <div className="flex-1 container mx-auto px-4 max-w-full overflow-hidden">
+        <div className="flex gap-6 h-full overflow-hidden">
+          {/* Left Column - Chart + Tabs + Token Info - Independent scroll */}
+          <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-2 h-full">
             {/* Token Info Header - Same Width as Chart - Compact Layout */}
             <div className="bg-secondary-light rounded-xl p-4 mb-4">
               <div className="flex items-start gap-4">
@@ -454,8 +456,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
             </div>
           </div>
 
-          {/* Right Column - Trading Panel */}
-          <div className="w-80 flex-shrink-0 overflow-x-hidden pl-2">
+          {/* Right Column - Trading Panel - Independent scroll */}
+          <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden pl-2 h-full">
             {/* Trading Panel - Aligned with token info header */}
             {bondingCurve ? (
               <TradingPanel
@@ -552,9 +554,9 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Share Popup */}
-      <SharePopup 
+      <SharePopup
         isOpen={showSharePopup}
         onClose={() => setShowSharePopup(false)}
         tokenName={name || ''}
