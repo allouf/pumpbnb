@@ -275,20 +275,44 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
         <div className="flex gap-6 h-full overflow-hidden">
           {/* Left Column - Chart + Tabs + Token Info - Independent scroll */}
           <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-2 h-full">
-            {/* Token Info Header - Same Width as Chart - Compact Layout */}
-            <div className="bg-secondary-light rounded-xl p-4 mb-4">
-              <div className="flex items-start gap-4">
-                {/* Token Image - Top Left */}
-                <div className="flex-shrink-0">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                      alt={name}
-                      className="w-20 h-20 rounded-xl object-cover border-2 border-gray-600 shadow-lg"
-                    />
-                  ) : (
-                    <TokenAvatar symbol={symbol} size="xl" />
-                  )}
+            {/* Token Info Header - Same Width as Chart - Larger Image Layout */}
+            <div className="bg-secondary-light rounded-xl p-6 mb-4 border border-gray-700">
+              <div className="flex items-center gap-6">
+                {/* Token Image - Larger with Pump.fun style gradient border */}
+                <div className="flex-shrink-0 group relative">
+                  <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+                    {/* Gradient border effect */}
+                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-600 via-yellow-400 to-amber-600 p-[2px]">
+                      <div className="h-full w-full rounded-lg bg-secondary-light"></div>
+                    </div>
+                    {/* Image container */}
+                    <div className="absolute inset-[2px] rounded-lg overflow-hidden">
+                      {imageUrl ? (
+                        <>
+                          {/* Blurred background */}
+                          <div className="absolute inset-0 z-0">
+                            <img
+                              src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                              alt={name}
+                              className="h-full w-full scale-110 object-cover opacity-30 blur-md transition-transform duration-300 group-hover:scale-125"
+                            />
+                          </div>
+                          {/* Main image */}
+                          <div className="absolute inset-0 z-10 flex items-center justify-center p-2">
+                            <img
+                              src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                              alt={name}
+                              className="h-full w-full object-contain transition-all duration-300 group-hover:scale-110"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <TokenAvatar symbol={symbol} size="xl" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Token Info */}
@@ -313,23 +337,26 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                       </div>
                     </div>
                     
-                    {/* Action Buttons */}
+                    {/* Action Buttons - Always visible */}
                     <div className="flex gap-2 flex-shrink-0 ml-4">
                       <button
                         onClick={handleShare}
-                        className="px-3 py-1.5 bg-primary text-black hover:bg-primary/90 rounded-lg transition font-medium text-sm"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary text-black hover:bg-primary/90 rounded-lg transition font-inter font-semibold text-xs"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M14.5563 7.7518L8.88865 2.6655C8.67404 2.47289 8.33268 2.62521 8.33268 2.91358V5.66655C2.66602 5.66655 1.16602 7.83322 1.16602 13.4999C2.16602 11.4999 2.66602 10.3332 8.33268 10.3332V13.0862C8.33268 13.3746 8.67404 13.5269 8.88865 13.3343L14.5562 8.24796C14.7038 8.11551 14.7038 7.88426 14.5563 7.7518Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                        </svg>
                         Share
                       </button>
                       <button
                         onClick={() => setIsFavorite(!isFavorite)}
-                        className={`p-1.5 rounded-lg transition flex items-center justify-center ${
-                          isFavorite ? 'bg-primary text-black' : 'bg-secondary hover:bg-secondary-light text-gray-400 border border-gray-700'
+                        className={`p-2 rounded-lg transition flex items-center justify-center ${
+                          isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
                         }`}
                         title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
                       >
-                        <svg className="w-4 h-4" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976-2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+                          <path d="M7.69983 1.35512C7.82047 1.10363 8.17953 1.10363 8.30017 1.35512L10.0126 4.92472C10.0612 5.02597 10.1578 5.09587 10.2694 5.1105L14.2103 5.62721C14.488 5.66363 14.5991 6.00504 14.3957 6.19709L11.5139 8.91815C11.4319 8.99551 11.3949 9.109 11.4155 9.21962L12.1391 13.1067C12.1902 13.381 11.8996 13.5919 11.6535 13.459L8.15842 11.5722C8.05959 11.5188 7.94041 11.5188 7.84158 11.5722L4.34646 13.459C4.10042 13.5919 3.80982 13.381 3.86088 13.1067L4.5845 9.21962C4.6051 9.109 4.56807 8.99551 4.48614 8.91815L1.60434 6.19709C1.40094 6.00504 1.51202 5.66363 1.78975 5.62721L5.7306 5.1105C5.8422 5.09587 5.93882 5.02597 5.98739 4.92472L7.69983 1.35512Z" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </button>
                     </div>
@@ -423,23 +450,23 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
               <div className="flex border-b border-gray-700">
                 <button
                   onClick={() => setActiveTab('trades')}
-                  className={`flex-1 px-6 py-4 font-semibold transition ${
+                  className={`flex-1 px-6 py-3 font-medium transition ${
                     activeTab === 'trades'
-                      ? 'bg-secondary text-primary border-b-2 border-primary'
+                      ? 'text-white border-b-2 border-primary'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  🔄 Trades
+                  Trades
                 </button>
                 <button
                   onClick={() => setActiveTab('comments')}
-                  className={`flex-1 px-6 py-4 font-semibold transition ${
+                  className={`flex-1 px-6 py-3 font-medium transition ${
                     activeTab === 'comments'
-                      ? 'bg-secondary text-primary border-b-2 border-primary'
+                      ? 'text-white border-b-2 border-primary'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  💬 Comments
+                  Comments
                 </button>
               </div>
 

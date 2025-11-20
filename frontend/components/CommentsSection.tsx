@@ -125,9 +125,11 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
             <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
               {/* Comment Header */}
               <div className="flex items-center gap-3 mb-2">
-                {/* User Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-black font-bold text-xs">
-                  {comment.author.slice(2, 4).toUpperCase()}
+                {/* User Avatar - Professional user icon instead of initials */}
+                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
                 </div>
                 
                 {/* User Info */}

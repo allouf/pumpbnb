@@ -166,16 +166,25 @@ export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: Rece
 
   return (
     <div className="space-y-4">
-      {/* Size Filter Checkbox */}
+      {/* Size Filter Checkbox - Cleaner styling */}
       <div className="mb-4">
-        <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={sizeFilter}
-            onChange={(e) => setSizeFilter(e.target.checked)}
-            className="w-4 h-4 text-primary bg-secondary border-gray-600 rounded focus:ring-primary focus:ring-2"
-          />
-          filter by size 0.05 ASTER
+        <label className="inline-flex items-center gap-2 text-sm text-gray-300 cursor-pointer hover:text-white transition">
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={sizeFilter}
+              onChange={(e) => setSizeFilter(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-4 h-4 border-2 border-gray-600 rounded peer-checked:border-primary peer-checked:bg-primary transition flex items-center justify-center">
+              {sizeFilter && (
+                <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <span className="font-normal">Filter by size ≥ 0.05 ASTER</span>
         </label>
       </div>
 

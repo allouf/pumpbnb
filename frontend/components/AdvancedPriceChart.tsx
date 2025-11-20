@@ -1474,24 +1474,26 @@ export function AdvancedPriceChart({
   return (
     <div className="bg-secondary-light rounded-xl overflow-hidden">
       {/* Pump.fun Style Compact Header */}
-      <div className="px-4 py-2 border-b border-gray-700">
-        
+      <div className="px-4 py-3 border-b border-gray-700">
+
         {/* Row 1: Market Cap (3-line format) + Progress Bar to ATH */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex flex-col">
             {/* Line 1: Market Cap title */}
-            <span className="text-xs text-gray-400 font-medium">Market Cap</span>
-            
-            {/* Line 2: Market Cap value */}
-            <span className="text-xl font-bold text-white">
+            <span className="text-sm text-gray-400 font-normal">Market Cap</span>
+
+            {/* Line 2: Market Cap value - LARGER */}
+            <span className="text-3xl font-bold text-white leading-none my-1">
               ${marketCap || '28.7K'}
             </span>
-            
-            {/* Line 3: 24h change - use actual price change from stats */}
-            <span className={`text-xs font-medium ${
-              stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-            }`}>
-              {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}% 24hr
+
+            {/* Line 3: 24h change with $ and % */}
+            <span className="text-sm font-normal">
+              <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
+                {stats.change24h >= 0 ? '+' : ''}${Math.abs(stats.change24h * parseFloat(marketCap || '0') / 100).toFixed(0)} ({stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%)
+              </span>
+              {' '}
+              <span className="text-gray-400">24hr</span>
             </span>
           </div>
           
@@ -1645,188 +1647,8 @@ export function AdvancedPriceChart({
       </div>
 
 
-      {/* Chart Container with Toolbar */}
+      {/* Chart Container */}
       <div className="relative">
-        {/* Vertical Chart Toolbar - Left Side */}
-        <div className="absolute left-2 top-4 z-10 flex flex-col gap-1">
-          {/* Crosshair */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Crosshair"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
-
-          {/* Trend Line */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Trend Line"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </button>
-
-          {/* Horizontal Line */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Horizontal Line"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-            </svg>
-          </button>
-
-          {/* Indicators */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Indicators"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </button>
-
-          {/* Text Tool */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Text"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-          </button>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700 my-1"></div>
-          
-          {/* Zoom In */}
-          <button
-            onClick={() => {
-              if (chartRef.current) {
-                const timeScale = chartRef.current.timeScale()
-                timeScale.scrollToPosition(-5, true)
-              }
-            }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Zoom In"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-            </svg>
-          </button>
-          
-          {/* Zoom Out */}
-          <button
-            onClick={() => {
-              if (chartRef.current) {
-                const timeScale = chartRef.current.timeScale()
-                timeScale.scrollToPosition(5, true)
-              }
-            }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Zoom Out"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-            </svg>
-          </button>
-          
-          {/* Fit Content */}
-          <button
-            onClick={() => {
-              if (chartRef.current) {
-                chartRef.current.timeScale().fitContent()
-              }
-            }}
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Fit to Screen"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700 my-1"></div>
-
-          {/* Screenshot */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Screenshot"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-
-          {/* Settings */}
-          <button
-            className="bg-secondary/90 hover:bg-secondary border border-gray-700 p-1.5 rounded transition backdrop-blur-sm"
-            title="Settings"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700 my-1"></div>
-
-          {/* Debug Button - Log Current State */}
-          <button
-            onClick={logCurrentChartState}
-            className="bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 p-1.5 rounded transition backdrop-blur-sm"
-            title="Log Current Chart State (Check Console)"
-          >
-            <svg className="w-3.5 h-3.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </button>
-
-          {/* Divider */}
-          <div className="h-px bg-gray-700 my-1"></div>
-
-          {/* Period Selectors - Moved to toolbar bottom */}
-          <button
-            onClick={() => setTimeframe('1d')}
-            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
-              timeframe === '1d'
-                ? 'bg-primary text-black'
-                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
-            }`}
-            title="1 Day"
-          >
-            1D
-          </button>
-          <button
-            onClick={() => setTimeframe('4h')}
-            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
-              timeframe === '4h'
-                ? 'bg-primary text-black'
-                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
-            }`}
-            title="5 Days"
-          >
-            5D
-          </button>
-          <button
-            onClick={() => setTimeframe('all')}
-            className={`px-2 py-1.5 rounded text-xs font-medium transition ${
-              timeframe === 'all'
-                ? 'bg-primary text-black'
-                : 'bg-secondary/90 text-gray-300 hover:text-white border border-gray-700'
-            }`}
-            title="1 Month / All"
-          >
-            1M
-          </button>
-        </div>
-        
         <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
@@ -1880,13 +1702,6 @@ export function AdvancedPriceChart({
               {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%
             </div>
           </div>
-        </div>
-
-        {/* Additional Info Row */}
-        <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-2">
-          <span>{filteredTransactions.length} trades</span>
-          <span>•</span>
-          <span>1 ASTER = ${ASTER_USD_PRICE.toFixed(2)}</span>
         </div>
       </div>
 
