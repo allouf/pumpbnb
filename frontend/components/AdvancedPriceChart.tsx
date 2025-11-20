@@ -29,7 +29,7 @@ type ChartType = 'candlestick' | 'line' | 'area' | 'columns'
 // TODO: Replace with CoinGecko or DexScreener API for real-time price
 const ASTER_USD_PRICE = 1.22
 
-// Smart price formatting function - ASTER per token with scientific notation
+// Smart price formatting function - ASTER per token with Pump.fun style subscript notation
 const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
   // Handle undefined, null, NaN, or 0
   if (price === undefined || price === null || isNaN(price) || price === 0) return '0'
@@ -37,14 +37,21 @@ const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string
   const prefix = currency === 'USD' ? '$' : ''
   const suffix = currency === 'ASTER' ? ' ASTER' : ''
 
-  // For very small values, use scientific notation like 3×10⁻⁷
+  // For very small values, use Pump.fun style subscript notation: 0.0₆39
   if (Math.abs(price) < 0.0001) {
-    const exp = price.toExponential(1)
-    const [coefficient, exponent] = exp.split('e')
-    const expNum = parseInt(exponent)
-    // Remove unnecessary decimal if coefficient is whole number
-    const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
-    return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}${suffix}`
+    const priceStr = price.toFixed(20) // Get many decimals
+    const match = priceStr.match(/^0\.0+/)
+
+    if (match) {
+      const leadingZeros = match[0].length - 2 // Subtract "0."
+      const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+
+      // Convert zero count to subscript
+      const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+      const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+
+      return `${prefix}0.0${subscriptCount}${significantDigits}${suffix}`
+    }
   }
 
   // For small values, use more decimal places
@@ -56,21 +63,28 @@ const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string
   return `${prefix}${price.toFixed(6)}${suffix}`
 }
 
-// Compact price formatting for header (no suffix, cleaner)
+// Compact price formatting for header (no suffix, cleaner) - Pump.fun style
 const formatCompactPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
   // Handle undefined, null, NaN, or 0
   if (price === undefined || price === null || isNaN(price) || price === 0) return '0'
 
   const prefix = currency === 'USD' ? '$' : ''
 
-  // For very small values, use scientific notation
+  // For very small values, use Pump.fun style subscript notation: 0.0₆39
   if (Math.abs(price) < 0.0001) {
-    const exp = price.toExponential(1)
-    const [coefficient, exponent] = exp.split('e')
-    const expNum = parseInt(exponent)
-    // Remove unnecessary decimal if coefficient is whole number
-    const cleanCoeff = coefficient.includes('.0') ? coefficient.replace('.0', '') : coefficient
-    return `${prefix}${cleanCoeff}×10⁻${Math.abs(expNum)}`
+    const priceStr = price.toFixed(20) // Get many decimals
+    const match = priceStr.match(/^0\.0+/)
+
+    if (match) {
+      const leadingZeros = match[0].length - 2 // Subtract "0."
+      const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+
+      // Convert zero count to subscript
+      const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+      const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+
+      return `${prefix}0.0${subscriptCount}${significantDigits}`
+    }
   }
 
   return `${prefix}${price.toFixed(6)}`
@@ -341,19 +355,19 @@ export function AdvancedPriceChart({
     console.log('[AdvancedPriceChart] 📊 Creating chart instance...')
     const chart: any = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#f3f4f6',    // Brighter text for better readability
-        fontSize: 12,
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+        background: { type: ColorType.Solid, color: '#0a0a0a' }, // Very dark background like Pump.fun
+        textColor: '#9ca3af',    // Gray text for labels
+        fontSize: 11,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", sans-serif',
       },
       grid: {
-        vertLines: { 
-          color: 'rgba(107, 114, 128, 0.2)',  // Subtle gray grid lines
+        vertLines: {
+          color: 'rgba(75, 85, 99, 0.4)',  // Much more visible grid lines (darker gray)
           style: 0,  // Solid lines
           visible: true,
         },
-        horzLines: { 
-          color: 'rgba(107, 114, 128, 0.2)', 
+        horzLines: {
+          color: 'rgba(75, 85, 99, 0.4)',  // Much more visible horizontal lines
           style: 0,  // Solid lines
           visible: true,
         },
@@ -363,28 +377,28 @@ export function AdvancedPriceChart({
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          width: 2,
-          color: '#00D4AA',
-          style: 0,  // Solid line
-          labelBackgroundColor: '#111827',
+          width: 1,
+          color: 'rgba(156, 163, 175, 0.5)',
+          style: 2,  // Dashed line
+          labelBackgroundColor: '#1f2937',
           labelVisible: true,
         },
         horzLine: {
-          width: 2,
-          color: '#00D4AA',
-          style: 0,  // Solid line
-          labelBackgroundColor: '#111827',
+          width: 1,
+          color: 'rgba(156, 163, 175, 0.5)',
+          style: 2,  // Dashed line
+          labelBackgroundColor: '#1f2937',
           labelVisible: true,
         },
       },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: 'rgba(156, 163, 175, 0.5)',
+        borderColor: 'rgba(75, 85, 99, 0.3)',
         borderVisible: true,
-        rightOffset: 25, // More space on right
-        barSpacing: 20, // Increased spacing for more visible candles (was 15)
-        minBarSpacing: 4, // Prevent candles from becoming thin dashes (was 0.5)
+        rightOffset: 12,
+        barSpacing: 8, // Tighter spacing like Pump.fun
+        minBarSpacing: 2,
         fixLeftEdge: false,
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
@@ -393,11 +407,14 @@ export function AdvancedPriceChart({
         shiftVisibleRangeOnNewBar: true,
         tickMarkFormatter: (time: any) => {
           const date = new Date(time * 1000)
-          return date.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit',
-            hour12: false 
-          })
+          const hours = date.getHours()
+          const minutes = date.getMinutes()
+
+          // Format like Pump.fun: "12:00", "18:00", "20" (just hour if :00)
+          if (minutes === 0) {
+            return hours.toString()
+          }
+          return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
         },
       },
       rightPriceScale: {
@@ -416,6 +433,12 @@ export function AdvancedPriceChart({
         entireTextOnly: false,
         minimumWidth: 0,
         ticksVisible: true,
+      },
+      // Enable right-click context menu
+      handleContextMenu: true,
+      kineticScroll: {
+        touch: true,
+        mouse: false,
       },
       handleScroll: {
         mouseWheel: true,
@@ -462,17 +485,40 @@ export function AdvancedPriceChart({
     try {
       let priceSeries
       const priceSeriesOptions = {
-        upColor: '#10b981',     // Emerald green for bullish candles
+        upColor: '#22c55e',     // Bright green for bullish candles (more vibrant)
         downColor: '#ef4444',   // Bright red for bearish candles
         borderVisible: true,
-        borderUpColor: '#059669', // Darker green for borders
-        borderDownColor: '#dc2626', // Darker red for borders
-        wickUpColor: '#10b981',
+        borderUpColor: '#22c55e', // Same color border for cleaner look
+        borderDownColor: '#ef4444', // Same color border for cleaner look
+        wickUpColor: '#22c55e',
         wickDownColor: '#ef4444',
         priceFormat: {
-          type: 'price',
-          precision: 12,    // High precision for small values
-          minMove: 0.000000000001,      // Very small minimum move
+          type: 'custom',
+          // Custom formatter for Y-axis with Pump.fun style subscript notation
+          formatter: (price: number) => {
+            if (price === 0) return '0'
+
+            // For very small values, use Pump.fun style subscript notation
+            if (Math.abs(price) < 0.0001) {
+              const priceStr = price.toFixed(20)
+              const match = priceStr.match(/^0\.0+/)
+
+              if (match) {
+                const leadingZeros = match[0].length - 2
+                const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+                const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+                const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+                return `0.0${subscriptCount}${significantDigits}`
+              }
+            }
+
+            // For small values, use more decimals
+            if (Math.abs(price) < 0.01) return price.toFixed(8)
+
+            // For normal values
+            return price.toFixed(6)
+          },
+          minMove: 0.000000000001,
         },
         // Enhanced visual properties
         priceLineVisible: false, // Hide price line for cleaner look
@@ -520,7 +566,7 @@ export function AdvancedPriceChart({
     try {
       let volumeSeries
       const volumeOptions = {
-        color: 'rgba(16, 185, 129, 0.6)',  // Enhanced green with good opacity
+        color: 'rgba(34, 197, 94, 0.5)',  // Brighter green matching candles
         priceFormat: {
           type: 'volume',
         },
@@ -684,35 +730,35 @@ export function AdvancedPriceChart({
       switch (newType) {
         case 'line':
           newSeries = chartRef.current.addSeries(LineSeries, {
-            color: '#10b981',      // Emerald green consistent with candlesticks
-            lineWidth: 4,          // Thick line for visibility
+            color: '#22c55e',      // Bright green consistent with candlesticks
+            lineWidth: 2,          // Medium thickness
             priceFormat,
             crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 8,
-            crosshairMarkerBorderColor: '#059669',
-            crosshairMarkerBackgroundColor: '#10b981',
+            crosshairMarkerRadius: 6,
+            crosshairMarkerBorderColor: '#22c55e',
+            crosshairMarkerBackgroundColor: '#22c55e',
             lastValueVisible: true,
             priceLineVisible: false,
           })
           break
         case 'area':
           newSeries = chartRef.current.addSeries(AreaSeries, {
-            topColor: 'rgba(16, 185, 129, 0.8)',    // Rich green gradient
-            bottomColor: 'rgba(16, 185, 129, 0.1)', // Subtle fade to transparent
-            lineColor: '#10b981',
-            lineWidth: 4,      // Thick line for better visibility
+            topColor: 'rgba(34, 197, 94, 0.6)',    // Brighter green gradient
+            bottomColor: 'rgba(34, 197, 94, 0.05)', // Subtle fade to transparent
+            lineColor: '#22c55e',
+            lineWidth: 2,
             priceFormat,
             crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 8,
-            crosshairMarkerBorderColor: '#059669',
-            crosshairMarkerBackgroundColor: '#10b981',
+            crosshairMarkerRadius: 6,
+            crosshairMarkerBorderColor: '#22c55e',
+            crosshairMarkerBackgroundColor: '#22c55e',
             lastValueVisible: true,
             priceLineVisible: false,
           })
           break
         case 'columns':
           newSeries = chartRef.current.addSeries(HistogramSeries, {
-            color: '#10b981',       // Default green color
+            color: '#22c55e',       // Bright green color
             priceFormat,
             priceScaleId: 'right',
             lastValueVisible: true,
@@ -722,12 +768,12 @@ export function AdvancedPriceChart({
         case 'candlestick':
         default:
           newSeries = chartRef.current.addSeries(CandlestickSeries, {
-            upColor: '#10b981',     // Emerald green for bullish candles
+            upColor: '#22c55e',     // Bright green for bullish candles
             downColor: '#ef4444',   // Bright red for bearish candles
             borderVisible: true,
-            borderUpColor: '#059669', // Darker green for borders
-            borderDownColor: '#dc2626', // Darker red for borders
-            wickUpColor: '#10b981',
+            borderUpColor: '#22c55e',
+            borderDownColor: '#ef4444',
+            wickUpColor: '#22c55e',
             wickDownColor: '#ef4444',
             priceFormat,
             lastValueVisible: true,
@@ -921,7 +967,7 @@ export function AdvancedPriceChart({
         volumeData.push({
           time: paddedTime,
           value: 0,
-          color: '#26a69a',
+          color: 'rgba(34, 197, 94, 0.5)',
         })
       }
     }
@@ -967,7 +1013,7 @@ export function AdvancedPriceChart({
         volumeData.push({
           time: time as UTCTimestamp,
           value: candle.volume,
-          color: candle.close >= candle.open ? '#00D4AA' : '#FF4747',
+          color: candle.close >= candle.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)',
         })
       } else {
         console.error(`[AdvancedPriceChart] ❌ Candle ${index} is INVALID, skipping:`, candle)
@@ -1065,7 +1111,7 @@ export function AdvancedPriceChart({
               const histPoint = {
                 time: candle.time,
                 value: candle.close,
-                color: candle.close >= candle.open ? '#10b981' : '#ef4444',
+                color: candle.close >= candle.open ? '#22c55e' : '#ef4444',
               }
               console.log(`[AdvancedPriceChart] ✅ Histogram point ${i}:`, histPoint)
               return histPoint
