@@ -434,8 +434,6 @@ export function AdvancedPriceChart({
         minimumWidth: 0,
         ticksVisible: true,
       },
-      // Enable right-click context menu
-      handleContextMenu: true,
       kineticScroll: {
         touch: true,
         mouse: false,
