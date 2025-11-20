@@ -748,8 +748,23 @@ export function AdvancedPriceChart({
 
   // Update chart data when filtered transactions change or price mode changes
   useEffect(() => {
-    if (!priceSeriesRef.current || !volumeSeriesRef.current) return
-    if (filteredTransactions.length === 0) return
+    console.log('[AdvancedPriceChart] 🔄 Data update effect triggered', {
+      hasPriceSeries: !!priceSeriesRef.current,
+      hasVolumeSeries: !!volumeSeriesRef.current,
+      filteredTxCount: filteredTransactions.length,
+      chartType,
+      priceMode,
+      timeframe
+    })
+
+    if (!priceSeriesRef.current || !volumeSeriesRef.current) {
+      console.log('[AdvancedPriceChart] ⚠️ Missing series refs, skipping update')
+      return
+    }
+    if (filteredTransactions.length === 0) {
+      console.log('[AdvancedPriceChart] ⚠️ No transactions, skipping update')
+      return
+    }
 
     // Get candle interval in seconds based on timeframe
     const getCandleInterval = () => {
@@ -766,47 +781,91 @@ export function AdvancedPriceChart({
     }
 
     const intervalSeconds = getCandleInterval()
+    console.log('[AdvancedPriceChart] 📊 Using candle interval:', intervalSeconds, 'seconds')
 
     // Aggregate transactions into candlesticks with proper USD conversion
     const candleMap = new Map<number, {open: number, high: number, low: number, close: number, volume: number, lastTimestamp: number}>()
 
+    console.log('[AdvancedPriceChart] 🔍 Processing', filteredTransactions.length, 'transactions into candles...')
+
     filteredTransactions
       .filter(tx => tx.timestamp > 0)
       .sort((a, b) => a.timestamp - b.timestamp)
-      .forEach(tx => {
+      .forEach((tx, index) => {
         // Handle null values and fallback to raw amounts if formatted ones are missing
         let asterAmount, tokenAmount
-        
+
         if (tx.asterAmountFormatted && tx.tokenAmountFormatted) {
           asterAmount = Number(tx.asterAmountFormatted)
           tokenAmount = Number(tx.tokenAmountFormatted)
         } else if (tx.asterAmount && tx.tokenAmount) {
           // Convert from wei manually if formatted versions are missing
           asterAmount = Number(tx.asterAmount) / 1e18 // Convert from wei
-          tokenAmount = Number(tx.tokenAmount) / 1e18 // Convert from wei  
+          tokenAmount = Number(tx.tokenAmount) / 1e18 // Convert from wei
         } else {
+          console.warn(`[AdvancedPriceChart] ⚠️ TX ${index}: Missing amount data, skipping`, tx)
           return // Skip transactions without proper amount data
         }
-        
+
+        console.log(`[AdvancedPriceChart] 📝 TX ${index}:`, {
+          timestamp: new Date(tx.timestamp * 1000).toISOString(),
+          asterAmount: asterAmount.toFixed(6),
+          tokenAmount: tokenAmount.toFixed(6),
+          type: tx.type
+        })
+
         // Calculate ASTER per token (traditional way - chart goes UP with buys)
         const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
         const usdPerToken = asterPerToken * ASTER_USD_PRICE
-        
+
+        console.log(`[AdvancedPriceChart] 💰 TX ${index} prices:`, {
+          asterPerToken: asterPerToken.toExponential(6),
+          usdPerToken: usdPerToken.toExponential(6),
+          isValidNumber: !isNaN(asterPerToken) && isFinite(asterPerToken),
+          isPositive: asterPerToken > 0
+        })
+
         // Validate the calculated price
         const rawDisplayPrice = priceMode === 'USD' ? usdPerToken : asterPerToken
         const displayPrice = isNaN(rawDisplayPrice) || !isFinite(rawDisplayPrice) || rawDisplayPrice <= 0 ? 0 : rawDisplayPrice
-        
+
+        console.log(`[AdvancedPriceChart] 🎯 TX ${index} display price (${priceMode}):`, {
+          rawDisplayPrice: rawDisplayPrice.toExponential(6),
+          displayPrice: displayPrice === 0 ? '0 (INVALID)' : displayPrice.toExponential(6),
+          priceMode
+        })
+
         // Skip this transaction if price is invalid
         if (displayPrice === 0) {
-          console.warn('[AdvancedPriceChart] Invalid price calculated for transaction:', { asterAmount, tokenAmount, asterPerToken, usdPerToken })
+          console.error(`[AdvancedPriceChart] ❌ TX ${index}: Invalid price calculated, SKIPPING`, {
+            asterAmount,
+            tokenAmount,
+            asterPerToken,
+            usdPerToken,
+            rawDisplayPrice,
+            priceMode
+          })
           return
         }
 
         // Round timestamp to interval
         const candleTime = Math.floor(tx.timestamp / intervalSeconds) * intervalSeconds
 
+        console.log(`[AdvancedPriceChart] 🕐 TX ${index} candle time:`, {
+          txTimestamp: tx.timestamp,
+          candleTime,
+          candleDate: new Date(candleTime * 1000).toISOString()
+        })
+
         const existing = candleMap.get(candleTime)
         if (!existing) {
+          console.log(`[AdvancedPriceChart] ✨ TX ${index}: Creating NEW candle at ${new Date(candleTime * 1000).toISOString()}`, {
+            open: displayPrice,
+            high: displayPrice,
+            low: displayPrice,
+            close: displayPrice,
+            volume: asterAmount
+          })
           candleMap.set(candleTime, {
             open: displayPrice,     // Keep full precision for small values
             high: displayPrice,
@@ -816,6 +875,16 @@ export function AdvancedPriceChart({
             lastTimestamp: tx.timestamp,
           })
         } else {
+          console.log(`[AdvancedPriceChart] 📊 TX ${index}: Updating EXISTING candle at ${new Date(candleTime * 1000).toISOString()}`, {
+            oldHigh: existing.high,
+            newHigh: Math.max(existing.high, displayPrice),
+            oldLow: existing.low,
+            newLow: Math.min(existing.low, displayPrice),
+            oldClose: existing.close,
+            newClose: tx.timestamp > existing.lastTimestamp ? displayPrice : existing.close,
+            oldVolume: existing.volume,
+            newVolume: existing.volume + asterAmount
+          })
           existing.high = Math.max(existing.high, displayPrice)
           existing.low = Math.min(existing.low, displayPrice)
           if (tx.timestamp > existing.lastTimestamp) {
@@ -825,6 +894,8 @@ export function AdvancedPriceChart({
           existing.volume += asterAmount
         }
       })
+
+    console.log('[AdvancedPriceChart] 📦 Created', candleMap.size, 'candles from transactions')
 
     // Convert to array format for TradingView
     const candleData: Array<{time: UTCTimestamp, open: number, high: number, low: number, close: number}> = []
@@ -856,16 +927,36 @@ export function AdvancedPriceChart({
     }
     
     // Add actual candle data with validation
-    sortedCandles.forEach(([time, candle]) => {
+    console.log('[AdvancedPriceChart] 🔍 Validating', sortedCandles.length, 'candles...')
+
+    sortedCandles.forEach(([time, candle], index) => {
+      console.log(`[AdvancedPriceChart] 🔎 Validating candle ${index}:`, {
+        time: new Date(time * 1000).toISOString(),
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+        volume: candle.volume,
+        openType: typeof candle.open,
+        highType: typeof candle.high,
+        lowType: typeof candle.low,
+        closeType: typeof candle.close,
+        openIsNaN: isNaN(candle.open),
+        highIsNaN: isNaN(candle.high),
+        lowIsNaN: isNaN(candle.low),
+        closeIsNaN: isNaN(candle.close)
+      })
+
       // Validate candle data before adding
-      const isValidCandle = 
+      const isValidCandle =
         typeof candle.open === 'number' && !isNaN(candle.open) &&
         typeof candle.high === 'number' && !isNaN(candle.high) &&
         typeof candle.low === 'number' && !isNaN(candle.low) &&
         typeof candle.close === 'number' && !isNaN(candle.close) &&
         candle.open > 0 && candle.high > 0 && candle.low > 0 && candle.close > 0
-      
+
       if (isValidCandle) {
+        console.log(`[AdvancedPriceChart] ✅ Candle ${index} is VALID, adding to candleData`)
         candleData.push({
           time: time as UTCTimestamp,
           open: candle.open,   // Keep full precision
@@ -879,43 +970,75 @@ export function AdvancedPriceChart({
           color: candle.close >= candle.open ? '#00D4AA' : '#FF4747',
         })
       } else {
-        console.warn('[AdvancedPriceChart] Invalid candle data:', candle)
+        console.error(`[AdvancedPriceChart] ❌ Candle ${index} is INVALID, skipping:`, candle)
       }
+    })
+
+    console.log('[AdvancedPriceChart] 📊 Final arrays:', {
+      candleDataLength: candleData.length,
+      volumeDataLength: volumeData.length
     })
 
     if (candleData.length > 0) {
       try {
+        console.log(`[AdvancedPriceChart] 🎨 Setting data on chart (type: ${chartType})`)
+
         // Set data based on chart type
         if (chartType === 'line' || chartType === 'area') {
+          console.log('[AdvancedPriceChart] 📈 Transforming to line/area data...')
+
           // For line/area charts, we only need time and value (close price)
           // Additional validation to ensure no undefined/NaN values
           const lineData = candleData
-            .filter(candle => {
+            .filter((candle, i) => {
               const isValid = typeof candle.close === 'number' &&
                              !isNaN(candle.close) &&
                              isFinite(candle.close) &&
                              candle.close > 0
+              console.log(`[AdvancedPriceChart] 🔍 Line data validation ${i}:`, {
+                time: new Date(candle.time * 1000).toISOString(),
+                close: candle.close,
+                closeType: typeof candle.close,
+                isNaN: isNaN(candle.close),
+                isFinite: isFinite(candle.close),
+                isPositive: candle.close > 0,
+                isValid
+              })
               if (!isValid) {
-                console.warn('[AdvancedPriceChart] Filtering out invalid line data:', candle)
+                console.error('[AdvancedPriceChart] ❌ Filtering out INVALID line data:', candle)
               }
               return isValid
             })
-            .map(candle => ({
-              time: candle.time,
-              value: candle.close,
-            }))
+            .map((candle, i) => {
+              const linePoint = {
+                time: candle.time,
+                value: candle.close,
+              }
+              console.log(`[AdvancedPriceChart] ✅ Line point ${i}:`, linePoint)
+              return linePoint
+            })
+
+          console.log('[AdvancedPriceChart] 📊 Line data created:', {
+            totalPoints: lineData.length,
+            firstPoint: lineData[0],
+            lastPoint: lineData[lineData.length - 1]
+          })
 
           if (lineData.length === 0) {
-            console.error('[AdvancedPriceChart] No valid line data after filtering')
+            console.error('[AdvancedPriceChart] ❌ No valid line data after filtering, ABORTING')
             return
           }
 
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', lineData.length, 'points')
           priceSeriesRef.current.setData(lineData)
+          console.log('[AdvancedPriceChart] ✅ Line/area data set successfully!')
         } else if (chartType === 'columns') {
+          console.log('[AdvancedPriceChart] 📊 Transforming to histogram/columns data...')
+
           // For columns/histogram charts, use close price with color based on trend
           // Additional validation to ensure no undefined/NaN values
           const histogramData = candleData
-            .filter(candle => {
+            .filter((candle, i) => {
               const isValid = typeof candle.close === 'number' &&
                              !isNaN(candle.close) &&
                              isFinite(candle.close) &&
@@ -923,43 +1046,95 @@ export function AdvancedPriceChart({
                              typeof candle.open === 'number' &&
                              !isNaN(candle.open) &&
                              isFinite(candle.open)
+              console.log(`[AdvancedPriceChart] 🔍 Histogram validation ${i}:`, {
+                time: new Date(candle.time * 1000).toISOString(),
+                open: candle.open,
+                close: candle.close,
+                openType: typeof candle.open,
+                closeType: typeof candle.close,
+                openIsNaN: isNaN(candle.open),
+                closeIsNaN: isNaN(candle.close),
+                isValid
+              })
               if (!isValid) {
-                console.warn('[AdvancedPriceChart] Filtering out invalid histogram data:', candle)
+                console.error('[AdvancedPriceChart] ❌ Filtering out INVALID histogram data:', candle)
               }
               return isValid
             })
-            .map(candle => ({
-              time: candle.time,
-              value: candle.close,
-              color: candle.close >= candle.open ? '#10b981' : '#ef4444',
-            }))
+            .map((candle, i) => {
+              const histPoint = {
+                time: candle.time,
+                value: candle.close,
+                color: candle.close >= candle.open ? '#10b981' : '#ef4444',
+              }
+              console.log(`[AdvancedPriceChart] ✅ Histogram point ${i}:`, histPoint)
+              return histPoint
+            })
+
+          console.log('[AdvancedPriceChart] 📊 Histogram data created:', {
+            totalPoints: histogramData.length,
+            firstPoint: histogramData[0],
+            lastPoint: histogramData[histogramData.length - 1]
+          })
 
           if (histogramData.length === 0) {
-            console.error('[AdvancedPriceChart] No valid histogram data after filtering')
+            console.error('[AdvancedPriceChart] ❌ No valid histogram data after filtering, ABORTING')
             return
           }
 
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', histogramData.length, 'bars')
           priceSeriesRef.current.setData(histogramData)
+          console.log('[AdvancedPriceChart] ✅ Histogram data set successfully!')
         } else {
+          console.log('[AdvancedPriceChart] 🕯️ Using candlestick data directly (already validated)')
+
           // For candlestick charts, use full OHLC data
           // Data is already validated when added to candleData array
+          console.log('[AdvancedPriceChart] 📊 Candlestick data:', {
+            totalCandles: candleData.length,
+            firstCandle: candleData[0],
+            lastCandle: candleData[candleData.length - 1]
+          })
+
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', candleData.length, 'candles')
           priceSeriesRef.current.setData(candleData)
+          console.log('[AdvancedPriceChart] ✅ Candlestick data set successfully!')
         }
         
         // Validate volume data before setting
-        const validVolumeData = volumeData.filter(vol => {
+        console.log('[AdvancedPriceChart] 📊 Validating volume data...')
+        const validVolumeData = volumeData.filter((vol, i) => {
           const isValid = typeof vol.value === 'number' &&
                          !isNaN(vol.value) &&
                          isFinite(vol.value) &&
                          vol.value >= 0
+          console.log(`[AdvancedPriceChart] 🔍 Volume ${i}:`, {
+            time: new Date(vol.time * 1000).toISOString(),
+            value: vol.value,
+            valueType: typeof vol.value,
+            isNaN: isNaN(vol.value),
+            isFinite: isFinite(vol.value),
+            isNonNegative: vol.value >= 0,
+            isValid
+          })
           if (!isValid) {
-            console.warn('[AdvancedPriceChart] Filtering out invalid volume data:', vol)
+            console.error('[AdvancedPriceChart] ❌ Filtering out INVALID volume data:', vol)
           }
           return isValid
         })
 
+        console.log('[AdvancedPriceChart] 📊 Volume validation complete:', {
+          originalCount: volumeData.length,
+          validCount: validVolumeData.length,
+          filteredCount: volumeData.length - validVolumeData.length
+        })
+
         if (validVolumeData.length > 0) {
+          console.log('[AdvancedPriceChart] 🚀 Setting volume data with', validVolumeData.length, 'bars')
           volumeSeriesRef.current.setData(validVolumeData)
+          console.log('[AdvancedPriceChart] ✅ Volume data set successfully!')
+        } else {
+          console.error('[AdvancedPriceChart] ❌ No valid volume data to set!')
         }
         
         // Fit content ONLY on initial load to show all candles with OPTIMAL visibility
@@ -1611,55 +1786,63 @@ export function AdvancedPriceChart({
         <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
-      {/* Compact Stats Row - Single Line Layout */}
-      <div className="px-4 py-2 bg-secondary border-t border-gray-700">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">Vol:</span>
-              <span className="font-medium text-white">
-                {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(1)}` : `${stats.volume24h.toFixed(2)} ASTER`}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-400">Price:</span>
-              <span className={`font-medium ${
-                stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <span className="text-gray-500">5m:</span>
-                <span className={`font-medium text-xs ${
-                  periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(1)}%
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-gray-500">1h:</span>
-                <span className={`font-medium text-xs ${
-                  periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(1)}%
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="text-gray-500">6h:</span>
-                <span className={`font-medium text-xs ${
-                  periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%
-                </span>
-              </div>
+      {/* Stats Cards Row */}
+      <div className="px-4 py-3 bg-secondary border-t border-gray-700">
+        <div className="grid grid-cols-5 gap-3">
+          {/* Volume Card */}
+          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
+            <div className="text-xs text-gray-400 mb-1">Volume 24h</div>
+            <div className="text-sm font-semibold text-white">
+              {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(1)}` : `${stats.volume24h.toFixed(2)} ASTER`}
             </div>
           </div>
-          <div className="flex items-center gap-4 text-gray-500">
-            <span>{filteredTransactions.length} trades</span>
-            <span>1 ASTER = ${ASTER_USD_PRICE.toFixed(2)}</span>
+
+          {/* Price Card */}
+          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
+            <div className="text-xs text-gray-400 mb-1">Price</div>
+            <div className={`text-sm font-semibold ${
+              stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
+            </div>
           </div>
+
+          {/* 5m Change Card */}
+          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
+            <div className="text-xs text-gray-400 mb-1">5m Change</div>
+            <div className={`text-sm font-semibold ${
+              periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(1)}%
+            </div>
+          </div>
+
+          {/* 1h Change Card */}
+          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
+            <div className="text-xs text-gray-400 mb-1">1h Change</div>
+            <div className={`text-sm font-semibold ${
+              periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(1)}%
+            </div>
+          </div>
+
+          {/* 6h Change Card */}
+          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
+            <div className="text-xs text-gray-400 mb-1">6h Change</div>
+            <div className={`text-sm font-semibold ${
+              periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Info Row */}
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mt-2">
+          <span>{filteredTransactions.length} trades</span>
+          <span>•</span>
+          <span>1 ASTER = ${ASTER_USD_PRICE.toFixed(2)}</span>
         </div>
       </div>
 

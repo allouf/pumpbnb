@@ -183,47 +183,85 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
 
   // Track when any new transaction appears and check if it's a trade
   useEffect(() => {
+    console.log('[TradingPanel] 🔔 Transaction hash effect triggered:', {
+      hasHash: !!hash,
+      hash,
+      pendingTradeHash,
+      isTradeSubmitted,
+      activeTab,
+      isPending,
+      isConfirming
+    })
+
     if (hash && !pendingTradeHash && isTradeSubmitted) {
-      console.log('[TradingPanel] 🎯 Trade transaction hash received, marking as pending:', {
+      console.log('[TradingPanel] ═══════════════════════════════════════════')
+      console.log('[TradingPanel] 🎯 TRADE TRANSACTION HASH RECEIVED')
+      console.log('[TradingPanel] ═══════════════════════════════════════════')
+      console.log('[TradingPanel] Transaction details:', {
         hash,
         activeTab,
-        isTradeSubmitted
+        isTradeSubmitted,
+        tokenAddress,
+        bondingCurveAddress
       })
       setPendingTradeHash(hash)
       setIsTradeSubmitted(false) // Reset the flag
+      console.log('[TradingPanel] ✅ Transaction marked as pending trade')
     } else if (hash && !pendingTradeHash && !isTradeSubmitted) {
       console.log('[TradingPanel] 📝 Non-trade transaction hash received (likely approval):', {
         hash,
         activeTab,
-        isTradeSubmitted
+        isTradeSubmitted,
+        reason: 'isTradeSubmitted is false'
       })
     }
-  }, [hash, pendingTradeHash, activeTab, isTradeSubmitted])
+  }, [hash, pendingTradeHash, activeTab, isTradeSubmitted, isPending, isConfirming, tokenAddress, bondingCurveAddress])
 
   // Track processed transactions to prevent duplicate handling
   const [processedHashes, setProcessedHashes] = useState<Set<string>>(new Set())
 
   // Handle transaction success
   useEffect(() => {
+    console.log('[TradingPanel] 🔔 Transaction success effect triggered:', {
+      isSuccess,
+      hasHash: !!hash,
+      hash,
+      alreadyProcessed: hash ? processedHashes.has(hash) : false,
+      pendingTradeHash,
+      activeTab
+    })
+
     if (isSuccess && hash && !processedHashes.has(hash)) {
-      console.log('[TradingPanel] ✅ Transaction successful!', {
+      console.log('[TradingPanel] ═══════════════════════════════════════════')
+      console.log('[TradingPanel] ✅ TRANSACTION SUCCESSFUL!')
+      console.log('[TradingPanel] ═══════════════════════════════════════════')
+      console.log('[TradingPanel] Success details:', {
         hash,
         tokenAddress,
         activeTab,
         isPendingTrade: pendingTradeHash === hash,
+        amountTraded: amount,
+        expectedOutput: expectedOutput.toString(),
+        userAddress: address
       })
 
       // Mark this hash as processed
       setProcessedHashes(prev => new Set(prev).add(hash))
-      
+      console.log('[TradingPanel] ✅ Transaction marked as processed')
+
       toast.success('Transaction successful!')
 
       // Only index if this was a trade transaction (not approval)
       if (pendingTradeHash === hash) {
-        console.log('[TradingPanel] 📊 Starting immediate trade indexing...', {
+        console.log('[TradingPanel] ═══════════════════════════════════════════')
+        console.log('[TradingPanel] 📊 STARTING TRADE INDEXING')
+        console.log('[TradingPanel] ═══════════════════════════════════════════')
+        console.log('[TradingPanel] Indexing parameters:', {
           txHash: hash,
           tokenAddress,
           tradeType: activeTab,
+          bondingCurveAddress,
+          trader: address
         })
         
         setPendingTradeHash(null) // Clear pending trade
@@ -232,22 +270,32 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
           txHash: hash,
           tokenAddress: tokenAddress,
         }).then((result) => {
-          console.log('[TradingPanel] ✅ Trade indexed successfully!', result)
+          console.log('[TradingPanel] ═══════════════════════════════════════════')
+          console.log('[TradingPanel] ✅ TRADE INDEXED SUCCESSFULLY!')
+          console.log('[TradingPanel] ═══════════════════════════════════════════')
+          console.log('[TradingPanel] Indexing result:', result)
+          console.log('[TradingPanel] 🔄 Now transaction should appear in chart and trades list')
+
           // Trigger callback for successful trade (to refresh holders, etc.)
           if (onTradeSuccess) {
+            console.log('[TradingPanel] 📢 Triggering onTradeSuccess callback')
             onTradeSuccess(activeTab, hash)
           }
         }).catch((error) => {
-          console.error('[TradingPanel] ❌ Failed to index trade:', {
+          console.error('[TradingPanel] ═══════════════════════════════════════════')
+          console.error('[TradingPanel] ❌ FAILED TO INDEX TRADE')
+          console.error('[TradingPanel] ═══════════════════════════════════════════')
+          console.error('[TradingPanel] Error details:', {
             error: error.message,
             stack: error.stack,
             txHash: hash,
             tokenAddress,
             tradeType: activeTab,
+            bondingCurveAddress
           })
-          
+
           // Cache trade locally as fallback when backend indexing fails
-          console.log('[TradingPanel] 💾 Caching trade locally as fallback...')
+          console.log('[TradingPanel] 💾 Attempting local cache fallback...')
           try {
             const tradeData = {
               tokenAddress,
@@ -262,11 +310,18 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
               asterAmount: activeTab === 'buy' ? amountBigInt.toString() : expectedOutput.toString(),
               tokenAmount: activeTab === 'buy' ? expectedOutput.toString() : amountBigInt.toString(),
             }
-            
+
+            console.log('[TradingPanel] 📝 Local cache trade data:', tradeData)
+
             addLocalTrade(tradeData)
             console.log('[TradingPanel] ✅ Trade cached locally successfully!')
+            console.log('[TradingPanel] 🔄 Trade should now appear from local cache')
           } catch (cacheError) {
-            console.error('[TradingPanel] ❌ Failed to cache trade locally:', cacheError)
+            console.error('[TradingPanel] ❌ Failed to cache trade locally:', {
+              error: cacheError,
+              message: (cacheError as Error).message,
+              stack: (cacheError as Error).stack
+            })
           }
         })
       }
@@ -320,12 +375,43 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
 
   const handleTrade = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!amount || !isConnected) return
+    if (!amount || !isConnected) {
+      console.log('[TradingPanel] ⚠️ Trade prevented:', {
+        hasAmount: !!amount,
+        isConnected
+      })
+      return
+    }
 
-    console.log('[TradingPanel] 🎯 Starting trade transaction:', {
+    console.log('[TradingPanel] ═══════════════════════════════════════════')
+    console.log('[TradingPanel] 🎯 STARTING TRADE TRANSACTION')
+    console.log('[TradingPanel] ═══════════════════════════════════════════')
+    console.log('[TradingPanel] Trade parameters:', {
       activeTab,
       amount,
-      tokenSymbol
+      amountBigInt: amountBigInt.toString(),
+      tokenSymbol,
+      bondingCurveAddress,
+      tokenAddress,
+      userAddress: address,
+      expectedOutput: expectedOutput.toString(),
+      minOutput: minOutput.toString(),
+      slippage,
+      priceImpact
+    })
+
+    console.log('[TradingPanel] Reserves state:', {
+      asterReserves: asterReserves.toString(),
+      tokenReserves: tokenReserves.toString(),
+      asterFormatted: formatUnits(asterReserves, 18),
+      tokenFormatted: formatUnits(tokenReserves, 18)
+    })
+
+    console.log('[TradingPanel] User balances:', {
+      asterBalance: currentAsterBalance.toString(),
+      tokenBalance: currentTokenBalance.toString(),
+      asterFormatted: formatUnits(currentAsterBalance, 18),
+      tokenFormatted: formatUnits(currentTokenBalance, 18)
     })
 
     try {
@@ -333,8 +419,16 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
 
       // Mark that we're submitting a trade transaction
       setIsTradeSubmitted(true)
+      console.log('[TradingPanel] ✅ Trade submission flag set to TRUE')
 
       if (activeTab === 'buy') {
+        console.log('[TradingPanel] 💰 Executing BUY transaction:', {
+          function: 'buyWithAster',
+          asterAmountIn: amountBigInt.toString(),
+          minTokensOut: minOutput.toString(),
+          contract: bondingCurveAddress
+        })
+
         writeContract({
           address: bondingCurveAddress as `0x${string}`,
           abi: BondingCurveABI,
@@ -342,14 +436,23 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
           args: [amountBigInt, minOutput],
         }, {
           onSuccess: () => {
+            console.log('[TradingPanel] ✅ BUY transaction submitted to wallet successfully')
             toast.success('Buy successful!', { id: toastId })
           },
-          onError: () => {
+          onError: (error) => {
+            console.error('[TradingPanel] ❌ BUY transaction failed:', error)
             setIsTradeSubmitted(false) // Reset on error
             toast.error('Buy failed', { id: toastId })
           },
         })
       } else {
+        console.log('[TradingPanel] 💸 Executing SELL transaction:', {
+          function: 'sellForAster',
+          tokenAmountIn: amountBigInt.toString(),
+          minAsterOut: minOutput.toString(),
+          contract: bondingCurveAddress
+        })
+
         writeContract({
           address: bondingCurveAddress as `0x${string}`,
           abi: BondingCurveABI,
@@ -357,16 +460,24 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
           args: [amountBigInt, minOutput],
         }, {
           onSuccess: () => {
+            console.log('[TradingPanel] ✅ SELL transaction submitted to wallet successfully')
             toast.success('Sell successful!', { id: toastId })
           },
-          onError: () => {
+          onError: (error) => {
+            console.error('[TradingPanel] ❌ SELL transaction failed:', error)
             setIsTradeSubmitted(false) // Reset on error
             toast.error('Sell failed', { id: toastId })
           },
         })
       }
+
+      console.log('[TradingPanel] 🔄 Waiting for wallet confirmation...')
     } catch (err) {
-      console.error('Trade error:', err)
+      console.error('[TradingPanel] ❌ CRITICAL ERROR in handleTrade:', {
+        error: err,
+        message: (err as Error).message,
+        stack: (err as Error).stack
+      })
     }
   }
 
