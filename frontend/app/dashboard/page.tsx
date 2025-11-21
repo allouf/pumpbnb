@@ -148,20 +148,20 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
   // Keep previous values for smooth updates
   const [displayStats, setDisplayStats] = useState({ volume: 0, revenue: 0, buyCount: 0, sellCount: 0, totalTrades: 0 })
 
-  // Calculate stats from transactions
-  const totalVolume = transactions.reduce((sum, tx) =>
-    sum + Number(formatUnits(tx.asterAmount, 18)), 0
-  )
-
-  // Creator earns 0.3% (30 bps) of trading volume during bonding curve phase
-  const creatorRevenue = totalVolume * 0.003
-
-  const buyCount = transactions.filter(tx => tx.type === 'buy').length
-  const sellCount = transactions.filter(tx => tx.type === 'sell').length
-
   // Update display stats only when we have actual data
   useEffect(() => {
     if (transactions.length > 0) {
+      // Calculate stats from transactions
+      const totalVolume = transactions.reduce((sum, tx) =>
+        sum + Number(formatUnits(tx.asterAmount, 18)), 0
+      )
+
+      // Creator earns 0.3% (30 bps) of trading volume during bonding curve phase
+      const creatorRevenue = totalVolume * 0.003
+
+      const buyCount = transactions.filter(tx => tx.type === 'buy').length
+      const sellCount = transactions.filter(tx => tx.type === 'sell').length
+
       setDisplayStats({
         volume: totalVolume,
         revenue: creatorRevenue,
@@ -170,7 +170,7 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
         totalTrades: transactions.length
       })
     }
-  }, [transactions.length, totalVolume, creatorRevenue, buyCount, sellCount])
+  }, [transactions])
 
   // Report stats to parent
   useEffect(() => {
