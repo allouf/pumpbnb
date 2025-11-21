@@ -54,7 +54,7 @@ class UsdPriceService {
       // Use fallback prices if no data available
       if (!this.priceData) {
         this.priceData = {
-          asterUsdPrice: 0.6, // More realistic fallback ASTER price
+          asterUsdPrice: 1.17, // ASTER ~$1.17 as of late 2024
           bnbUsdPrice: 600, // Fallback BNB price
           lastUpdated: new Date(),
         };
@@ -106,28 +106,64 @@ class UsdPriceService {
   }
 
   private async fetchAsterPrice(bnbPrice: number): Promise<number> {
-    // Since ASTER might not be listed on major exchanges yet,
-    // we'll calculate it based on BNB pair if available
-    
-    try {
-      // Try to get ASTER/BNB price from PancakeSwap or DEX
-      // For now, use a reasonable estimation based on typical BSC testnet tokens
-      
-      // Use a more realistic ASTER price - typical testnet tokens range from $0.001 to $0.1
-      // This gives us a reasonable price for calculations
-      const asterBnbPrice = 0.001; // 1 ASTER = 0.001 BNB (more realistic for calculations)
-      return asterBnbPrice * bnbPrice;
-      
-    } catch (error) {
-      logger.warn('Failed to fetch ASTER price, using estimation');
-      // Fallback estimation - use more reasonable price
-      return 0.001 * bnbPrice; // This gives ~$0.6 per ASTER which is reasonable
+    // ASTER token: 0x000Ae314E2A2172a039B26378814C252734f556A on BSC
+    // Try to fetch live price from multiple sources
+
+    const apis = [
+      // GeckoTerminal API - ASTER/USDT pool on PancakeSwap V3
+      {
+        url: 'https://api.geckoterminal.com/api/v2/networks/bsc/tokens/0x000ae314e2a2172a039b26378814c252734f556a',
+        parser: (data: any) => {
+          const price = data?.data?.attributes?.price_usd;
+          return price ? parseFloat(price) : null;
+        }
+      },
+      // CoinGecko API - ASTER by contract address
+      {
+        url: 'https://api.coingecko.com/api/v3/simple/token_price/binance-smart-chain?contract_addresses=0x000ae314e2a2172a039b26378814c252734f556a&vs_currencies=usd',
+        parser: (data: any) => {
+          const price = data?.['0x000ae314e2a2172a039b26378814c252734f556a']?.usd;
+          return price ? parseFloat(price) : null;
+        }
+      },
+      // CoinGecko API - ASTER by ID
+      {
+        url: 'https://api.coingecko.com/api/v3/simple/price?ids=aster-2&vs_currencies=usd',
+        parser: (data: any) => {
+          const price = data?.['aster-2']?.usd;
+          return price ? parseFloat(price) : null;
+        }
+      }
+    ];
+
+    for (const api of apis) {
+      try {
+        const response = await fetch(api.url, {
+          headers: { 'User-Agent': 'ASTER-FUN/1.0' },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const price = api.parser(data);
+
+          if (price && price > 0) {
+            logger.debug(`ASTER price from ${new URL(api.url).hostname}: $${price}`);
+            return price;
+          }
+        }
+      } catch (error) {
+        logger.warn(`Failed to fetch ASTER price from ${api.url}:`, error);
+      }
     }
+
+    // Fallback: ASTER is trading around $1.17 as of late 2024
+    logger.warn('Failed to fetch ASTER price from all APIs, using fallback');
+    return 1.17;
   }
 
   // Public methods to get prices
   getAsterUsdPrice(): number {
-    return this.priceData?.asterUsdPrice || 0.6;
+    return this.priceData?.asterUsdPrice || 1.17; // ASTER ~$1.17 as of late 2024
   }
 
   getBnbUsdPrice(): number {

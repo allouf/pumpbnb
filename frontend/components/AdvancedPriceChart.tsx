@@ -25,9 +25,56 @@ type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 type PriceMode = 'ASTER' | 'USD'
 type ChartType = 'candlestick' | 'line' | 'area' | 'columns'
 
-// Mock ASTER USD price - can be replaced with real API
-// TODO: Replace with CoinGecko or DexScreener API for real-time price
-const ASTER_USD_PRICE = 1.22
+// ASTER USD price - fetched from backend or live API
+// Default to ~$1.17 (current market price) if fetch fails
+let ASTER_USD_PRICE = 1.17
+
+// Fetch live ASTER price on module load and periodically
+const fetchAsterPrice = async () => {
+  try {
+    // Try backend first
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const backendRes = await fetch(`${API_URL}/api/prices/aster`, {
+      signal: AbortSignal.timeout(3000)
+    }).catch(() => null)
+
+    if (backendRes?.ok) {
+      const data = await backendRes.json()
+      if (data.price && data.price > 0) {
+        ASTER_USD_PRICE = data.price
+        console.log('[AdvancedPriceChart] ASTER price from backend:', ASTER_USD_PRICE)
+        return
+      }
+    }
+
+    // Fallback: Try GeckoTerminal API directly
+    const geckoRes = await fetch(
+      'https://api.geckoterminal.com/api/v2/networks/bsc/tokens/0x000ae314e2a2172a039b26378814c252734f556a',
+      { signal: AbortSignal.timeout(5000) }
+    ).catch(() => null)
+
+    if (geckoRes?.ok) {
+      const data = await geckoRes.json()
+      const price = data?.data?.attributes?.price_usd
+      if (price && parseFloat(price) > 0) {
+        ASTER_USD_PRICE = parseFloat(price)
+        console.log('[AdvancedPriceChart] ASTER price from GeckoTerminal:', ASTER_USD_PRICE)
+        return
+      }
+    }
+
+    console.log('[AdvancedPriceChart] Using fallback ASTER price:', ASTER_USD_PRICE)
+  } catch (error) {
+    console.warn('[AdvancedPriceChart] Failed to fetch ASTER price, using default:', ASTER_USD_PRICE)
+  }
+}
+
+// Initial fetch
+if (typeof window !== 'undefined') {
+  fetchAsterPrice()
+  // Refresh every 5 minutes
+  setInterval(fetchAsterPrice, 5 * 60 * 1000)
+}
 
 // Smart price formatting function - ASTER per token with Pump.fun style subscript notation
 const formatPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {

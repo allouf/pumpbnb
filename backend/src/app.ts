@@ -27,6 +27,7 @@ import creatorsRoutes from './routes/creators.routes';
 import holdersRoutes from './routes/holders.routes';
 import commentsRoutes from './routes/comments.routes';
 import healthRoutes from './routes/health.routes';
+import pricesRoutes from './routes/prices.routes';
 
 const app: Application = express();
 
@@ -80,6 +81,7 @@ app.use('/api/indexer', indexerRoutes);
 app.use('/api/migrations', migrationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/prices', pricesRoutes);
 
 // Token Page Feature Routes (enhanced endpoints)
 app.use('/api/v2/tokens', tokensV2Routes); // Token info + trades + holders + comments + ohlcv
