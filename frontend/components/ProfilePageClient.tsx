@@ -44,6 +44,8 @@ interface ProfileData {
   portfolio: any[]
 }
 
+type TabType = 'coins' | 'balances' | 'replies' | 'notifications'
+
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
   const [profile, setProfile] = useState<ProfileData | null>(null)
@@ -54,6 +56,7 @@ export function ProfilePageClient({ address }: { address: string }) {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [editUsername, setEditUsername] = useState('')
   const [editBio, setEditBio] = useState('')
+  const [activeTab, setActiveTab] = useState<TabType>('coins')
 
   const isOwnProfile = connectedAddress?.toLowerCase() === address.toLowerCase()
 
@@ -354,8 +357,57 @@ export function ProfilePageClient({ address }: { address: string }) {
         </div>
       </div>
 
-      {/* Created Tokens */}
-      {tokens && tokens.length > 0 && (
+      {/* Tabs */}
+      <div className="bg-secondary-light rounded-xl mb-6">
+        <div className="flex border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab('coins')}
+            className={`flex-1 px-6 py-3 font-medium transition ${
+              activeTab === 'coins'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Coins
+          </button>
+          <button
+            onClick={() => setActiveTab('balances')}
+            className={`flex-1 px-6 py-3 font-medium transition ${
+              activeTab === 'balances'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Balances
+          </button>
+          <button
+            onClick={() => setActiveTab('replies')}
+            className={`flex-1 px-6 py-3 font-medium transition ${
+              activeTab === 'replies'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Replies
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`flex-1 px-6 py-3 font-medium transition ${
+              activeTab === 'notifications'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Notifications
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'coins' && (
+        <>
+          {/* Created Tokens */}
+          {tokens && tokens.length > 0 ? (
         <div className="bg-secondary-light rounded-xl p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">Created Tokens</h2>
           <div className="space-y-2">
@@ -404,10 +456,18 @@ export function ProfilePageClient({ address }: { address: string }) {
             ))}
           </div>
         </div>
+          ) : (
+            <div className="bg-secondary-light rounded-xl p-6 text-center">
+              <p className="text-gray-400">No tokens created yet</p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Portfolio/Balances */}
-      {portfolio && portfolio.length > 0 && (
+      {/* Balances Tab */}
+      {activeTab === 'balances' && (
+        <>
+          {portfolio && portfolio.length > 0 ? (
         <div className="bg-secondary-light rounded-xl p-6">
           <h2 className="text-xl font-bold mb-4">Holdings</h2>
           <div className="overflow-x-auto">
@@ -440,12 +500,25 @@ export function ProfilePageClient({ address }: { address: string }) {
             </table>
           </div>
         </div>
+          ) : (
+            <div className="bg-secondary-light rounded-xl p-6 text-center">
+              <p className="text-gray-400">No token holdings yet</p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Empty State */}
-      {(!tokens || tokens.length === 0) && (!portfolio || portfolio.length === 0) && (
+      {/* Replies Tab */}
+      {activeTab === 'replies' && (
         <div className="bg-secondary-light rounded-xl p-6 text-center">
-          <p className="text-gray-400">No activity yet</p>
+          <p className="text-gray-400">Replies feature coming soon</p>
+        </div>
+      )}
+
+      {/* Notifications Tab */}
+      {activeTab === 'notifications' && (
+        <div className="bg-secondary-light rounded-xl p-6 text-center">
+          <p className="text-gray-400">Notifications feature coming soon</p>
         </div>
       )}
 

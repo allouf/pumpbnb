@@ -11,6 +11,28 @@ import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
+// Helper function to convert IPFS URLs to gateway URLs
+const getImageUrl = (url: string | undefined): string => {
+  if (!url) return ''
+
+  // If it's an IPFS path, convert to gateway URL
+  if (url.startsWith('ipfs://')) {
+    return url.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')
+  }
+
+  // If it's just an IPFS hash (starts with Qm or bafy)
+  if (url.startsWith('Qm') || url.startsWith('bafy')) {
+    return `https://gateway.pinata.cloud/ipfs/${url}`
+  }
+
+  // If URL doesn't have a protocol, assume it needs https://
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
+    return `https://gateway.pinata.cloud/ipfs/${url}`
+  }
+
+  return url
+}
+
 interface UserProfile {
   profileImage?: string
   username?: string
@@ -185,11 +207,12 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
                   >
                     {userProfile?.profileImage ? (
                       <Image
-                        src={userProfile.profileImage}
+                        src={getImageUrl(userProfile.profileImage)}
                         alt={userProfile.username || 'User'}
                         width={32}
                         height={32}
                         className="w-full h-full object-cover"
+                        unoptimized
                       />
                     ) : (
                       <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">

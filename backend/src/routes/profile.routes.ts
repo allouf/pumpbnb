@@ -32,6 +32,19 @@ router.get('/:address', async (req: Request, res: Response): Promise<void> => {
       take: 10,
     });
 
+    // Update created tokens count if it doesn't match
+    const actualTokensCount = await prisma.token.count({
+      where: { creator: address.toLowerCase() },
+    });
+
+    if (user.createdTokensCount !== actualTokensCount) {
+      await prisma.user.update({
+        where: { walletAddress: address.toLowerCase() },
+        data: { createdTokensCount: actualTokensCount },
+      });
+      user.createdTokensCount = actualTokensCount;
+    }
+
     // Get user's portfolio/balances
     const portfolio = await prisma.userPortfolio.findMany({
       where: { userAddress: address.toLowerCase() },
