@@ -60,16 +60,24 @@ router.get('/:address/history', optionalAuth, async (req, res) => {
     });
 
     // Transform to expected format
-    const formattedTrades = trades.map(trade => ({
-      transactionHash: trade.txHash,
-      type: trade.isBuy ? 'buy' : 'sell',
-      user: trade.trader,
-      tokenAmount: trade.isBuy ? trade.amountOut : trade.amountIn,
-      asterAmount: trade.isBuy ? trade.amountIn : trade.amountOut,
-      timestamp: trade.timestamp,
-      blockNumber: trade.blockNumber,
-      bondingCurve: token.bondingCurve,
-    }));
+    const formattedTrades = trades.map(trade => {
+      // For buy: amountIn = ASTER, amountOut = Tokens
+      // For sell: amountIn = Tokens, amountOut = ASTER
+      const tokenAmount = trade.isBuy ? trade.amountOut : trade.amountIn;
+      const asterAmount = trade.isBuy ? trade.amountIn : trade.amountOut;
+
+      return {
+        transactionHash: trade.txHash,
+        type: trade.isBuy ? 'buy' : 'sell',
+        user: trade.trader,
+        tokenAmount,
+        asterAmount,
+        timestamp: trade.timestamp,
+        blockNumber: trade.blockNumber,
+        bondingCurve: token.bondingCurve,
+        isBuy: trade.isBuy, // Include for debugging
+      };
+    });
 
     res.json({
       success: true,
