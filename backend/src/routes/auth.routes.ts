@@ -133,15 +133,15 @@ router.post('/verify', async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
-      // Create new user with default username
-      const defaultUsername = walletAddress.slice(0, 6).toLowerCase();
+      // Create new user with default username (like Pump.fun: first 6 chars after 0x)
+      const defaultUsername = walletAddress.slice(2, 8).toLowerCase();
       user = await prisma.user.create({
         data: {
           walletAddress: walletAddress.toLowerCase(),
           username: defaultUsername,
         },
       });
-      logger.info(`[Auth] New user created: ${walletAddress}`);
+      logger.info(`[Auth] New user created: ${walletAddress} with username: ${defaultUsername}`);
     }
 
     // Count tokens created by this user

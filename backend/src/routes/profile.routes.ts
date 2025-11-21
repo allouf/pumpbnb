@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../services/database.service';
 import logger from '../utils/logger';
+import { ensureUserExists } from '../utils/autoCreateUser';
 
 const router = Router();
 
@@ -12,14 +13,13 @@ router.get('/:address', async (req: Request, res: Response): Promise<void> => {
   try {
     const { address } = req.params;
 
-    const user = await prisma.user.findUnique({
-      where: { walletAddress: address.toLowerCase() },
-    });
+    // Auto-create user profile if it doesn't exist (like Pump.fun)
+    const user = await ensureUserExists(address);
 
     if (!user) {
-      res.status(404).json({
+      res.status(500).json({
         success: false,
-        error: 'User not found',
+        error: 'Failed to load user profile',
       });
       return;
     }

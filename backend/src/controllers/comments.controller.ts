@@ -3,6 +3,7 @@ import commentsService from '../services/comments.service';
 import { CommentFilter } from '../types/tokenPage';
 import logger from '../utils/logger';
 import websocketService from '../services/websocket.service';
+import { ensureUserExists } from '../utils/autoCreateUser';
 
 class CommentsController {
   /**
@@ -160,6 +161,9 @@ class CommentsController {
         });
         return;
       }
+
+      // Auto-create user profile if it doesn't exist (like Pump.fun)
+      await ensureUserExists(userAddress);
 
       const comment = await commentsService.createComment({
         tokenAddress: address,

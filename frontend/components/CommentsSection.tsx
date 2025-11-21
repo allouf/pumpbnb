@@ -2,10 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useAccount } from 'wagmi'
+import { useRouter } from 'next/navigation'
 import { useComments } from '@/lib/hooks/useSocialFeatures'
 import { Pagination } from './Pagination'
 import { ClickableWalletAddress } from './ClickableAddress'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
@@ -19,6 +21,7 @@ interface CommentsSectionProps {
 }
 
 export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
+  const router = useRouter()
   const { address, isConnected } = useAccount()
   const { comments, addComment, likeComment } = useComments(tokenAddress)
   const [newComment, setNewComment] = useState('')
@@ -99,6 +102,10 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
     return `${addr.slice(0, 8)}...${addr.slice(-4)}`
   }
 
+  const handleProfileClick = (userAddress: string) => {
+    router.push(`/profile/${userAddress}`)
+  }
+
   // Sort comments based on selected order
   const sortedComments = useMemo(() => {
     const sorted = [...comments]
@@ -164,27 +171,46 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
             <p className="text-sm text-gray-500 mt-1">Be the first to share your thoughts!</p>
           </div>
         ) : (
-          sortedComments.map((comment) => (
-            <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
-              {/* Comment Header */}
-              <div className="flex items-center gap-3 mb-2">
-                {/* User Avatar - Professional user icon instead of initials */}
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+          sortedComments.map((comment) => {
+            const userProfile = userProfiles[comment.author.toLowerCase()]
+
+            return (
+              <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
+                {/* Comment Header */}
+                <div className="flex items-center gap-3 mb-2">
+                  {/* User Avatar - Show profile image if available */}
+                  <div
+                    className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden"
+                    onClick={() => handleProfileClick(comment.author)}
+                  >
+                    {userProfile?.profileImage ? (
+                      <Image
+                        src={userProfile.profileImage}
+                        alt={userProfile.username || 'User'}
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* User Info */}
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer transition"
+                      onClick={() => handleProfileClick(comment.author)}
+                    >
+                      {userProfile?.username || formatAddress(comment.author)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatTime(comment.timestamp)}
+                    </span>
+                  </div>
                 </div>
-                
-                {/* User Info */}
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer">
-                    {formatAddress(comment.author)}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatTime(comment.timestamp)}
-                  </span>
-                </div>
-              </div>
               
               {/* Comment Content */}
               <p className="text-sm text-gray-200 mb-3 pl-11">
@@ -201,7 +227,8 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
                 </span>
               </div>
             </div>
-          ))
+            )
+          })
         )}
       </div>
     </div>
