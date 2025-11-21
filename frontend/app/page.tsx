@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useAccount } from 'wagmi';
 import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
 import { TrendingSection } from '@/components/TrendingSection';
@@ -11,10 +12,12 @@ import { HomeHeader } from '@/components/HomeHeader';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
 import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/utils/formatNumbers';
 import { getPercentChangeColor } from '@/lib/utils/formatters';
+import { useWatchlist } from '@/lib/hooks/useWatchlist';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function Home() {
+  const { address } = useAccount();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAnimations, setShowAnimations] = useState(true);
   const [showNsfw, setShowNsfw] = useState(false);
@@ -29,6 +32,9 @@ export default function Home() {
   });
   const [trendingTokens, setTrendingTokens] = useState<any[]>([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState(true);
+
+  // Watchlist from database
+  const { getWatchlistAddresses, refresh: refreshWatchlist, isLoading: watchlistLoading } = useWatchlist(address);
 
   // Memoize token list filters to prevent infinite loop
   // Use JSON.stringify for advancedFilters to ensure proper dependency tracking
@@ -47,6 +53,18 @@ export default function Home() {
 
   // Fetch all tokens with current filters - NO POLLING
   const { tokens, isLoading, error, isOffline, offlineMessage } = useTokenList({ filters: tokenFilters, disablePolling: true });
+
+  // Filter tokens based on active tab (explore vs watchlist)
+  const displayedTokens = useMemo(() => {
+    if (activeTab === 'watchlist') {
+      // Filter tokens to only show ones in watchlist
+      const watchlistAddresses = getWatchlistAddresses();
+      return tokens.filter(token =>
+        watchlistAddresses.some(w => w.toLowerCase() === token.address.toLowerCase())
+      );
+    }
+    return tokens;
+  }, [tokens, activeTab, getWatchlistAddresses]);
 
   // Fetch trending tokens ONCE on page load only
   useEffect(() => {
@@ -119,7 +137,10 @@ export default function Home() {
   // Handle tab change
   const handleTabChange = (tab: 'explore' | 'watchlist') => {
     setActiveTab(tab);
-    // TODO: Implement watchlist functionality
+    // Refresh watchlist from database when switching to watchlist tab
+    if (tab === 'watchlist') {
+      refreshWatchlist();
+    }
   };
 
   return (
@@ -142,10 +163,14 @@ export default function Home() {
       />
 
       {/* Section Title */}
-      {!isLoading && tokens.length > 0 && (
+      {!isLoading && displayedTokens.length > 0 && (
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-white">
-            {searchQuery ? `Search results for "${searchQuery}"` : 'Featured Tokens'}
+            {activeTab === 'watchlist'
+              ? 'Your Watchlist'
+              : searchQuery
+                ? `Search results for "${searchQuery}"`
+                : 'Featured Tokens'}
           </h3>
         </div>
       )}
@@ -176,12 +201,12 @@ export default function Home() {
       )}
 
       {/* Token Display */}
-      {!isLoading && tokens.length > 0 && (
+      {!isLoading && displayedTokens.length > 0 && (
         <>
           {viewMode === 'grid' ? (
             /* Grid View */
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {tokens.map((token) => (
+              {displayedTokens.map((token) => (
                 <TokenCard
                   key={token.address}
                   token={token}
@@ -209,7 +234,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tokens.map((token, index) => {
+                  {displayedTokens.map((token, index) => {
                     const stats = token.stats;
                     console.log('[Table] Token:', token.symbol, 'Stats:', stats);
 
@@ -297,21 +322,33 @@ export default function Home() {
       )}
 
       {/* Empty State */}
-      {!isLoading && tokens.length === 0 && !error && (
+      {!isLoading && displayedTokens.length === 0 && !error && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">{searchQuery ? '🔍' : '🚀'}</div>
+          <div className="text-6xl mb-4">
+            {activeTab === 'watchlist' ? '⭐' : searchQuery ? '🔍' : '🚀'}
+          </div>
           <h3 className="text-xl font-semibold mb-2 text-white">
-            {searchQuery ? `No results found for "${searchQuery}"` : 'No tokens yet'}
+            {activeTab === 'watchlist'
+              ? 'Your watchlist is empty'
+              : searchQuery
+                ? `No results found for "${searchQuery}"`
+                : 'No tokens yet'}
           </h3>
           <p className="text-gray-400 mb-6">
-            {searchQuery ? 'Try a different search term or create your own token!' : 'Be the first to create a token!'}
+            {activeTab === 'watchlist'
+              ? 'Star tokens to add them to your watchlist!'
+              : searchQuery
+                ? 'Try a different search term or create your own token!'
+                : 'Be the first to create a token!'}
           </p>
-          <a
-            href="/create"
-            className="inline-block bg-primary text-black px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition"
-          >
-            Create Token
-          </a>
+          {activeTab !== 'watchlist' && (
+            <a
+              href="/create"
+              className="inline-block bg-primary text-black px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition"
+            >
+              Create Token
+            </a>
+          )}
         </div>
       )}
     </div>

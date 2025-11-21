@@ -14,12 +14,15 @@ export function TransactionCard({ transaction, formatTimeAgo, formatTime }: Tran
 
   // Use price from backend if available, otherwise calculate
   const pricePerToken = useMemo(() => {
-    // If backend provides price (with 18 decimals), use that
+    // If backend provides price, use it
+    // Backend stores: (asterIn_wei * 1e18) / tokensOut_wei
+    // This gives price in ASTER per token, scaled by 1e18
+    // To get human-readable: divide by 1e18
     if (price) {
       return Number(price) / 1e18
     }
 
-    // Fallback: calculate from amounts
+    // Fallback: calculate from amounts (already formatted, so just divide)
     const tokenAmount = parseFloat(tokenAmountFormatted)
     const asterAmount = parseFloat(asterAmountFormatted)
 
@@ -76,7 +79,7 @@ export function TransactionCard({ transaction, formatTimeAgo, formatTime }: Tran
             <div>
               <p className="text-xs text-gray-400 mb-1">Price Per Token</p>
               <p className="font-semibold text-gray-300">
-                {pricePerToken.toFixed(8)} ASTER
+                {pricePerToken.toFixed(12)} ASTER
               </p>
             </div>
 

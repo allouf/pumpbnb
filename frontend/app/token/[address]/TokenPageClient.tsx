@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useReadContract } from 'wagmi'
+import { useState, useMemo, useEffect } from 'react'
+import { useReadContract, useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
 import type { Abi } from 'viem'
 import { CONTRACTS } from '@/lib/contracts'
@@ -24,6 +24,8 @@ import { SharePopup } from '@/components/SharePopup'
 import { ClickableWalletAddress } from '@/components/ClickableAddress'
 import { useTokenData } from '@/lib/hooks/useTokenData'
 import { useWatchTradeEvents } from '@/lib/hooks/useTokenEvents'
+import { useWatchlist } from '@/lib/hooks/useWatchlist'
+import toast from 'react-hot-toast'
 
 type Tab = 'comments' | 'trades'
 
@@ -32,11 +34,15 @@ interface TokenPageClientProps {
 }
 
 export function TokenPageClient({ address }: TokenPageClientProps) {
+  const { address: userAddress, isConnected } = useAccount()
   const [activeTab, setActiveTab] = useState<Tab>('trades')
-  const [isFavorite, setIsFavorite] = useState(false)
   const [showSharePopup, setShowSharePopup] = useState(false)
   const [holdersRefreshTrigger, setHoldersRefreshTrigger] = useState(0)
   const [tradesRefreshTrigger, setTradesRefreshTrigger] = useState(0)
+
+  // Watchlist from database
+  const { isInWatchlist, toggleWatchlist, isLoading: watchlistLoading } = useWatchlist(userAddress)
+  const isFavorite = isInWatchlist(address)
 
   // Fetch token data
   const { tokenData: apiData, isLoading: apiLoading, error: apiError } = useTokenData(address)
@@ -349,10 +355,22 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                         Share
                       </button>
                       <button
-                        onClick={() => setIsFavorite(!isFavorite)}
+                        onClick={async () => {
+                          if (!isConnected) {
+                            toast.error('Connect wallet to add to watchlist')
+                            return
+                          }
+                          const success = await toggleWatchlist(address)
+                          if (success) {
+                            toast.success(isFavorite ? 'Removed from watchlist' : 'Added to watchlist!')
+                          } else {
+                            toast.error('Failed to update watchlist')
+                          }
+                        }}
+                        disabled={watchlistLoading}
                         className={`p-2 rounded-lg transition flex items-center justify-center ${
                           isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
-                        }`}
+                        } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
