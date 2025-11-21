@@ -25,55 +25,29 @@ type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
 type PriceMode = 'ASTER' | 'USD'
 type ChartType = 'candlestick' | 'line' | 'area' | 'columns'
 
-// ASTER USD price - fetched from backend or live API
-// Default to ~$1.17 (current market price) if fetch fails
-let ASTER_USD_PRICE = 1.17
+// Default ASTER USD price - will be fetched live
+const DEFAULT_ASTER_USD_PRICE = 1.17
 
-// Fetch live ASTER price on module load and periodically
-const fetchAsterPrice = async () => {
-  try {
-    // Try backend first
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    const backendRes = await fetch(`${API_URL}/api/prices/aster`, {
-      signal: AbortSignal.timeout(3000)
-    }).catch(() => null)
+// Total token supply - all tokens have 1 billion supply
+const TOTAL_TOKEN_SUPPLY = 1_000_000_000
 
-    if (backendRes?.ok) {
-      const data = await backendRes.json()
-      if (data.price && data.price > 0) {
-        ASTER_USD_PRICE = data.price
-        console.log('[AdvancedPriceChart] ASTER price from backend:', ASTER_USD_PRICE)
-        return
-      }
-    }
+// Format market cap with K, M, B suffixes
+const formatMarketCap = (mcap: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
+  if (mcap === undefined || mcap === null || isNaN(mcap) || mcap === 0) return '0'
 
-    // Fallback: Try GeckoTerminal API directly
-    const geckoRes = await fetch(
-      'https://api.geckoterminal.com/api/v2/networks/bsc/tokens/0x000ae314e2a2172a039b26378814c252734f556a',
-      { signal: AbortSignal.timeout(5000) }
-    ).catch(() => null)
+  const prefix = currency === 'USD' ? '$' : ''
+  const suffix = currency === 'ASTER' ? ' ASTER' : ''
 
-    if (geckoRes?.ok) {
-      const data = await geckoRes.json()
-      const price = data?.data?.attributes?.price_usd
-      if (price && parseFloat(price) > 0) {
-        ASTER_USD_PRICE = parseFloat(price)
-        console.log('[AdvancedPriceChart] ASTER price from GeckoTerminal:', ASTER_USD_PRICE)
-        return
-      }
-    }
-
-    console.log('[AdvancedPriceChart] Using fallback ASTER price:', ASTER_USD_PRICE)
-  } catch (error) {
-    console.warn('[AdvancedPriceChart] Failed to fetch ASTER price, using default:', ASTER_USD_PRICE)
+  if (mcap >= 1_000_000_000) {
+    return `${prefix}${(mcap / 1_000_000_000).toFixed(2)}B${suffix}`
   }
-}
-
-// Initial fetch
-if (typeof window !== 'undefined') {
-  fetchAsterPrice()
-  // Refresh every 5 minutes
-  setInterval(fetchAsterPrice, 5 * 60 * 1000)
+  if (mcap >= 1_000_000) {
+    return `${prefix}${(mcap / 1_000_000).toFixed(2)}M${suffix}`
+  }
+  if (mcap >= 1_000) {
+    return `${prefix}${(mcap / 1_000).toFixed(2)}K${suffix}`
+  }
+  return `${prefix}${mcap.toFixed(2)}${suffix}`
 }
 
 // Smart price formatting function - ASTER per token with Pump.fun style subscript notation
@@ -177,6 +151,58 @@ export function AdvancedPriceChart({
   const [showTradeDisplay, setShowTradeDisplay] = useState(true)
   const [displayMetric, setDisplayMetric] = useState<'Price' | 'MCap'>('Price')
 
+  // ASTER USD price state - fetched from API
+  const [asterUsdPrice, setAsterUsdPrice] = useState(DEFAULT_ASTER_USD_PRICE)
+
+  // Fetch ASTER price on mount and when price mode changes to USD
+  useEffect(() => {
+    const fetchAsterPrice = async () => {
+      console.log('[AdvancedPriceChart] 💰 Fetching ASTER USD price...')
+      try {
+        // Try backend first
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+        const backendRes = await fetch(`${API_URL}/api/prices/aster`, {
+          signal: AbortSignal.timeout(3000)
+        }).catch(() => null)
+
+        if (backendRes?.ok) {
+          const data = await backendRes.json()
+          if (data.price && data.price > 0) {
+            console.log('[AdvancedPriceChart] ✅ ASTER price from backend:', data.price)
+            setAsterUsdPrice(data.price)
+            return
+          }
+        }
+
+        // Fallback: Try GeckoTerminal API directly
+        const geckoRes = await fetch(
+          'https://api.geckoterminal.com/api/v2/networks/bsc/tokens/0x000ae314e2a2172a039b26378814c252734f556a',
+          { signal: AbortSignal.timeout(5000) }
+        ).catch(() => null)
+
+        if (geckoRes?.ok) {
+          const data = await geckoRes.json()
+          const price = data?.data?.attributes?.price_usd
+          if (price && parseFloat(price) > 0) {
+            console.log('[AdvancedPriceChart] ✅ ASTER price from GeckoTerminal:', parseFloat(price))
+            setAsterUsdPrice(parseFloat(price))
+            return
+          }
+        }
+
+        console.log('[AdvancedPriceChart] ⚠️ Using fallback ASTER price:', DEFAULT_ASTER_USD_PRICE)
+      } catch (error) {
+        console.warn('[AdvancedPriceChart] ❌ Failed to fetch ASTER price:', error)
+      }
+    }
+
+    fetchAsterPrice()
+
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchAsterPrice, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Debug function to log current chart state
   const logCurrentChartState = () => {
     console.log('🔴 DEBUG BUTTON CLICKED!')
@@ -241,7 +267,7 @@ export function AdvancedPriceChart({
         const asterAmount = tx.asterAmountFormatted ? Number(tx.asterAmountFormatted) : Number(tx.asterAmount) / 1e18
         const tokenAmount = tx.tokenAmountFormatted ? Number(tx.tokenAmountFormatted) : Number(tx.tokenAmount) / 1e18
         const priceAster = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        const priceUSD = priceAster * ASTER_USD_PRICE
+        const priceUSD = priceAster * asterUsdPrice
         return { priceAster: priceAster.toFixed(12), priceUSD: priceUSD.toFixed(12), timestamp: new Date(tx.timestamp * 1000).toLocaleString() }
       })
     })
@@ -304,7 +330,7 @@ export function AdvancedPriceChart({
 
     // Prices are now ASTER per token (traditional)
     const currentAsterPerToken = prices[prices.length - 1]
-    const currentUSDPerToken = currentAsterPerToken * ASTER_USD_PRICE
+    const currentUSDPerToken = currentAsterPerToken * asterUsdPrice
     const firstPrice = prices[0]
     const change24h = firstPrice > 0 ? ((currentAsterPerToken - firstPrice) / firstPrice) * 100 : 0
     
@@ -319,7 +345,7 @@ export function AdvancedPriceChart({
     const high24hAsterPerToken = Math.max(...prices)
     const low24hAsterPerToken = Math.min(...prices)
     const athAsterPerToken = high24hAsterPerToken
-    const athUSDPerToken = athAsterPerToken * ASTER_USD_PRICE
+    const athUSDPerToken = athAsterPerToken * asterUsdPrice
     
     // Volume calculation in both currencies with null handling
     const volume24hAster = transactions.reduce((sum, tx) => {
@@ -331,7 +357,7 @@ export function AdvancedPriceChart({
       }
       return sum + asterAmount
     }, 0)
-    const volume24hUSD = volume24hAster * ASTER_USD_PRICE
+    const volume24hUSD = volume24hAster * asterUsdPrice
 
     return {
       currentPrice: currentAsterPerToken,      // ASTER per token
@@ -344,10 +370,10 @@ export function AdvancedPriceChart({
       ath: athAsterPerToken,
       athUSD: athUSDPerToken,
       // Keep USD versions
-      high24hUSD: high24hAsterPerToken * ASTER_USD_PRICE,
-      low24hUSD: low24hAsterPerToken * ASTER_USD_PRICE,
+      high24hUSD: high24hAsterPerToken * asterUsdPrice,
+      low24hUSD: low24hAsterPerToken * asterUsdPrice,
     }
-  }, [transactions])
+  }, [transactions, asterUsdPrice])
 
   // Filter transactions by timeframe
   const filteredTransactions = useMemo(() => {
@@ -845,7 +871,11 @@ export function AdvancedPriceChart({
       filteredTxCount: filteredTransactions.length,
       chartType,
       priceMode,
-      timeframe
+      displayMetric,
+      timeframe,
+      asterUsdPrice,
+      asterUsdPriceIsValid: asterUsdPrice > 0 && !isNaN(asterUsdPrice) && isFinite(asterUsdPrice),
+      totalTokenSupply: TOTAL_TOKEN_SUPPLY
     })
 
     if (!priceSeriesRef.current || !volumeSeriesRef.current) {
@@ -855,6 +885,11 @@ export function AdvancedPriceChart({
     if (filteredTransactions.length === 0) {
       console.log('[AdvancedPriceChart] ⚠️ No transactions, skipping update')
       return
+    }
+    // In USD mode, ensure we have a valid ASTER price
+    if (priceMode === 'USD' && (asterUsdPrice <= 0 || isNaN(asterUsdPrice) || !isFinite(asterUsdPrice))) {
+      console.log('[AdvancedPriceChart] ⚠️ Invalid ASTER USD price for USD mode, using default')
+      // Don't return - just use the default price which is set in state
     }
 
     // Get candle interval in seconds based on timeframe
@@ -907,22 +942,35 @@ export function AdvancedPriceChart({
 
         // Calculate ASTER per token (traditional way - chart goes UP with buys)
         const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-        const usdPerToken = asterPerToken * ASTER_USD_PRICE
+        const usdPerToken = asterPerToken * asterUsdPrice
+
+        // Calculate market cap (Price × Total Supply)
+        const mcapAster = asterPerToken * TOTAL_TOKEN_SUPPLY
+        const mcapUsd = usdPerToken * TOTAL_TOKEN_SUPPLY
 
         console.log(`[AdvancedPriceChart] 💰 TX ${index} prices:`, {
           asterPerToken: asterPerToken.toExponential(6),
           usdPerToken: usdPerToken.toExponential(6),
+          mcapAster: mcapAster.toExponential(6),
+          mcapUsd: mcapUsd.toExponential(6),
+          displayMetric,
           isValidNumber: !isNaN(asterPerToken) && isFinite(asterPerToken),
           isPositive: asterPerToken > 0
         })
 
-        // Validate the calculated price
-        const rawDisplayPrice = priceMode === 'USD' ? usdPerToken : asterPerToken
+        // Determine display value based on displayMetric (Price or MCap) and priceMode (ASTER or USD)
+        let rawDisplayPrice: number
+        if (displayMetric === 'MCap') {
+          rawDisplayPrice = priceMode === 'USD' ? mcapUsd : mcapAster
+        } else {
+          rawDisplayPrice = priceMode === 'USD' ? usdPerToken : asterPerToken
+        }
         const displayPrice = isNaN(rawDisplayPrice) || !isFinite(rawDisplayPrice) || rawDisplayPrice <= 0 ? 0 : rawDisplayPrice
 
-        console.log(`[AdvancedPriceChart] 🎯 TX ${index} display price (${priceMode}):`, {
+        console.log(`[AdvancedPriceChart] 🎯 TX ${index} display value (${displayMetric}/${priceMode}):`, {
           rawDisplayPrice: rawDisplayPrice.toExponential(6),
           displayPrice: displayPrice === 0 ? '0 (INVALID)' : displayPrice.toExponential(6),
+          displayMetric,
           priceMode
         })
 
@@ -1365,7 +1413,7 @@ export function AdvancedPriceChart({
         console.error('[AdvancedPriceChart] Error updating data:', error)
       }
     }
-  }, [filteredTransactions, priceMode, chartType])
+  }, [filteredTransactions, priceMode, chartType, asterUsdPrice, displayMetric])
 
   // Separate effect to fit content only when timeframe changes
   useEffect(() => {
@@ -1406,20 +1454,29 @@ export function AdvancedPriceChart({
       }
       
       const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-      const usdPerToken = asterPerToken * ASTER_USD_PRICE
-      const price = priceMode === 'USD' ? usdPerToken : asterPerToken
-      
+      const usdPerToken = asterPerToken * asterUsdPrice
+
+      // Calculate price or mcap based on displayMetric
+      let displayValue: number
+      if (displayMetric === 'MCap') {
+        const mcapAster = asterPerToken * TOTAL_TOKEN_SUPPLY
+        const mcapUsd = usdPerToken * TOTAL_TOKEN_SUPPLY
+        displayValue = priceMode === 'USD' ? mcapUsd : mcapAster
+      } else {
+        displayValue = priceMode === 'USD' ? usdPerToken : asterPerToken
+      }
+
       return {
-        open: price,
-        high: price,
-        low: price,
-        close: price,
+        open: displayValue,
+        high: displayValue,
+        low: displayValue,
+        close: displayValue,
         volume: asterAmount,
         time: new Date(latest.timestamp * 1000).toLocaleString(),
       }
     }
     return null
-  }, [hoveredData, filteredTransactions])
+  }, [hoveredData, filteredTransactions, priceMode, asterUsdPrice, displayMetric])
 
   // Calculate percentage changes for different periods
   const periodChanges = useMemo(() => {
@@ -1592,22 +1649,30 @@ export function AdvancedPriceChart({
           {/* Price/MCap Toggle */}
           <div className="flex bg-secondary rounded border border-gray-700">
             <button
-              onClick={() => setDisplayMetric('Price')}
+              onClick={() => {
+                console.log('[AdvancedPriceChart] 📊 Switching display metric to Price')
+                setDisplayMetric('Price')
+              }}
               className={`px-2 py-1 text-xs font-medium transition ${
                 displayMetric === 'Price'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
               }`}
+              title="Show token price per unit"
             >
               Price
             </button>
             <button
-              onClick={() => setDisplayMetric('MCap')}
+              onClick={() => {
+                console.log('[AdvancedPriceChart] 📊 Switching display metric to MCap (Price × 1B tokens)')
+                setDisplayMetric('MCap')
+              }}
               className={`px-2 py-1 text-xs font-medium transition ${
                 displayMetric === 'MCap'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
               }`}
+              title="Show market cap (Price × 1B supply)"
             >
               MCap
             </button>
@@ -1616,7 +1681,10 @@ export function AdvancedPriceChart({
           {/* USD/ASTER Toggle */}
           <div className="flex bg-secondary rounded border border-gray-700">
             <button
-              onClick={() => setPriceMode('ASTER')}
+              onClick={() => {
+                console.log('[AdvancedPriceChart] 💱 Switching price mode to ASTER')
+                setPriceMode('ASTER')
+              }}
               className={`px-2 py-1 text-xs font-medium transition ${
                 priceMode === 'ASTER'
                   ? 'bg-primary text-black rounded'
@@ -1626,7 +1694,10 @@ export function AdvancedPriceChart({
               ASTER
             </button>
             <button
-              onClick={() => setPriceMode('USD')}
+              onClick={() => {
+                console.log('[AdvancedPriceChart] 💱 Switching price mode to USD, asterUsdPrice:', asterUsdPrice)
+                setPriceMode('USD')
+              }}
               className={`px-2 py-1 text-xs font-medium transition ${
                 priceMode === 'USD'
                   ? 'bg-primary text-black rounded'
@@ -1638,16 +1709,24 @@ export function AdvancedPriceChart({
           </div>
         </div>
         
-        {/* Row 3: Token Price Info + Security Menu */}
+        {/* Row 3: Token Price/MCap Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Price without token symbol */}
+            {/* Price or Market Cap display based on toggle */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
-                Price:
+                {displayMetric === 'MCap' ? 'Market Cap:' : 'Price:'}
               </span>
               <span className="text-lg font-bold text-primary">
-                {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
+                {displayMetric === 'MCap'
+                  ? formatMarketCap(
+                      priceMode === 'USD'
+                        ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY
+                        : stats.currentPrice * TOTAL_TOKEN_SUPPLY,
+                      priceMode
+                    )
+                  : formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)
+                }
               </span>
             </div>
           </div>
