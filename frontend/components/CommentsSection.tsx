@@ -1,11 +1,18 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useComments } from '@/lib/hooks/useSocialFeatures'
 import { Pagination } from './Pagination'
 import { ClickableWalletAddress } from './ClickableAddress'
 import toast from 'react-hot-toast'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
+
+interface UserProfile {
+  profileImage?: string
+  username?: string
+}
 
 interface CommentsSectionProps {
   tokenAddress: string
@@ -17,6 +24,42 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
+  const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({})
+
+  // Fetch user profiles for comment authors
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const uniqueAuthors = [...new Set(comments.map(c => c.author))]
+      const newProfiles: Record<string, UserProfile> = {}
+
+      for (const author of uniqueAuthors) {
+        // Skip if already fetched
+        if (userProfiles[author.toLowerCase()]) continue
+
+        try {
+          const res = await fetch(`${API_URL}/api/profile/${author}`)
+          const data = await res.json()
+
+          if (data.success && data.data.user) {
+            newProfiles[author.toLowerCase()] = {
+              profileImage: data.data.user.profileImage,
+              username: data.data.user.username
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch profile for ${author}:`, error)
+        }
+      }
+
+      if (Object.keys(newProfiles).length > 0) {
+        setUserProfiles(prev => ({ ...prev, ...newProfiles }))
+      }
+    }
+
+    if (comments.length > 0) {
+      fetchProfiles()
+    }
+  }, [comments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

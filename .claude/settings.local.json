@@ -85,7 +85,11 @@
       "Bash(taskkill:*)",
       "Bash(del /F /Q nul 2)",
       "Bash(timeout:*)",
-      "Bash(if exist \"F:\\BNB_PumpFun\\backend\\package-lock.json\" del \"F:\\BNB_PumpFun\\backend\\package-lock.json\")"
+      "Bash(if exist \"F:\\BNB_PumpFun\\backend\\package-lock.json\" del \"F:\\BNB_PumpFun\\backend\\package-lock.json\")",
+      "Bash(powershell:*)",
+      "Bash(if not exist \"%APPDATA%\\Claude\" mkdir \"%APPDATA%\\Claude\")",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)"
     ],
     "deny": [],
     "ask": []
