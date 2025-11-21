@@ -7,7 +7,7 @@ const router = Router();
  * GET /api/prices/aster
  * Get current ASTER USD price
  */
-router.get('/aster', async (req, res) => {
+router.get('/aster', async (_req, res) => {
   try {
     const asterPrice = usdPriceService.getAsterUsdPrice();
     const bnbPrice = usdPriceService.getBnbUsdPrice();
@@ -34,7 +34,7 @@ router.get('/aster', async (req, res) => {
  * GET /api/prices/all
  * Get all price data
  */
-router.get('/all', async (req, res) => {
+router.get('/all', async (_req, res) => {
   try {
     const priceData = usdPriceService.getPriceData();
 

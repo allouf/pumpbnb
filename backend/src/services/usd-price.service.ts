@@ -105,7 +105,7 @@ class UsdPriceService {
     throw new Error('Failed to fetch BNB price from all APIs');
   }
 
-  private async fetchAsterPrice(bnbPrice: number): Promise<number> {
+  private async fetchAsterPrice(_bnbPrice: number): Promise<number> {
     // ASTER token: 0x000Ae314E2A2172a039B26378814C252734f556A on BSC
     // Try to fetch live price from multiple sources
 
