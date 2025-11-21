@@ -73,25 +73,23 @@ export default function DashboardPage() {
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <div className="bg-secondary-light border border-gray-700 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Tokens Created</p>
-            <p className="text-3xl font-bold">{myTokens.length}</p>
+            <p className="text-2xl font-bold">{myTokens.length}</p>
           </div>
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Total Volume</p>
-            <p className="text-3xl font-bold text-green-500">
-              {totalStats.volume.toFixed(2)} ASTER
+            <p className="text-2xl font-bold text-green-500">
+              {totalStats.volume.toFixed(2)} <span className="text-lg">ASTER</span>
             </p>
           </div>
           <div className="bg-primary/10 border border-primary/30 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Total Revenue</p>
-            <p className="text-3xl font-bold text-primary">
-              {totalStats.revenue.toFixed(4)} ASTER
+            <p className="text-2xl font-bold text-primary">
+              {totalStats.revenue.toFixed(4)} <span className="text-lg">ASTER</span>
             </p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
             <p className="text-sm text-gray-400 mb-1">Graduated</p>
-            <p className="text-3xl font-bold text-blue-500">
-              0
-            </p>
+            <p className="text-2xl font-bold text-blue-500">0</p>
           </div>
         </div>
 

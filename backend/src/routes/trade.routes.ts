@@ -56,6 +56,7 @@ router.get('/:address/history', optionalAuth, async (req, res) => {
         timestamp: true,
         txHash: true,
         blockNumber: true,
+        price: true,
       },
     });
 
@@ -75,7 +76,8 @@ router.get('/:address/history', optionalAuth, async (req, res) => {
         timestamp: trade.timestamp,
         blockNumber: trade.blockNumber,
         bondingCurve: token.bondingCurve,
-        isBuy: trade.isBuy, // Include for debugging
+        isBuy: trade.isBuy,
+        price: trade.price, // Price calculated at time of trade (ASTER per token with 18 decimals)
       };
     });
 

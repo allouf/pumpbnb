@@ -15,6 +15,7 @@ export interface Transaction {
   timestamp: number
   blockNumber: bigint
   bondingCurve: string
+  price?: string // Price at time of trade (ASTER per token with 18 decimals)
 }
 
 export function useTransactionHistory(bondingCurveAddress?: string, userAddress?: string) {
@@ -78,6 +79,7 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
               timestamp: new Date(trade.timestamp).getTime() / 1000,
               blockNumber: BigInt(trade.blockNumber),
               bondingCurve: trade.tokenAddress,
+              price: trade.price, // Price from backend (ASTER per token with 18 decimals)
             };
           })
 

@@ -10,10 +10,16 @@ interface TransactionCardProps {
 }
 
 export function TransactionCard({ transaction, formatTimeAgo, formatTime }: TransactionCardProps) {
-  const { type, hash, tokenAmountFormatted, asterAmountFormatted, timestamp } = transaction
+  const { type, hash, tokenAmountFormatted, asterAmountFormatted, timestamp, price } = transaction
 
-  // Calculate effective price per token
+  // Use price from backend if available, otherwise calculate
   const pricePerToken = useMemo(() => {
+    // If backend provides price (with 18 decimals), use that
+    if (price) {
+      return Number(price) / 1e18
+    }
+
+    // Fallback: calculate from amounts
     const tokenAmount = parseFloat(tokenAmountFormatted)
     const asterAmount = parseFloat(asterAmountFormatted)
 
@@ -22,7 +28,7 @@ export function TransactionCard({ transaction, formatTimeAgo, formatTime }: Tran
     // For buy: ASTER spent / tokens received
     // For sell: ASTER received / tokens sold
     return asterAmount / tokenAmount
-  }, [tokenAmountFormatted, asterAmountFormatted])
+  }, [price, tokenAmountFormatted, asterAmountFormatted])
 
   // Calculate estimated fee (1% of trade)
   const estimatedFee = useMemo(() => {
