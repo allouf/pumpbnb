@@ -315,37 +315,88 @@ export function AdvancedPriceChart({
     return () => clearInterval(interval)
   }, [])
 
-  // Debug function to log current chart state
+  // Debug function to log current chart state AND force fitContent
   const logCurrentChartState = () => {
     console.log('🔴 DEBUG BUTTON CLICKED!')
-    
+
     if (!chartRef.current) {
       console.log('❌ Chart ref is null!')
       alert('Chart not initialized yet!')
       return
     }
-    
+
     try {
       const timeScale = chartRef.current.timeScale()
       const visibleRange = timeScale.getVisibleRange()
-      
-      console.log('═══════════════════════════════════════════════════')
-      console.log('📊 CURRENT CHART STATE:')
-      console.log('═══════════════════════════════════════════════════')
-      console.log('Visible Time Range:', visibleRange)
-      console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
-      console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
-      console.log('Scale Margins (current):', {
-        top: 0.20,
-        bottom: 0.35
-      })
-      console.log('Chart Type:', chartType)
-      console.log('Timeframe:', timeframe)
-      console.log('Price Mode:', priceMode)
-      console.log('Transactions Count:', filteredTransactions.length)
-      console.log('═══════════════════════════════════════════════════')
-      
-      alert('Chart state logged to console! Check browser console (F12)')
+
+      console.log('╔═══════════════════════════════════════════════════════════════╗')
+      console.log('║           🔍 CHART DEBUG - COMPREHENSIVE STATE                 ║')
+      console.log('╠═══════════════════════════════════════════════════════════════╣')
+
+      // 1. Current Settings
+      console.log('║ 📋 CURRENT SETTINGS:')
+      console.log('║   Display Metric:', displayMetric, '(Price or MCap)')
+      console.log('║   Price Mode:', priceMode, '(USD or ASTER)')
+      console.log('║   Chart Type:', chartType)
+      console.log('║   Timeframe:', timeframe)
+      console.log('║   ASTER USD Price:', asterUsdPrice)
+
+      // 2. Data State
+      console.log('║')
+      console.log('║ 📊 DATA STATE:')
+      console.log('║   Total Transactions:', transactions.length)
+      console.log('║   Filtered Transactions:', filteredTransactions.length)
+      console.log('║   Price Series Ref:', priceSeriesRef.current ? '✅ EXISTS' : '❌ NULL')
+      console.log('║   Volume Series Ref:', volumeSeriesRef.current ? '✅ EXISTS' : '❌ NULL')
+      console.log('║   Is Initial Load:', isInitialLoadRef.current)
+
+      // 3. Chart Visibility
+      console.log('║')
+      console.log('║ 👁️ CHART VISIBILITY:')
+      console.log('║   Visible Range:', visibleRange ? '✅ HAS RANGE' : '❌ NO RANGE')
+      if (visibleRange) {
+        console.log('║   From:', new Date((visibleRange as any).from * 1000).toLocaleString())
+        console.log('║   To:', new Date((visibleRange as any).to * 1000).toLocaleString())
+      }
+
+      // 4. Series Data Check
+      console.log('║')
+      console.log('║ 🕯️ SERIES DATA:')
+      if (priceSeriesRef.current) {
+        try {
+          // Try to get data points count
+          const seriesOptions = priceSeriesRef.current.options()
+          console.log('║   Series Options:', JSON.stringify(seriesOptions).substring(0, 100) + '...')
+        } catch (e) {
+          console.log('║   Series Options: Unable to read')
+        }
+      }
+
+      // 5. Backend Stats
+      console.log('║')
+      console.log('║ 🌐 BACKEND STATS (Source of Truth):')
+      console.log('║   Price USD:', backendStats?.priceUsd || 'N/A')
+      console.log('║   Price ASTER:', backendStats?.price || 'N/A')
+      console.log('║   Market Cap USD:', backendStats?.marketCapUsd || 'N/A')
+      console.log('║   Volume 24h USD:', backendStats?.volume24hUsd || 'N/A')
+      console.log('║   24h Change:', backendStats?.priceChange24h || 'N/A')
+
+      console.log('╠═══════════════════════════════════════════════════════════════╣')
+      console.log('║ 🔧 FORCING fitContent() to fix visibility...')
+      console.log('╚═══════════════════════════════════════════════════════════════╝')
+
+      // FORCE fitContent to fix any visibility issues
+      chartRef.current.timeScale().fitContent()
+
+      // Also try to manually trigger a rescale
+      setTimeout(() => {
+        if (chartRef.current) {
+          chartRef.current.timeScale().fitContent()
+          console.log('✅ fitContent() executed twice for safety')
+        }
+      }, 100)
+
+      alert(`Debug info logged!\n\nSettings: ${displayMetric}/${priceMode}\nTransactions: ${filteredTransactions.length}\nChart forced to fitContent()`)
     } catch (error) {
       console.error('Error logging chart state:', error)
       alert('Error logging state: ' + error)
@@ -1343,14 +1394,44 @@ export function AdvancedPriceChart({
 
         // ALWAYS fit content after data changes to ensure chart is properly scaled
         // This is critical for mode switches (Price/MCap, USD/ASTER)
-        if (!isInitialLoadRef.current && chartRef.current) {
+        if (!isInitialLoadRef.current && chartRef.current && candleData.length > 0) {
           console.log('[AdvancedPriceChart] 🔄 Mode change detected - fitting content to rescale chart')
+
+          // Get the full time range of all candle data
+          const firstTime = candleData[0].time
+          const lastTime = candleData[candleData.length - 1].time
+          const totalTimeRange = lastTime - firstTime
+
+          // Add padding for better visibility
+          const timePadding = Math.max(totalTimeRange * 0.1, 300) // 10% padding, min 5 minutes
+
+          setTimeout(() => {
+            if (chartRef.current) {
+              try {
+                // Set visible range explicitly to ensure all data is shown
+                chartRef.current.timeScale().setVisibleRange({
+                  from: (firstTime - timePadding) as UTCTimestamp,
+                  to: (lastTime + timePadding * 0.5) as UTCTimestamp,
+                })
+                console.log('[AdvancedPriceChart] ✅ Chart visible range set after mode change:', {
+                  from: new Date((firstTime - timePadding) * 1000).toISOString(),
+                  to: new Date((lastTime + timePadding * 0.5) * 1000).toISOString()
+                })
+              } catch (e) {
+                // Fallback to fitContent if setVisibleRange fails
+                console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using fitContent:', e)
+                chartRef.current.timeScale().fitContent()
+              }
+            }
+          }, 100)
+
+          // Double-check with another fitContent after a longer delay
           setTimeout(() => {
             if (chartRef.current) {
               chartRef.current.timeScale().fitContent()
-              console.log('[AdvancedPriceChart] ✅ Chart rescaled after mode change')
+              console.log('[AdvancedPriceChart] ✅ Chart fitContent executed as backup')
             }
-          }, 50)
+          }, 300)
         }
 
         // Fit content on initial load to show all candles with OPTIMAL visibility
