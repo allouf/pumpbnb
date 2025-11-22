@@ -385,18 +385,40 @@ export function AdvancedPriceChart({
       console.log('║ 🔧 FORCING fitContent() to fix visibility...')
       console.log('╚═══════════════════════════════════════════════════════════════╝')
 
-      // FORCE fitContent to fix any visibility issues
-      chartRef.current.timeScale().fitContent()
+      // Get current series data to understand the actual time range
+      try {
+        // Force a complete re-fit by first scrolling to the earliest point
+        chartRef.current.timeScale().scrollToPosition(-1000, false)
 
-      // Also try to manually trigger a rescale
-      setTimeout(() => {
-        if (chartRef.current) {
-          chartRef.current.timeScale().fitContent()
-          console.log('✅ fitContent() executed twice for safety')
-        }
-      }, 100)
+        // Then fit all content
+        setTimeout(() => {
+          if (chartRef.current) {
+            chartRef.current.timeScale().fitContent()
+            console.log('✅ Scrolled to start and fitContent() executed')
 
-      alert(`Debug info logged!\n\nSettings: ${displayMetric}/${priceMode}\nTransactions: ${filteredTransactions.length}\nChart forced to fitContent()`)
+            // Log the new visible range
+            const newRange = chartRef.current.timeScale().getVisibleRange()
+            if (newRange) {
+              console.log('New visible range after fix:', {
+                from: new Date((newRange as any).from * 1000).toLocaleString(),
+                to: new Date((newRange as any).to * 1000).toLocaleString()
+              })
+            }
+          }
+        }, 50)
+
+        // Double-check with another fitContent
+        setTimeout(() => {
+          if (chartRef.current) {
+            chartRef.current.timeScale().fitContent()
+            console.log('✅ fitContent() executed again for safety')
+          }
+        }, 200)
+      } catch (e) {
+        console.error('Error during fitContent:', e)
+      }
+
+      alert(`Debug info logged!\n\nSettings: ${displayMetric}/${priceMode}\nTransactions: ${filteredTransactions.length}\nChart forced to fitContent()\n\nCheck console for details!`)
     } catch (error) {
       console.error('Error logging chart state:', error)
       alert('Error logging state: ' + error)
@@ -1405,6 +1427,14 @@ export function AdvancedPriceChart({
           // Add padding for better visibility
           const timePadding = Math.max(totalTimeRange * 0.1, 300) // 10% padding, min 5 minutes
 
+          // Step 1: Scroll to the far left to reset view position
+          try {
+            chartRef.current.timeScale().scrollToPosition(-1000, false)
+          } catch (e) {
+            console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed:', e)
+          }
+
+          // Step 2: Set visible range explicitly after a small delay
           setTimeout(() => {
             if (chartRef.current) {
               try {
@@ -1425,7 +1455,7 @@ export function AdvancedPriceChart({
             }
           }, 100)
 
-          // Double-check with another fitContent after a longer delay
+          // Step 3: Backup fitContent after a longer delay
           setTimeout(() => {
             if (chartRef.current) {
               chartRef.current.timeScale().fitContent()
@@ -1503,7 +1533,14 @@ export function AdvancedPriceChart({
                   paddedMaxPrice = maxPrice + pricePaddingTop
                 }
                 
-                // Set the visible time range to show all data
+                // Step 1: Scroll to the far left first to reset view position
+                try {
+                  chartRef.current.timeScale().scrollToPosition(-1000, false)
+                } catch (e) {
+                  console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed on initial load:', e)
+                }
+
+                // Step 2: Set the visible time range to show all data
                 chartRef.current.timeScale().setVisibleRange({
                   from: paddedStartTime,
                   to: paddedEndTime,
