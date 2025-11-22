@@ -44,8 +44,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const { isInWatchlist, toggleWatchlist, isLoading: watchlistLoading } = useWatchlist(userAddress)
   const isFavorite = isInWatchlist(address)
 
-  // Fetch token data
-  const { tokenData: apiData, isLoading: apiLoading, error: apiError } = useTokenData(address)
+  // Fetch token data - includes refetch for refreshing after trades
+  const { tokenData: apiData, isLoading: apiLoading, error: apiError, refetch: refetchTokenData } = useTokenData(address)
 
   // Blockchain fallback
   const { data: bondingCurveAddress, isLoading: loadingBC } = useReadContract({
@@ -106,10 +106,17 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   // Callback for when trades are successful
   const handleTradeSuccess = (tradeType: 'buy' | 'sell', txHash: string) => {
     console.log('[TokenPageClient] 🎯 Trade successful, triggering data refresh:', { tradeType, txHash })
-    
+
     // Refetch reserves to update progress and market cap
     refetchReserves()
-    
+
+    // Refetch token data from backend API to get updated stats (price, mcap, volume, etc.)
+    // Add a small delay to allow backend to process the new transaction
+    setTimeout(() => {
+      console.log('[TokenPageClient] 🔄 Refetching token data from backend...')
+      refetchTokenData()
+    }, 2000) // 2 second delay for backend to index the transaction
+
     // Trigger immediate holders and trades refresh
     setHoldersRefreshTrigger(prev => prev + 1)
     setTradesRefreshTrigger(prev => prev + 1)

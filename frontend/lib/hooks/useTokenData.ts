@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 // TokenStats interface for single token data
 interface TokenDataStats {
@@ -40,6 +40,13 @@ export function useTokenData(tokenAddress: string) {
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  // Refetch function - can be called to refresh token data
+  const refetch = useCallback(() => {
+    console.log('[useTokenData] 🔄 Refetch triggered')
+    setRefreshTrigger(prev => prev + 1)
+  }, [])
 
   useEffect(() => {
     async function fetchTokenData() {
@@ -49,14 +56,17 @@ export function useTokenData(tokenAddress: string) {
       }
 
       try {
-        setIsLoading(true)
+        // Only show loading on initial load, not on refetch
+        if (refreshTrigger === 0) {
+          setIsLoading(true)
+        }
 
-        console.log('Fetching token from API:', `${API_URL}/api/tokens/${tokenAddress}`)
+        console.log('[useTokenData] Fetching token from API:', `${API_URL}/api/tokens/${tokenAddress}`)
 
         // Fetch token data from backend API
         const response = await fetch(`${API_URL}/api/tokens/${tokenAddress}`)
 
-        console.log('API Response status:', response.status, response.statusText)
+        console.log('[useTokenData] API Response status:', response.status, response.statusText)
 
         if (!response.ok) {
           throw new Error(`Failed to fetch token: ${response.statusText}`)
@@ -64,7 +74,7 @@ export function useTokenData(tokenAddress: string) {
 
         const data = await response.json()
 
-        console.log('API Response data:', data)
+        console.log('[useTokenData] API Response data:', data)
 
         if (!data.success) {
           throw new Error(data.message || 'Failed to fetch token')
@@ -73,7 +83,7 @@ export function useTokenData(tokenAddress: string) {
         setTokenData(data.data)
         setError(null)
       } catch (err) {
-        console.error('Error fetching token data:', err)
+        console.error('[useTokenData] Error fetching token data:', err)
         setError(err as Error)
       } finally {
         setIsLoading(false)
@@ -81,7 +91,7 @@ export function useTokenData(tokenAddress: string) {
     }
 
     fetchTokenData()
-  }, [tokenAddress])
+  }, [tokenAddress, refreshTrigger])
 
-  return { tokenData, isLoading, error }
+  return { tokenData, isLoading, error, refetch }
 }

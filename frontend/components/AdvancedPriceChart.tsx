@@ -178,63 +178,91 @@ export function AdvancedPriceChart({
   // ASTER USD price state - fetched from API
   const [asterUsdPrice, setAsterUsdPrice] = useState(DEFAULT_ASTER_USD_PRICE)
 
-  // Debug function to log all chart state
+  // Debug function to log comprehensive chart state
   const logDebugInfo = () => {
-    console.log('═══════════════════════════════════════════════════════════════')
-    console.log('🔍 CHART DEBUG INFO - Manual Trigger')
-    console.log('═══════════════════════════════════════════════════════════════')
-    console.log('📊 Current Settings:')
-    console.log('  - Price Mode:', priceMode)
-    console.log('  - Display Metric:', displayMetric)
-    console.log('  - Chart Type:', chartType)
-    console.log('  - Timeframe:', timeframe)
-    console.log('  - ASTER USD Price:', asterUsdPrice)
-    console.log('')
-    console.log('🔗 BACKEND STATS (Source of Truth - from API):')
-    console.log('  - Price (ASTER):', backendStats?.price)
-    console.log('  - Price (USD):', backendStats?.priceUsd)
-    console.log('  - Market Cap (ASTER):', backendStats?.marketCap)
-    console.log('  - Market Cap (USD):', backendStats?.marketCapUsd)
-    console.log('  - Volume 24h (ASTER):', backendStats?.volume24h)
-    console.log('  - Volume 24h (USD):', backendStats?.volume24hUsd)
-    console.log('  - Price Change 24h:', backendStats?.priceChange24h)
-    console.log('  - Trades 24h:', backendStats?.trades24h)
-    console.log('  - Holders:', backendStats?.holders)
-    console.log('  - Liquidity (ASTER):', backendStats?.liquidity)
-    console.log('  - Liquidity (USD):', backendStats?.liquidityUsd)
-    console.log('')
-    console.log('📈 Frontend Calculated Stats (for chart candles only):')
-    console.log('  - Current Price (ASTER):', stats.currentPrice)
-    console.log('  - Current Price (USD):', stats.currentPriceUSD)
-    console.log('  - 24h Change %:', stats.change24h)
-    console.log('')
-    console.log('🔗 Props:')
-    console.log('  - Backend Price USD:', backendPriceUsd)
-    console.log('  - Backend Market Cap USD:', backendMarketCapUsd)
-    console.log('  - ATH Prop:', ath)
-    console.log('  - Market Cap Prop:', marketCap)
-    console.log('')
-    console.log('📉 Transaction Data:')
-    console.log('  - Total Transactions:', transactions.length)
-    console.log('  - Filtered Transactions:', filteredTransactions.length)
-    console.log('')
-    console.log('🎨 Chart Refs:')
-    console.log('  - Chart Created:', chartCreatedRef.current)
-    console.log('  - Is Initial Load:', isInitialLoadRef.current)
-    console.log('  - Chart Ref:', !!chartRef.current)
-    console.log('  - Price Series Ref:', !!priceSeriesRef.current)
-    console.log('  - Volume Series Ref:', !!volumeSeriesRef.current)
+    console.log('╔═══════════════════════════════════════════════════════════════╗')
+    console.log('║           🔍 CHART DEBUG INFO - Manual Trigger                ║')
+    console.log('╚═══════════════════════════════════════════════════════════════╝')
+
+    // 1. BACKEND STATS (Source of Truth)
+    console.log('\n📊 BACKEND STATS (Source of Truth - from API):')
+    console.log('┌─────────────────────────────────────────────────────────────┐')
+    console.log('│ Price (ASTER):', backendStats?.price)
+    console.log('│ Price (USD):', backendStats?.priceUsd)
+    console.log('│ Market Cap (ASTER):', backendStats?.marketCap)
+    console.log('│ Market Cap (USD):', backendStats?.marketCapUsd)
+    console.log('│ Volume 24h (USD):', backendStats?.volume24hUsd)
+    console.log('│ Price Change 24h:', backendStats?.priceChange24h, '%')
+    console.log('│ Trades 24h:', backendStats?.trades24h)
+    console.log('│ Holders:', backendStats?.holders)
+    console.log('└─────────────────────────────────────────────────────────────┘')
+
+    // 2. CURRENT BUTTON/TOGGLE STATES
+    console.log('\n🎛️ CURRENT BUTTON STATES:')
+    console.log('┌─────────────────────────────────────────────────────────────┐')
+    console.log('│ Price Mode:', priceMode, priceMode === 'USD' ? '✅ (USD selected)' : '(ASTER selected)')
+    console.log('│ Display Metric:', displayMetric, displayMetric === 'MCap' ? '(Market Cap)' : '(Price)')
+    console.log('│ Chart Type:', chartType)
+    console.log('│ Timeframe:', timeframe)
+    console.log('│ Show Trade Display:', showTradeDisplay)
+    console.log('└─────────────────────────────────────────────────────────────┘')
+
+    // 3. CHART STATE & AXES
+    console.log('\n📈 CHART STATE & AXES:')
+    console.log('┌─────────────────────────────────────────────────────────────┐')
+    console.log('│ Chart Created:', chartCreatedRef.current ? '✅ YES' : '❌ NO')
+    console.log('│ Initial Load Complete:', !isInitialLoadRef.current ? '✅ YES' : '⏳ NO (still loading)')
+    console.log('│ Price Series Ready:', priceSeriesRef.current ? '✅ YES' : '❌ NO')
+    console.log('│ Volume Series Ready:', volumeSeriesRef.current ? '✅ YES' : '❌ NO')
+
     if (chartRef.current) {
       try {
         const timeScale = chartRef.current.timeScale()
         const visibleRange = timeScale.getVisibleRange()
-        console.log('  - Visible Range:', visibleRange)
+        if (visibleRange) {
+          const fromDate = new Date((visibleRange as any).from * 1000)
+          const toDate = new Date((visibleRange as any).to * 1000)
+          const durationHours = ((visibleRange as any).to - (visibleRange as any).from) / 3600
+          console.log('│ X-Axis (Time):')
+          console.log('│   From:', fromDate.toLocaleString())
+          console.log('│   To:', toDate.toLocaleString())
+          console.log('│   Duration:', durationHours.toFixed(1), 'hours')
+        }
       } catch (e) {
-        console.log('  - Visible Range: Error getting', e)
+        console.log('│ X-Axis: Error getting range')
       }
     }
-    console.log('')
-    console.log('✅ Render Status: SUCCESS (if you see this, component rendered)')
+    console.log('└─────────────────────────────────────────────────────────────┘')
+
+    // 4. DATA FIT & CANDLES
+    console.log('\n📊 DATA & CANDLES:')
+    console.log('┌─────────────────────────────────────────────────────────────┐')
+    console.log('│ Total Transactions:', transactions.length)
+    console.log('│ Filtered Transactions:', filteredTransactions.length)
+    console.log('│ ASTER USD Price (for conversion):', asterUsdPrice)
+
+    if (filteredTransactions.length > 0) {
+      const firstTx = filteredTransactions[0]
+      const lastTx = filteredTransactions[filteredTransactions.length - 1]
+      console.log('│ First Transaction:', new Date(firstTx.timestamp * 1000).toLocaleString())
+      console.log('│ Last Transaction:', new Date(lastTx.timestamp * 1000).toLocaleString())
+    }
+    console.log('└─────────────────────────────────────────────────────────────┘')
+
+    // 5. DISPLAY VALUES (What user sees)
+    console.log('\n👁️ DISPLAYED VALUES (What user sees):')
+    console.log('┌─────────────────────────────────────────────────────────────┐')
+    const mcapDisplay = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
+    const priceDisplay = parseFloat(backendStats?.priceUsd || '0') || backendPriceUsd
+    const changeDisplay = parseFloat(backendStats?.priceChange24h || '0')
+    console.log('│ Market Cap Header:', '$' + mcapDisplay.toFixed(2))
+    console.log('│ Price (Row 3):', '$' + priceDisplay.toExponential(2))
+    console.log('│ 24h Change:', changeDisplay >= 0 ? '+' : '', changeDisplay.toFixed(2), '%')
+    console.log('│ ATH:', '$' + (ath || mcapDisplay).toFixed(2))
+    console.log('└─────────────────────────────────────────────────────────────┘')
+
+    // 6. RENDER STATUS
+    console.log('\n✅ RENDER STATUS: SUCCESS')
     console.log('═══════════════════════════════════════════════════════════════')
   }
 
@@ -357,105 +385,58 @@ export function AdvancedPriceChart({
     })
   }
 
-  // Calculate statistics from transactions
+  // Calculate prices from transactions - ONLY used for chart candle rendering
+  // Display values come from backendStats (source of truth)
   const stats = useMemo(() => {
-    if (transactions.length === 0) {
-      return {
-        currentPrice: 0,
-        currentPriceUSD: 0,
-        change24h: 0,
-        high24h: 0,
-        low24h: 0,
-        volume24h: 0,
-        volume24hUSD: 0,
-        ath: 0,
-        athUSD: 0,
-      }
+    const emptyStats = {
+      currentPrice: 0,
+      currentPriceUSD: 0,
+      change24h: 0,
+      high24h: 0,
+      low24h: 0,
     }
+
+    if (transactions.length === 0) return emptyStats
 
     // Sort transactions by timestamp (oldest first) for proper price history
     const sortedTransactions = [...transactions].sort((a, b) => a.timestamp - b.timestamp)
-    
-    // Calculate prices for all transactions - ASTER per token (traditional way)
+
+    // Calculate prices for chart candles only
     const prices = sortedTransactions.map(tx => {
-      // Handle null values and fallback to raw amounts if formatted ones are missing
       let asterAmount, tokenAmount
-      
+
       if (tx.asterAmountFormatted && tx.tokenAmountFormatted) {
         asterAmount = Number(tx.asterAmountFormatted)
         tokenAmount = Number(tx.tokenAmountFormatted)
       } else if (tx.asterAmount && tx.tokenAmount) {
-        // Convert from wei manually if formatted versions are missing
-        asterAmount = Number(tx.asterAmount) / 1e18 // Convert from wei
-        tokenAmount = Number(tx.tokenAmount) / 1e18 // Convert from wei  
+        asterAmount = Number(tx.asterAmount) / 1e18
+        tokenAmount = Number(tx.tokenAmount) / 1e18
       } else {
-        return 0 // Skip transactions without proper amount data
+        return 0
       }
-      
-      // Calculate ASTER per token (traditional way - chart goes UP with buys)
-      const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
-      
-      return asterPerToken // Small but meaningful number
+
+      return tokenAmount > 0 ? asterAmount / tokenAmount : 0
     }).filter(p => p > 0)
 
-    if (prices.length === 0) {
-      return {
-        currentPrice: 0,
-        currentPriceUSD: 0,
-        change24h: 0,
-        high24h: 0,
-        low24h: 0,
-        volume24h: 0,
-        volume24hUSD: 0,
-        ath: 0,
-        athUSD: 0,
-      }
-    }
+    if (prices.length === 0) return emptyStats
 
-    // Prices are now ASTER per token (traditional)
     const currentAsterPerToken = prices[prices.length - 1]
     const currentUSDPerToken = currentAsterPerToken * asterUsdPrice
     const firstPrice = prices[0]
     const change24h = firstPrice > 0 ? ((currentAsterPerToken - firstPrice) / firstPrice) * 100 : 0
-    
-    // Debug price calculations
-    console.log('[AdvancedPriceChart] 🔢 Price calculation debug:', {
-      firstAsterPerToken: firstPrice.toExponential(3),
-      currentAsterPerToken: currentAsterPerToken.toExponential(3),
-      change24h: change24h.toFixed(2) + '%',
-      validPricesCount: prices.length,
-      explanation: change24h > 0 ? 'POSITIVE = Token price going UP (more ASTER per token)' : 'NEGATIVE = Token price going DOWN'
-    })
+
+    // Calculate high/low from prices array for chart rendering
     const high24hAsterPerToken = Math.max(...prices)
     const low24hAsterPerToken = Math.min(...prices)
-    const athAsterPerToken = high24hAsterPerToken
-    const athUSDPerToken = athAsterPerToken * asterUsdPrice
-    
-    // Volume calculation in both currencies with null handling
-    const volume24hAster = transactions.reduce((sum, tx) => {
-      let asterAmount = 0
-      if (tx.asterAmountFormatted) {
-        asterAmount = Number(tx.asterAmountFormatted)
-      } else if (tx.asterAmount) {
-        asterAmount = Number(tx.asterAmount) / 1e18 // Convert from wei
-      }
-      return sum + asterAmount
-    }, 0)
-    const volume24hUSD = volume24hAster * asterUsdPrice
 
+    // Only return what's needed for chart candle rendering
+    // All display values (volume, mcap, etc.) come from backendStats
     return {
-      currentPrice: currentAsterPerToken,      // ASTER per token
-      currentPriceUSD: currentUSDPerToken,    // USD per token  
+      currentPrice: currentAsterPerToken,
+      currentPriceUSD: currentUSDPerToken,
       change24h,
       high24h: high24hAsterPerToken,
       low24h: low24hAsterPerToken,
-      volume24h: volume24hAster,
-      volume24hUSD,
-      ath: athAsterPerToken,
-      athUSD: athUSDPerToken,
-      // Keep USD versions
-      high24hUSD: high24hAsterPerToken * asterUsdPrice,
-      low24hUSD: low24hAsterPerToken * asterUsdPrice,
     }
   }, [transactions, asterUsdPrice])
 
@@ -1817,7 +1798,8 @@ export function AdvancedPriceChart({
           <div className="flex bg-secondary rounded border border-gray-700">
             <button
               onClick={() => {
-                console.log('[AdvancedPriceChart] 📊 Switching display metric to Price')
+                console.log('🔘 [BUTTON] Price clicked - switching from', displayMetric, 'to Price')
+                console.log('   → Will show:', priceMode === 'USD' ? backendStats?.priceUsd : backendStats?.price)
                 setDisplayMetric('Price')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1831,7 +1813,8 @@ export function AdvancedPriceChart({
             </button>
             <button
               onClick={() => {
-                console.log('[AdvancedPriceChart] 📊 Switching display metric to MCap (Price × 1B tokens)')
+                console.log('🔘 [BUTTON] MCap clicked - switching from', displayMetric, 'to MCap')
+                console.log('   → Will show:', priceMode === 'USD' ? backendStats?.marketCapUsd : backendStats?.marketCap)
                 setDisplayMetric('MCap')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1839,7 +1822,7 @@ export function AdvancedPriceChart({
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
               }`}
-              title="Show market cap (Price × 1B supply)"
+              title="Show market cap (liquidity value)"
             >
               MCap
             </button>
@@ -1849,7 +1832,9 @@ export function AdvancedPriceChart({
           <div className="flex bg-secondary rounded border border-gray-700">
             <button
               onClick={() => {
-                console.log('[AdvancedPriceChart] 💱 Switching price mode to ASTER')
+                console.log('🔘 [BUTTON] ASTER clicked - switching from', priceMode, 'to ASTER')
+                console.log('   → Price will be:', backendStats?.price, 'ASTER')
+                console.log('   → MCap will be:', backendStats?.marketCap, 'ASTER')
                 setPriceMode('ASTER')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1862,7 +1847,10 @@ export function AdvancedPriceChart({
             </button>
             <button
               onClick={() => {
-                console.log('[AdvancedPriceChart] 💱 Switching price mode to USD, asterUsdPrice:', asterUsdPrice)
+                console.log('🔘 [BUTTON] USD clicked - switching from', priceMode, 'to USD')
+                console.log('   → Price will be: $', backendStats?.priceUsd)
+                console.log('   → MCap will be: $', backendStats?.marketCapUsd)
+                console.log('   → ASTER/USD rate:', asterUsdPrice)
                 setPriceMode('USD')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1962,21 +1950,28 @@ export function AdvancedPriceChart({
       {/* Stats Cards Row */}
       <div className="px-4 py-3 bg-secondary border-t border-gray-700">
         <div className="grid grid-cols-5 gap-3">
-          {/* Volume Card */}
+          {/* Volume Card - Use backendStats (source of truth) */}
           <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
             <div className="text-xs text-gray-400 mb-1">Volume 24h</div>
             <div className="text-sm font-semibold text-white">
-              {priceMode === 'USD' ? `$${stats.volume24hUSD.toFixed(1)}` : `${stats.volume24h.toFixed(2)} ASTER`}
+              {priceMode === 'USD'
+                ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(1)}`
+                : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)} ASTER`}
             </div>
           </div>
 
-          {/* Price Card */}
+          {/* Price Card - Use backendStats (source of truth) */}
           <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
             <div className="text-xs text-gray-400 mb-1">Price</div>
             <div className={`text-sm font-semibold ${
-              stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+              parseFloat(backendStats?.priceChange24h || '0') >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)}
+              {formatPrice(
+                priceMode === 'USD'
+                  ? parseFloat(backendStats?.priceUsd || '0')
+                  : parseFloat(backendStats?.price || '0'),
+                priceMode
+              )}
             </div>
           </div>
 
