@@ -1280,8 +1280,20 @@ export function AdvancedPriceChart({
         } else {
           console.error('[AdvancedPriceChart] ❌ No valid volume data to set!')
         }
-        
-        // Fit content ONLY on initial load to show all candles with OPTIMAL visibility
+
+        // ALWAYS fit content after data changes to ensure chart is properly scaled
+        // This is critical for mode switches (Price/MCap, USD/ASTER)
+        if (!isInitialLoadRef.current && chartRef.current) {
+          console.log('[AdvancedPriceChart] 🔄 Mode change detected - fitting content to rescale chart')
+          setTimeout(() => {
+            if (chartRef.current) {
+              chartRef.current.timeScale().fitContent()
+              console.log('[AdvancedPriceChart] ✅ Chart rescaled after mode change')
+            }
+          }, 50)
+        }
+
+        // Fit content on initial load to show all candles with OPTIMAL visibility
         if (isInitialLoadRef.current && chartRef.current) {
           console.log('[AdvancedPriceChart] Initial load - fitting all candles for full token history:', candleData.length)
           setTimeout(() => {
@@ -1483,14 +1495,7 @@ export function AdvancedPriceChart({
         },
       })
       console.log('[AdvancedPriceChart] ✅ Price format updated for', displayMetric, 'mode')
-
-      // Fit content after changing metric to ensure proper scaling
-      setTimeout(() => {
-        if (chartRef.current) {
-          chartRef.current.timeScale().fitContent()
-          console.log('[AdvancedPriceChart] ✅ Chart content fitted after displayMetric change')
-        }
-      }, 150)
+      // Note: fitContent is now called in the main data update effect after setData()
     } catch (error) {
       console.error('[AdvancedPriceChart] ❌ Error updating price format:', error)
     }
