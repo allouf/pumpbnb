@@ -9,6 +9,12 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Fix MetaMask SDK React Native module warnings
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@react-native-async-storage/async-storage': false,
+    }
+
     // Optimize for production builds
     if (!dev && !isServer) {
       config.optimization.splitChunks = {

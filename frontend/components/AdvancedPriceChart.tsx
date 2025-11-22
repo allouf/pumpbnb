@@ -143,7 +143,7 @@ export function AdvancedPriceChart({
   const isInitialLoadRef = useRef(true)
 
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
-  const [priceMode, setPriceMode] = useState<PriceMode>('ASTER') // Default to ASTER for meaningful values
+  const [priceMode, setPriceMode] = useState<PriceMode>('USD') // Default to USD for user-friendly display
   const [chartType, setChartType] = useState<ChartType>('candlestick')
   const [hoveredData, setHoveredData] = useState<{open: number, high: number, low: number, close: number, volume: number, time: string} | null>(null)
   
@@ -1420,10 +1420,10 @@ export function AdvancedPriceChart({
     if (!chartRef.current || !priceSeriesRef.current) return
     if (filteredTransactions.length === 0) return
     if (isInitialLoadRef.current) return // Don't interfere with initial load
-    
+
     // Fit content when timeframe changes to show the selected period properly
     console.log('[AdvancedPriceChart] Timeframe changed, fitting content to:', timeframe, 'with', filteredTransactions.length, 'transactions')
-    
+
     // Add a small delay to ensure data is updated before fitting
     setTimeout(() => {
       if (chartRef.current) {
@@ -1431,6 +1431,65 @@ export function AdvancedPriceChart({
       }
     }, 100)
   }, [timeframe])
+
+  // Update price format when displayMetric changes (Price vs MCap)
+  useEffect(() => {
+    if (!priceSeriesRef.current) return
+
+    console.log('[AdvancedPriceChart] 📐 Updating price format for displayMetric:', displayMetric)
+
+    // Create a dynamic formatter based on whether we're showing Price or MCap
+    const dynamicFormatter = (value: number) => {
+      if (value === 0) return '0'
+
+      // For MCap mode, values are large (millions, thousands)
+      if (displayMetric === 'MCap') {
+        if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`
+        if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`
+        if (value >= 1_000) return `$${(value / 1_000).toFixed(2)}K`
+        return `$${value.toFixed(2)}`
+      }
+
+      // For Price mode, values are very small
+      if (Math.abs(value) < 0.0001) {
+        const priceStr = value.toFixed(20)
+        const match = priceStr.match(/^0\.0+/)
+
+        if (match) {
+          const leadingZeros = match[0].length - 2
+          const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+          const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+          const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+          return `$0.0${subscriptCount}${significantDigits}`
+        }
+      }
+
+      if (Math.abs(value) < 0.01) return `$${value.toFixed(8)}`
+      if (Math.abs(value) < 1) return `$${value.toFixed(6)}`
+      return `$${value.toFixed(4)}`
+    }
+
+    try {
+      priceSeriesRef.current.applyOptions({
+        priceFormat: {
+          type: 'custom',
+          formatter: dynamicFormatter,
+          minMove: displayMetric === 'MCap' ? 0.01 : 0.000000000001,
+        },
+      })
+      console.log('[AdvancedPriceChart] ✅ Price format updated for', displayMetric, 'mode')
+
+      // Fit content after changing metric to ensure proper scaling
+      setTimeout(() => {
+        if (chartRef.current) {
+          chartRef.current.timeScale().fitContent()
+          console.log('[AdvancedPriceChart] ✅ Chart content fitted after displayMetric change')
+        }
+      }, 150)
+    } catch (error) {
+      console.error('[AdvancedPriceChart] ❌ Error updating price format:', error)
+    }
+  }, [displayMetric])
 
   // CRITICAL: ALL useMemo hooks MUST be called BEFORE any early returns!
   // Get current OHLC data from hovered or latest
@@ -1586,33 +1645,35 @@ export function AdvancedPriceChart({
             {/* Line 1: Market Cap title */}
             <span className="text-sm text-gray-400 font-normal">Market Cap</span>
 
-            {/* Line 2: Market Cap value - LARGER */}
+            {/* Line 2: Market Cap value - LARGER - Always calculated from current price × supply */}
             <span className="text-3xl font-bold text-white leading-none my-1">
-              ${marketCap || '28.7K'}
+              {formatMarketCap(stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY, 'USD')}
             </span>
 
-            {/* Line 3: 24h change with $ and % */}
+            {/* Line 3: 24h change with $ and % - calculated from actual stats */}
             <span className="text-sm font-normal">
               <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
-                {stats.change24h >= 0 ? '+' : ''}${Math.abs(stats.change24h * parseFloat(marketCap || '0') / 100).toFixed(0)} ({stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%)
+                {stats.change24h >= 0 ? '+' : ''}
+                {formatMarketCap(Math.abs(stats.change24h * stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY / 100), 'USD')}
+                {' '}({stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%)
               </span>
               {' '}
               <span className="text-gray-400">24hr</span>
             </span>
           </div>
-          
-          {/* Progress Bar to ATH with ATH Value */}
+
+          {/* Progress Bar to ATH with ATH Value - All in USD */}
           <div className="flex items-center gap-2">
             <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${Math.min((parseFloat(marketCap?.replace('K', '').replace('$', '') || '0') * 1000) / (stats.athUSD > 0 ? stats.athUSD : 1) * 100, 100)}%` 
+                style={{
+                  width: `${Math.min((stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY) / (stats.athUSD * TOTAL_TOKEN_SUPPLY > 0 ? stats.athUSD * TOTAL_TOKEN_SUPPLY : 1) * 100, 100)}%`
                 }}
               />
             </div>
             <span className="text-xs text-gray-400 font-medium">
-              ATH {formatPrice(stats.ath, 'ASTER')}
+              ATH {formatMarketCap(stats.athUSD * TOTAL_TOKEN_SUPPLY, 'USD')}
             </span>
           </div>
         </div>
