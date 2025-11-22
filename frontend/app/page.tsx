@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useTokenList, TokenListFilters } from '@/lib/hooks/useTokenList';
 import { useWatchTokenCreated } from '@/lib/hooks/useTokenEvents';
@@ -8,7 +9,7 @@ import { TrendingSection } from '@/components/TrendingSection';
 import { ExploreSection } from '@/components/ExploreSection';
 import { FilterValues } from '@/components/FilterBar';
 import { TokenCard } from '@/components/TokenCard';
-import { HomeHeader } from '@/components/HomeHeader';
+import { MiniSparkline } from '@/components/MiniSparkline';
 import { cachedFetch } from '@/lib/utils/fetchWithRetry';
 import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/utils/formatNumbers';
 import { getPercentChangeColor } from '@/lib/utils/formatters';
@@ -18,12 +19,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function Home() {
   const { address } = useAccount();
+  const searchParams = useSearchParams();
+  const urlSearchQuery = searchParams.get('search') || '';
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAnimations, setShowAnimations] = useState(true);
   const [showNsfw, setShowNsfw] = useState(false);
   const [sortOption, setSortOption] = useState('featured');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [activeTab, setActiveTab] = useState<'explore' | 'watchlist'>('explore');
+
+  // Update searchQuery when URL param changes
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({
     minMcap: 0,
     maxMcap: 1000,
@@ -129,11 +138,6 @@ export default function Home() {
     setAdvancedFilters(filters);
   };
 
-  // Handle search from header
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
-
   // Handle tab change
   const handleTabChange = (tab: 'explore' | 'watchlist') => {
     setActiveTab(tab);
@@ -145,9 +149,6 @@ export default function Home() {
 
   return (
     <div className="space-y-6 min-h-screen">
-      {/* Header with Search and Login/Create Coin */}
-      <HomeHeader onSearch={handleSearch} />
-
       {/* Trending Section - Only show when not searching */}
       {!searchQuery && !isTrendingLoading && trendingTokens.length > 0 && (
         <TrendingSection tokens={trendingTokens} />
@@ -276,9 +277,7 @@ export default function Home() {
                           </div>
                         </td>
                         <td className="py-2 px-2">
-                          <div className="w-16 h-8 bg-gray-800 rounded flex items-center justify-center">
-                            <span className="text-xs text-gray-600">📈</span>
-                          </div>
+                          <MiniSparkline priceChange24h={stats?.priceChange24h} />
                         </td>
                         <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
                           {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') : 
