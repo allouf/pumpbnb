@@ -479,6 +479,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                 ath={marketCapStats.ath}
                 backendPriceUsd={priceUsd}
                 backendMarketCapUsd={marketCapUsd}
+                backendStats={apiData?.stats}
               />
             </div>
 

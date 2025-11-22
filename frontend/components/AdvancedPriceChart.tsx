@@ -13,6 +13,21 @@ console.log('[AdvancedPriceChart] 📚 Import check:', {
   CrosshairMode: typeof CrosshairMode
 })
 
+// Backend stats interface - these are the source of truth, no frontend calculations needed
+interface BackendTokenStats {
+  price?: string
+  priceUsd?: string
+  marketCap?: string
+  marketCapUsd?: string
+  volume24h?: string
+  volume24hUsd?: string
+  trades24h?: number
+  holders?: number
+  priceChange24h?: string
+  liquidity?: string
+  liquidityUsd?: string
+}
+
 interface AdvancedPriceChartProps {
   bondingCurveAddress: string
   tokenSymbol: string
@@ -22,6 +37,8 @@ interface AdvancedPriceChartProps {
   // Backend-calculated USD values (most accurate - uses ASTER reserves × ASTER USD price)
   backendPriceUsd?: number
   backendMarketCapUsd?: number
+  // Full backend stats - use these directly, no frontend calculations!
+  backendStats?: BackendTokenStats
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
@@ -122,6 +139,7 @@ export function AdvancedPriceChart({
   ath,
   backendPriceUsd = 0,
   backendMarketCapUsd = 0,
+  backendStats,
 }: AdvancedPriceChartProps) {
   // Global error handler
   useEffect(() => {
@@ -172,15 +190,23 @@ export function AdvancedPriceChart({
     console.log('  - Timeframe:', timeframe)
     console.log('  - ASTER USD Price:', asterUsdPrice)
     console.log('')
-    console.log('📈 Stats Object:')
+    console.log('🔗 BACKEND STATS (Source of Truth - from API):')
+    console.log('  - Price (ASTER):', backendStats?.price)
+    console.log('  - Price (USD):', backendStats?.priceUsd)
+    console.log('  - Market Cap (ASTER):', backendStats?.marketCap)
+    console.log('  - Market Cap (USD):', backendStats?.marketCapUsd)
+    console.log('  - Volume 24h (ASTER):', backendStats?.volume24h)
+    console.log('  - Volume 24h (USD):', backendStats?.volume24hUsd)
+    console.log('  - Price Change 24h:', backendStats?.priceChange24h)
+    console.log('  - Trades 24h:', backendStats?.trades24h)
+    console.log('  - Holders:', backendStats?.holders)
+    console.log('  - Liquidity (ASTER):', backendStats?.liquidity)
+    console.log('  - Liquidity (USD):', backendStats?.liquidityUsd)
+    console.log('')
+    console.log('📈 Frontend Calculated Stats (for chart candles only):')
     console.log('  - Current Price (ASTER):', stats.currentPrice)
     console.log('  - Current Price (USD):', stats.currentPriceUSD)
-    console.log('  - Market Cap (USD):', stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY)
     console.log('  - 24h Change %:', stats.change24h)
-    console.log('  - ATH (ASTER):', stats.ath)
-    console.log('  - ATH (USD):', stats.athUSD)
-    console.log('  - Volume 24h (ASTER):', stats.volume24h)
-    console.log('  - Volume 24h (USD):', stats.volume24hUSD)
     console.log('')
     console.log('🔗 Props:')
     console.log('  - Backend Price USD:', backendPriceUsd)
@@ -1708,30 +1734,37 @@ export function AdvancedPriceChart({
             {/* Line 1: Market Cap title */}
             <span className="text-sm text-gray-400 font-normal">Market Cap</span>
 
-            {/* Line 2: Market Cap value - Use live calculated value for real-time updates */}
+            {/* Line 2: Market Cap value - USE BACKEND VALUE DIRECTLY, no frontend calculation! */}
             <span className="text-3xl font-bold text-white leading-none my-1">
-              {formatMarketCap(stats.currentPriceUSD > 0 ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY : backendMarketCapUsd, 'USD')}
+              {formatMarketCap(parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd, 'USD')}
             </span>
 
-            {/* Line 3: 24h change with $ and % - calculated from actual stats */}
-            <span className="text-sm font-normal">
-              <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
-                {stats.change24h >= 0 ? '+' : ''}
-                {formatMarketCap(Math.abs(stats.change24h * (stats.currentPriceUSD > 0 ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY : backendMarketCapUsd) / 100), 'USD')}
-                {' '}({stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%)
-              </span>
-              {' '}
-              <span className="text-gray-400">24hr</span>
-            </span>
+            {/* Line 3: 24h change with $ and % - USE BACKEND VALUE DIRECTLY */}
+            {(() => {
+              const mcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
+              const change24h = parseFloat(backendStats?.priceChange24h || '0')
+              const dollarChange = Math.abs(change24h * mcapUsd / 100)
+              return (
+                <span className="text-sm font-normal">
+                  <span className={change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
+                    {change24h >= 0 ? '+' : ''}
+                    {formatMarketCap(dollarChange, 'USD')}
+                    {' '}({change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%)
+                  </span>
+                  {' '}
+                  <span className="text-gray-400">24hr</span>
+                </span>
+              )
+            })()}
           </div>
 
           {/* Progress Bar to ATH with ATH Value - All in USD */}
           <div className="flex items-center gap-2">
             {(() => {
-              // Calculate current market cap - prefer live calculated value for real-time updates
-              const currentMcapUsd = stats.currentPriceUSD > 0 ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY : backendMarketCapUsd
-              // ATH market cap - use live calculated ATH from trades
-              const athMcapUsd = stats.athUSD > 0 ? stats.athUSD * TOTAL_TOKEN_SUPPLY : (ath && ath > 0 ? ath : currentMcapUsd)
+              // USE BACKEND VALUES DIRECTLY - no frontend calculation!
+              const currentMcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
+              // ATH - use prop from parent, otherwise use current as baseline (backend should track ATH)
+              const athMcapUsd = ath && ath > 0 ? ath : currentMcapUsd
               const progressPercent = athMcapUsd > 0 ? Math.min((currentMcapUsd / athMcapUsd) * 100, 100) : 0
 
               return (
@@ -1846,7 +1879,7 @@ export function AdvancedPriceChart({
         {/* Row 3: Token Price/MCap Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Price or Market Cap display based on toggle - use live calculated values */}
+            {/* Price or Market Cap display based on toggle - USE BACKEND VALUES DIRECTLY */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
                 {displayMetric === 'MCap' ? 'Market Cap:' : 'Price:'}
@@ -1855,14 +1888,14 @@ export function AdvancedPriceChart({
                 {displayMetric === 'MCap'
                   ? formatMarketCap(
                       priceMode === 'USD'
-                        ? (stats.currentPriceUSD > 0 ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY : backendMarketCapUsd)
-                        : stats.currentPrice * TOTAL_TOKEN_SUPPLY,
+                        ? parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
+                        : parseFloat(backendStats?.marketCap || '0'),
                       priceMode
                     )
                   : formatPrice(
                       priceMode === 'USD'
-                        ? (stats.currentPriceUSD > 0 ? stats.currentPriceUSD : backendPriceUsd)
-                        : stats.currentPrice,
+                        ? parseFloat(backendStats?.priceUsd || '0') || backendPriceUsd
+                        : parseFloat(backendStats?.price || '0'),
                       priceMode
                     )
                 }
