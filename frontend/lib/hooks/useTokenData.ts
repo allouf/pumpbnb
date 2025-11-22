@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react'
 
+// TokenStats interface for single token data
+interface TokenDataStats {
+  price?: string           // ASTER per token
+  priceUsd?: string        // USD per token
+  marketCap?: string       // ASTER reserves
+  marketCapUsd?: string    // USD market cap
+  volume24h?: string       // 24h volume in ASTER
+  volume24hUsd?: string    // 24h volume in USD
+  trades24h?: number       // Number of trades in 24h
+  holders?: number         // Number of holders
+  priceChange24h?: string  // 24h price change percentage
+  liquidity?: string       // Liquidity in ASTER
+  liquidityUsd?: string    // Liquidity in USD
+}
+
 export interface TokenData {
   address: string
   bondingCurve: string
@@ -15,6 +30,8 @@ export interface TokenData {
   twitter?: string
   telegram?: string
   discord?: string
+  // Token stats from backend
+  stats?: TokenDataStats
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'

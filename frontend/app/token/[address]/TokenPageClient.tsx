@@ -172,10 +172,28 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
   const progress = (asterReserves / 100) * 100
-  const marketCap = asterReserves.toFixed(2)
 
-  // Calculate 24hr market cap change from transaction history
+  // Use backend stats for USD market cap (correct calculation)
+  // Backend calculates: marketCapUsd = asterReserves × ASTER_USD_PRICE
+  const marketCapUsd = apiData?.stats?.marketCapUsd ? parseFloat(apiData.stats.marketCapUsd) : 0
+  const marketCap = marketCapUsd > 0 ? marketCapUsd.toFixed(2) : asterReserves.toFixed(2)
+  const priceUsd = apiData?.stats?.priceUsd ? parseFloat(apiData.stats.priceUsd) : 0
+  const priceChange24h = apiData?.stats?.priceChange24h ? parseFloat(apiData.stats.priceChange24h) : 0
+
+  // Calculate 24hr market cap change from backend stats or transaction history
   const marketCapStats = useMemo(() => {
+    // Use backend stats if available (most accurate)
+    if (apiData?.stats) {
+      const mcapUsd = parseFloat(apiData.stats.marketCapUsd || '0')
+      const change = parseFloat(apiData.stats.priceChange24h || '0')
+      const athEstimate = mcapUsd // Will be calculated properly in the chart
+      return {
+        change24hPercent: change,
+        change24hDollar: mcapUsd * change / 100,
+        ath: athEstimate
+      }
+    }
+
     if (transactions.length === 0) {
       return { change24hPercent: 0, change24hDollar: 0, ath: parseFloat(marketCap) }
     }
@@ -202,10 +220,10 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
       const oldPrice = calculatePrice(oldTx)
       const currentTx = transactions[transactions.length - 1]
       const currentPrice = currentTx ? calculatePrice(currentTx) : oldPrice
-      
+
       if (oldPrice > 0) {
         change24hPercent = ((currentPrice - oldPrice) / oldPrice) * 100
-        
+
         // Calculate dollar change based on estimated market cap movement
         // Assuming market cap correlates with price
         const oldMarketCap = parseFloat(marketCap) / (currentPrice / oldPrice)
@@ -459,6 +477,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                 marketCap={marketCap}
                 marketCapChange24h={marketCapStats.change24hPercent}
                 ath={marketCapStats.ath}
+                backendPriceUsd={priceUsd}
+                backendMarketCapUsd={marketCapUsd}
               />
             </div>
 

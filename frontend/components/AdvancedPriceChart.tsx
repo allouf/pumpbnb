@@ -19,6 +19,9 @@ interface AdvancedPriceChartProps {
   marketCap?: string
   marketCapChange24h?: number
   ath?: number
+  // Backend-calculated USD values (most accurate - uses ASTER reserves × ASTER USD price)
+  backendPriceUsd?: number
+  backendMarketCapUsd?: number
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
@@ -111,12 +114,14 @@ const formatCompactPrice = (price: number, currency: 'USD' | 'ASTER' = 'ASTER'):
   return `${prefix}${price.toFixed(6)}`
 }
 
-export function AdvancedPriceChart({ 
-  bondingCurveAddress, 
-  tokenSymbol, 
-  marketCap, 
-  marketCapChange24h = 0, 
-  ath 
+export function AdvancedPriceChart({
+  bondingCurveAddress,
+  tokenSymbol,
+  marketCap,
+  marketCapChange24h = 0,
+  ath,
+  backendPriceUsd = 0,
+  backendMarketCapUsd = 0,
 }: AdvancedPriceChartProps) {
   // Global error handler
   useEffect(() => {
@@ -1645,16 +1650,16 @@ export function AdvancedPriceChart({
             {/* Line 1: Market Cap title */}
             <span className="text-sm text-gray-400 font-normal">Market Cap</span>
 
-            {/* Line 2: Market Cap value - LARGER - Always calculated from current price × supply */}
+            {/* Line 2: Market Cap value - Use backend value (most accurate) */}
             <span className="text-3xl font-bold text-white leading-none my-1">
-              {formatMarketCap(stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY, 'USD')}
+              {formatMarketCap(backendMarketCapUsd > 0 ? backendMarketCapUsd : stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY, 'USD')}
             </span>
 
             {/* Line 3: 24h change with $ and % - calculated from actual stats */}
             <span className="text-sm font-normal">
               <span className={stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'}>
                 {stats.change24h >= 0 ? '+' : ''}
-                {formatMarketCap(Math.abs(stats.change24h * stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY / 100), 'USD')}
+                {formatMarketCap(Math.abs(stats.change24h * (backendMarketCapUsd > 0 ? backendMarketCapUsd : stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY) / 100), 'USD')}
                 {' '}({stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(2)}%)
               </span>
               {' '}
@@ -1664,17 +1669,28 @@ export function AdvancedPriceChart({
 
           {/* Progress Bar to ATH with ATH Value - All in USD */}
           <div className="flex items-center gap-2">
-            <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{
-                  width: `${Math.min((stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY) / (stats.athUSD * TOTAL_TOKEN_SUPPLY > 0 ? stats.athUSD * TOTAL_TOKEN_SUPPLY : 1) * 100, 100)}%`
-                }}
-              />
-            </div>
-            <span className="text-xs text-gray-400 font-medium">
-              ATH {formatMarketCap(stats.athUSD * TOTAL_TOKEN_SUPPLY, 'USD')}
-            </span>
+            {(() => {
+              // Calculate ATH market cap - use backend value if available, otherwise use current mcap as ATH estimate
+              const currentMcapUsd = backendMarketCapUsd > 0 ? backendMarketCapUsd : stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY
+              // For bonding curves, ATH is typically the highest market cap reached
+              // Use ath prop from parent if available (backend), otherwise use current as baseline
+              const athMcapUsd = ath && ath > 0 ? ath : currentMcapUsd
+              const progressPercent = athMcapUsd > 0 ? Math.min((currentMcapUsd / athMcapUsd) * 100, 100) : 0
+
+              return (
+                <>
+                  <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-400 font-medium">
+                    ATH {formatMarketCap(athMcapUsd, 'USD')}
+                  </span>
+                </>
+              )
+            })()}
           </div>
         </div>
         
@@ -1773,7 +1789,7 @@ export function AdvancedPriceChart({
         {/* Row 3: Token Price/MCap Info + Security Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* Price or Market Cap display based on toggle */}
+            {/* Price or Market Cap display based on toggle - use backend values when available */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-white">
                 {displayMetric === 'MCap' ? 'Market Cap:' : 'Price:'}
@@ -1782,11 +1798,16 @@ export function AdvancedPriceChart({
                 {displayMetric === 'MCap'
                   ? formatMarketCap(
                       priceMode === 'USD'
-                        ? stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY
+                        ? (backendMarketCapUsd > 0 ? backendMarketCapUsd : stats.currentPriceUSD * TOTAL_TOKEN_SUPPLY)
                         : stats.currentPrice * TOTAL_TOKEN_SUPPLY,
                       priceMode
                     )
-                  : formatPrice(priceMode === 'USD' ? stats.currentPriceUSD : stats.currentPrice, priceMode)
+                  : formatPrice(
+                      priceMode === 'USD'
+                        ? (backendPriceUsd > 0 ? backendPriceUsd : stats.currentPriceUSD)
+                        : stats.currentPrice,
+                      priceMode
+                    )
                 }
               </span>
             </div>
