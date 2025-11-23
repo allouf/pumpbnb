@@ -277,7 +277,10 @@ export default function Home() {
                           </div>
                         </td>
                         <td className="py-2 px-2">
-                          <MiniSparkline priceChange24h={stats?.priceChange24h} />
+                          <MiniSparkline
+                            priceChange24h={stats?.priceChange24h}
+                            tokenAddress={token.address}
+                          />
                         </td>
                         <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
                           {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') : 

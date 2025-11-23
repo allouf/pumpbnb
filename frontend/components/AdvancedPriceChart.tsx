@@ -165,6 +165,11 @@ export function AdvancedPriceChart({
   const chartCreatedRef = useRef(false)
   const isInitialLoadRef = useRef(true)
 
+  // Track previous settings to detect mode changes vs data refreshes
+  const prevSettingsRef = useRef<{ displayMetric: string; priceMode: string; chartType: string } | null>(null)
+  // Track if chart position was set by user (scrolled/zoomed)
+  const userInteractedRef = useRef(false)
+
   const [timeframe, setTimeframe] = useState<Timeframe>('all')
   const [priceMode, setPriceMode] = useState<PriceMode>('USD') // Default to USD for user-friendly display
   const [chartType, setChartType] = useState<ChartType>('candlestick')
@@ -1003,6 +1008,13 @@ export function AdvancedPriceChart({
 
   // Update chart data when filtered transactions change or price mode changes
   useEffect(() => {
+    // Detect if this is a MODE CHANGE (displayMetric, priceMode) vs just a DATA REFRESH
+    const prevSettings = prevSettingsRef.current
+    const isSettingsChange = !prevSettings ||
+      prevSettings.displayMetric !== displayMetric ||
+      prevSettings.priceMode !== priceMode ||
+      prevSettings.chartType !== chartType
+
     console.log('[AdvancedPriceChart] 🔄 Data update effect triggered', {
       hasPriceSeries: !!priceSeriesRef.current,
       hasVolumeSeries: !!volumeSeriesRef.current,
@@ -1013,8 +1025,13 @@ export function AdvancedPriceChart({
       timeframe,
       asterUsdPrice,
       asterUsdPriceIsValid: asterUsdPrice > 0 && !isNaN(asterUsdPrice) && isFinite(asterUsdPrice),
-      totalTokenSupply: TOTAL_TOKEN_SUPPLY
+      totalTokenSupply: TOTAL_TOKEN_SUPPLY,
+      isSettingsChange,
+      prevSettings
     })
+
+    // Update prev settings ref
+    prevSettingsRef.current = { displayMetric, priceMode, chartType }
 
     if (!priceSeriesRef.current || !volumeSeriesRef.current) {
       console.log('[AdvancedPriceChart] ⚠️ Missing series refs, skipping update')
@@ -1028,6 +1045,20 @@ export function AdvancedPriceChart({
     if (priceMode === 'USD' && (asterUsdPrice <= 0 || isNaN(asterUsdPrice) || !isFinite(asterUsdPrice))) {
       console.log('[AdvancedPriceChart] ⚠️ Invalid ASTER USD price for USD mode, using default')
       // Don't return - just use the default price which is set in state
+    }
+
+    // Save current visible range before updating data (to preserve user scroll position)
+    let savedVisibleRange: { from: number; to: number } | null = null
+    if (!isSettingsChange && !isInitialLoadRef.current && chartRef.current) {
+      try {
+        const currentRange = chartRef.current.timeScale().getVisibleRange()
+        if (currentRange) {
+          savedVisibleRange = { from: (currentRange as any).from, to: (currentRange as any).to }
+          console.log('[AdvancedPriceChart] 📌 Saved visible range for data refresh:', savedVisibleRange)
+        }
+      } catch (e) {
+        console.log('[AdvancedPriceChart] ⚠️ Could not save visible range:', e)
+      }
     }
 
     // Get candle interval in seconds based on timeframe
@@ -1414,54 +1445,65 @@ export function AdvancedPriceChart({
           console.error('[AdvancedPriceChart] ❌ No valid volume data to set!')
         }
 
-        // ALWAYS fit content after data changes to ensure chart is properly scaled
-        // This is critical for mode switches (Price/MCap, USD/ASTER)
+        // Handle view positioning based on whether this is a mode change or data refresh
         if (!isInitialLoadRef.current && chartRef.current && candleData.length > 0) {
-          console.log('[AdvancedPriceChart] 🔄 Mode change detected - fitting content to rescale chart')
-
           // Get the full time range of all candle data
           const firstTime = candleData[0].time
           const lastTime = candleData[candleData.length - 1].time
           const totalTimeRange = lastTime - firstTime
-
-          // Add padding for better visibility
           const timePadding = Math.max(totalTimeRange * 0.1, 300) // 10% padding, min 5 minutes
 
-          // Step 1: Scroll to the far left to reset view position
-          try {
-            chartRef.current.timeScale().scrollToPosition(-1000, false)
-          } catch (e) {
-            console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed:', e)
-          }
+          if (isSettingsChange) {
+            // MODE CHANGE: Reset view to show all data properly scaled
+            console.log('[AdvancedPriceChart] 🔄 Mode change detected - resetting view to show all data')
 
-          // Step 2: Set visible range explicitly after a small delay
-          setTimeout(() => {
-            if (chartRef.current) {
-              try {
-                // Set visible range explicitly to ensure all data is shown
-                chartRef.current.timeScale().setVisibleRange({
-                  from: (firstTime - timePadding) as UTCTimestamp,
-                  to: (lastTime + timePadding * 0.5) as UTCTimestamp,
-                })
-                console.log('[AdvancedPriceChart] ✅ Chart visible range set after mode change:', {
-                  from: new Date((firstTime - timePadding) * 1000).toISOString(),
-                  to: new Date((lastTime + timePadding * 0.5) * 1000).toISOString()
-                })
-              } catch (e) {
-                // Fallback to fitContent if setVisibleRange fails
-                console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using fitContent:', e)
-                chartRef.current.timeScale().fitContent()
+            // Step 1: Scroll to the far left to reset view position
+            try {
+              chartRef.current.timeScale().scrollToPosition(-1000, false)
+            } catch (e) {
+              console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed:', e)
+            }
+
+            // Step 2: Set visible range explicitly after a small delay
+            setTimeout(() => {
+              if (chartRef.current) {
+                try {
+                  chartRef.current.timeScale().setVisibleRange({
+                    from: (firstTime - timePadding) as UTCTimestamp,
+                    to: (lastTime + timePadding * 0.5) as UTCTimestamp,
+                  })
+                  console.log('[AdvancedPriceChart] ✅ Chart visible range set after mode change')
+                } catch (e) {
+                  console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using fitContent:', e)
+                  chartRef.current.timeScale().fitContent()
+                }
               }
-            }
-          }, 100)
+            }, 100)
 
-          // Step 3: Backup fitContent after a longer delay
-          setTimeout(() => {
-            if (chartRef.current) {
-              chartRef.current.timeScale().fitContent()
-              console.log('[AdvancedPriceChart] ✅ Chart fitContent executed as backup')
-            }
-          }, 300)
+            // Step 3: Backup fitContent after a longer delay
+            setTimeout(() => {
+              if (chartRef.current) {
+                chartRef.current.timeScale().fitContent()
+                console.log('[AdvancedPriceChart] ✅ Chart fitContent executed as backup')
+              }
+            }, 300)
+          } else if (savedVisibleRange) {
+            // DATA REFRESH: Restore the user's previous scroll position
+            console.log('[AdvancedPriceChart] 📌 Data refresh - restoring previous scroll position')
+            setTimeout(() => {
+              if (chartRef.current) {
+                try {
+                  chartRef.current.timeScale().setVisibleRange({
+                    from: savedVisibleRange.from as UTCTimestamp,
+                    to: savedVisibleRange.to as UTCTimestamp,
+                  })
+                  console.log('[AdvancedPriceChart] ✅ Restored previous visible range')
+                } catch (e) {
+                  console.log('[AdvancedPriceChart] ⚠️ Could not restore visible range:', e)
+                }
+              }
+            }, 50)
+          }
         }
 
         // Fit content on initial load to show all candles with OPTIMAL visibility
@@ -1918,6 +1960,10 @@ export function AdvancedPriceChart({
               onClick={() => {
                 console.log('🔘 [BUTTON] Price clicked - switching from', displayMetric, 'to Price')
                 console.log('   → Will show:', priceMode === 'USD' ? backendStats?.priceUsd : backendStats?.price)
+                if (displayMetric !== 'Price') {
+                  // Switching modes - need to recreate series for proper scale
+                  switchChartType(chartType)
+                }
                 setDisplayMetric('Price')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${
@@ -1933,6 +1979,10 @@ export function AdvancedPriceChart({
               onClick={() => {
                 console.log('🔘 [BUTTON] MCap clicked - switching from', displayMetric, 'to MCap')
                 console.log('   → Will show:', priceMode === 'USD' ? backendStats?.marketCapUsd : backendStats?.marketCap)
+                if (displayMetric !== 'MCap') {
+                  // Switching modes - need to recreate series for proper scale
+                  switchChartType(chartType)
+                }
                 setDisplayMetric('MCap')
               }}
               className={`px-2 py-1 text-xs font-medium transition ${

@@ -4,17 +4,35 @@ import { useMemo } from 'react'
 
 interface MiniSparklineProps {
   priceChange24h?: string | number
+  // Optional real price data for accurate sparklines
+  priceHistory?: number[]
+  // Token address for deterministic pseudo-random pattern
+  tokenAddress?: string
   width?: number
   height?: number
   className?: string
 }
 
+// Simple hash function for deterministic pseudo-random generation
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  return Math.abs(hash)
+}
+
 /**
  * MiniSparkline - A simple SVG sparkline for token list view
- * Generates a representative price line based on 24h change
+ * Uses real price history if available, otherwise generates a representative line
+ * based on 24h change with deterministic pattern per token
  */
 export function MiniSparkline({
   priceChange24h = 0,
+  priceHistory,
+  tokenAddress = '',
   width = 64,
   height = 32,
   className = '',
@@ -26,7 +44,12 @@ export function MiniSparkline({
   // Determine color based on price change
   const isPositive = change >= 0
   const strokeColor = isPositive ? '#86EFAC' : '#FCA5A5' // green-300 or red-300
-  const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`
+
+  // Use stable gradient ID based on token address
+  const gradientId = useMemo(() =>
+    `gradient-${tokenAddress ? simpleHash(tokenAddress).toString(36) : Math.random().toString(36).substr(2, 9)}`,
+    [tokenAddress]
+  )
 
   // Generate sparkline path data
   const { pathData, areaPath } = useMemo(() => {
@@ -34,29 +57,56 @@ export function MiniSparkline({
     const chartWidth = width - padding * 2
     const chartHeight = height - padding * 2
 
-    // Generate pseudo-random but deterministic points based on price change
-    // This creates a realistic-looking sparkline
-    const numPoints = 12
-    const points: { x: number; y: number }[] = []
+    let points: { x: number; y: number }[] = []
 
-    // Seed for pseudo-random generation based on change value
-    const seed = Math.abs(change * 1000) % 100
+    // If real price history is provided, use it
+    if (priceHistory && priceHistory.length > 1) {
+      const minPrice = Math.min(...priceHistory)
+      const maxPrice = Math.max(...priceHistory)
+      const priceRange = maxPrice - minPrice || 1 // Avoid division by zero
 
-    for (let i = 0; i < numPoints; i++) {
-      const x = padding + (i / (numPoints - 1)) * chartWidth
+      points = priceHistory.map((price, i) => {
+        const x = padding + (i / (priceHistory.length - 1)) * chartWidth
+        // Normalize price to chart height (invert Y - higher price = lower Y)
+        const normalizedPrice = (price - minPrice) / priceRange
+        const y = padding + chartHeight * (1 - normalizedPrice)
+        return { x, y }
+      })
+    } else {
+      // Generate pseudo-random but deterministic points based on token address and price change
+      const numPoints = 12
 
-      // Create a wave pattern with overall trend based on price change
-      const progress = i / (numPoints - 1)
-      const trendY = isPositive
-        ? chartHeight * (1 - progress * 0.6) // Trend upward (lower Y = higher on screen)
-        : chartHeight * (0.3 + progress * 0.5) // Trend downward
+      // Use token address hash for deterministic seed, fall back to change value
+      const seed = tokenAddress ? simpleHash(tokenAddress) : Math.abs(change * 1000) % 100
 
-      // Add some natural-looking variation
-      const variation = Math.sin(i * 1.5 + seed) * (chartHeight * 0.15)
-      const noise = Math.cos(i * 2.7 + seed * 0.5) * (chartHeight * 0.08)
+      for (let i = 0; i < numPoints; i++) {
+        const x = padding + (i / (numPoints - 1)) * chartWidth
 
-      const y = padding + Math.max(0, Math.min(chartHeight, trendY + variation + noise))
-      points.push({ x, y })
+        // Create a wave pattern with overall trend based on price change
+        const progress = i / (numPoints - 1)
+
+        // Determine trend direction and magnitude based on price change
+        let trendY: number
+        const changeMagnitude = Math.min(Math.abs(change), 100) / 100 // Normalize to 0-1
+
+        if (isPositive) {
+          // Upward trend - starts low, ends high
+          const baseProgress = 0.7 - progress * 0.5 * (1 + changeMagnitude)
+          trendY = chartHeight * Math.max(0.1, Math.min(0.9, baseProgress))
+        } else {
+          // Downward trend - starts high, ends low
+          const baseProgress = 0.3 + progress * 0.5 * (1 + changeMagnitude)
+          trendY = chartHeight * Math.max(0.1, Math.min(0.9, baseProgress))
+        }
+
+        // Add deterministic variation based on seed
+        const seedVariation = ((seed + i * 17) % 100) / 100
+        const variation = Math.sin(i * 1.5 + seedVariation * 6.28) * (chartHeight * 0.12)
+        const noise = Math.cos(i * 2.7 + seedVariation * 3.14) * (chartHeight * 0.06)
+
+        const y = padding + Math.max(0, Math.min(chartHeight, trendY + variation + noise))
+        points.push({ x, y })
+      }
     }
 
     // Create SVG path
@@ -76,7 +126,7 @@ export function MiniSparkline({
       `L${points[0].x},${height - padding}Z`
 
     return { pathData, areaPath }
-  }, [change, width, height, isPositive])
+  }, [change, width, height, isPositive, priceHistory, tokenAddress])
 
   return (
     <div className={`w-16 h-8 ${className}`}>
