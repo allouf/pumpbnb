@@ -1111,6 +1111,10 @@ export function AdvancedPriceChart({
 
     console.log('[AdvancedPriceChart] 🔍 Processing', filteredTransactions.length, 'transactions into candles...')
 
+    // Track cumulative ASTER reserves for MCap calculation
+    // MCap = Total ASTER in bonding curve (same as backend calculation)
+    let cumulativeAsterReserves = 0
+
     filteredTransactions
       .filter(tx => tx.timestamp > 0)
       .sort((a, b) => a.timestamp - b.timestamp)
@@ -1130,26 +1134,39 @@ export function AdvancedPriceChart({
           return // Skip transactions without proper amount data
         }
 
+        // Update cumulative ASTER reserves based on transaction type
+        // Buy = ASTER goes INTO the curve, Sell = ASTER comes OUT of the curve
+        if (tx.type === 'buy') {
+          cumulativeAsterReserves += asterAmount
+        } else if (tx.type === 'sell') {
+          cumulativeAsterReserves -= asterAmount
+        }
+        // Ensure reserves don't go negative
+        cumulativeAsterReserves = Math.max(0, cumulativeAsterReserves)
+
         console.log(`[AdvancedPriceChart] 📝 TX ${index}:`, {
           timestamp: new Date(tx.timestamp * 1000).toISOString(),
           asterAmount: asterAmount.toFixed(6),
           tokenAmount: tokenAmount.toFixed(6),
-          type: tx.type
+          type: tx.type,
+          cumulativeAsterReserves: cumulativeAsterReserves.toFixed(6)
         })
 
         // Calculate ASTER per token (traditional way - chart goes UP with buys)
         const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
         const usdPerToken = asterPerToken * asterUsdPrice
 
-        // Calculate market cap (Price × Total Supply)
-        const mcapAster = asterPerToken * TOTAL_TOKEN_SUPPLY
-        const mcapUsd = usdPerToken * TOTAL_TOKEN_SUPPLY
+        // Calculate market cap based on ASTER reserves (same as backend!)
+        // MCap in ASTER = total ASTER reserves in bonding curve
+        // MCap in USD = ASTER reserves × ASTER USD price
+        const mcapAster = cumulativeAsterReserves
+        const mcapUsd = cumulativeAsterReserves * asterUsdPrice
 
         console.log(`[AdvancedPriceChart] 💰 TX ${index} prices:`, {
           asterPerToken: asterPerToken.toExponential(6),
           usdPerToken: usdPerToken.toExponential(6),
-          mcapAster: mcapAster.toExponential(6),
-          mcapUsd: mcapUsd.toExponential(6),
+          mcapAster: mcapAster.toFixed(4),
+          mcapUsd: mcapUsd.toFixed(4),
           displayMetric,
           isValidNumber: !isNaN(asterPerToken) && isFinite(asterPerToken),
           isPositive: asterPerToken > 0
@@ -1165,8 +1182,8 @@ export function AdvancedPriceChart({
         const displayPrice = isNaN(rawDisplayPrice) || !isFinite(rawDisplayPrice) || rawDisplayPrice <= 0 ? 0 : rawDisplayPrice
 
         console.log(`[AdvancedPriceChart] 🎯 TX ${index} display value (${displayMetric}/${priceMode}):`, {
-          rawDisplayPrice: rawDisplayPrice.toExponential(6),
-          displayPrice: displayPrice === 0 ? '0 (INVALID)' : displayPrice.toExponential(6),
+          rawDisplayPrice: displayMetric === 'MCap' ? rawDisplayPrice.toFixed(4) : rawDisplayPrice.toExponential(6),
+          displayPrice: displayPrice === 0 ? '0 (INVALID)' : (displayMetric === 'MCap' ? displayPrice.toFixed(4) : displayPrice.toExponential(6)),
           displayMetric,
           priceMode
         })
@@ -1819,8 +1836,30 @@ export function AdvancedPriceChart({
     }
     // Get latest candle data with null handling
     if (filteredTransactions.length > 0) {
-      const latest = filteredTransactions[filteredTransactions.length - 1]
-      
+      // Calculate cumulative ASTER reserves to get accurate MCap
+      // Sort transactions by timestamp and sum up reserves
+      const sortedTxs = [...filteredTransactions]
+        .filter(tx => tx.timestamp > 0)
+        .sort((a, b) => a.timestamp - b.timestamp)
+
+      let cumulativeReserves = 0
+      sortedTxs.forEach(tx => {
+        let asterAmt = 0
+        if (tx.asterAmountFormatted) {
+          asterAmt = Number(tx.asterAmountFormatted)
+        } else if (tx.asterAmount) {
+          asterAmt = Number(tx.asterAmount) / 1e18
+        }
+        if (tx.type === 'buy') {
+          cumulativeReserves += asterAmt
+        } else if (tx.type === 'sell') {
+          cumulativeReserves -= asterAmt
+        }
+      })
+      cumulativeReserves = Math.max(0, cumulativeReserves)
+
+      const latest = sortedTxs[sortedTxs.length - 1]
+
       let asterAmount, tokenAmount
       if (latest.asterAmountFormatted && latest.tokenAmountFormatted) {
         asterAmount = Number(latest.asterAmountFormatted)
@@ -1831,15 +1870,16 @@ export function AdvancedPriceChart({
       } else {
         return null // No valid data
       }
-      
+
       const asterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
       const usdPerToken = asterPerToken * asterUsdPrice
 
       // Calculate price or mcap based on displayMetric
+      // MCap = cumulative ASTER reserves (same as backend calculation)
       let displayValue: number
       if (displayMetric === 'MCap') {
-        const mcapAster = asterPerToken * TOTAL_TOKEN_SUPPLY
-        const mcapUsd = usdPerToken * TOTAL_TOKEN_SUPPLY
+        const mcapAster = cumulativeReserves
+        const mcapUsd = cumulativeReserves * asterUsdPrice
         displayValue = priceMode === 'USD' ? mcapUsd : mcapAster
       } else {
         displayValue = priceMode === 'USD' ? usdPerToken : asterPerToken
