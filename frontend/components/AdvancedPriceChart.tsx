@@ -638,8 +638,8 @@ export function AdvancedPriceChart({
         textColor: '#d1d5db',
         visible: true,
         scaleMargins: {
-          top: 0.15,
-          bottom: 0.30,
+          top: 0.10,
+          bottom: 0.25,
         },
         autoScale: true,
         mode: 0, // Normal price scale mode
@@ -650,9 +650,13 @@ export function AdvancedPriceChart({
         minimumWidth: 0,
         ticksVisible: true,
       },
+      // Enable left price scale for additional drag functionality
+      leftPriceScale: {
+        visible: false, // Hidden but helps with drag
+      },
       kineticScroll: {
         touch: true,
-        mouse: false,
+        mouse: true, // Enable mouse kinetic scroll for smoother dragging
       },
       handleScroll: {
         mouseWheel: true,
@@ -661,7 +665,10 @@ export function AdvancedPriceChart({
         vertTouchDrag: true,
       },
       handleScale: {
-        axisPressedMouseMove: true,
+        axisPressedMouseMove: {
+          time: true,
+          price: true, // Enable vertical (price) axis dragging
+        },
         mouseWheel: true,
         pinch: true,
       },
@@ -998,9 +1005,29 @@ export function AdvancedPriceChart({
       
       priceSeriesRef.current = newSeries
       console.log('[AdvancedPriceChart] ✅ Chart type switched to', newType)
-      
-      // Update chart type state
+
+      // Update chart type state - this will trigger the data update effect
+      // which will repopulate the series with data and fit content
       setChartType(newType)
+
+      // Force fit content after a delay to ensure data is loaded
+      setTimeout(() => {
+        if (chartRef.current) {
+          try {
+            // Scroll to start first
+            chartRef.current.timeScale().scrollToPosition(-1000, false)
+            // Then fit all content
+            setTimeout(() => {
+              if (chartRef.current) {
+                chartRef.current.timeScale().fitContent()
+                console.log('[AdvancedPriceChart] ✅ Chart type switch - fitContent executed')
+              }
+            }, 100)
+          } catch (e) {
+            console.log('[AdvancedPriceChart] ⚠️ Error fitting content after type switch:', e)
+          }
+        }
+      }, 200)
     } catch (error) {
       console.error('[AdvancedPriceChart] Error creating new series:', error)
     }
