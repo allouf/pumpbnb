@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
 import { useATHTracking, getATHBadge } from '@/lib/hooks/useATHTracking'
+import { ATHProgressBar } from './ATHProgressBar'
 
 interface ChartStatsHeaderProps {
   tokenSymbol: string
@@ -134,16 +135,22 @@ export function ChartStatsHeader({
               {priceChange24h >= 0 ? '+' : ''}{priceChange24h.toFixed(2)}%
             </div>
 
-            {/* ATH Badge */}
+            {/* ATH Badge with Progress Bar */}
             {athData.currentATH && (
-              <div className={`px-3 py-1 rounded-lg text-xs font-medium border ${
-                athBadge.color === 'green' ? 'border-green-500/50 bg-green-500/10 text-green-400' :
-                athBadge.color === 'yellow' ? 'border-yellow-500/50 bg-yellow-500/10 text-yellow-400' :
-                athBadge.color === 'orange' ? 'border-orange-500/50 bg-orange-500/10 text-orange-400' :
-                athBadge.color === 'red' ? 'border-red-500/50 bg-red-500/10 text-red-400' :
-                'border-gray-500/50 bg-gray-500/10 text-gray-400'
-              }`}>
-                {athBadge.emoji} {athBadge.text}
+              <div className="flex items-center gap-2">
+                <ATHProgressBar
+                  currentPrice={currentPrice}
+                  athPrice={athData.currentATH.price}
+                />
+                <div className={`px-2 py-1 rounded-lg text-xs font-medium border ${
+                  athBadge.color === 'green' ? 'border-green-500/50 bg-green-500/10 text-green-400' :
+                  athBadge.color === 'yellow' ? 'border-yellow-500/50 bg-yellow-500/10 text-yellow-400' :
+                  athBadge.color === 'orange' ? 'border-orange-500/50 bg-orange-500/10 text-orange-400' :
+                  athBadge.color === 'red' ? 'border-red-500/50 bg-red-500/10 text-red-400' :
+                  'border-gray-500/50 bg-gray-500/10 text-gray-400'
+                }`}>
+                  {athBadge.emoji} {athBadge.text}
+                </div>
               </div>
             )}
           </div>

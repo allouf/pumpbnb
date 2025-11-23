@@ -5,6 +5,7 @@ import { createChart, ColorType, IChartApi, UTCTimestamp, CrosshairMode, ISeries
 // Import series constructors for v5 API
 import { CandlestickSeries, HistogramSeries, LineSeries, AreaSeries } from 'lightweight-charts'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
+import { ATHProgressBar } from './ATHProgressBar'
 
 // Debug: Log the imported functions
 console.log('[AdvancedPriceChart] 📚 Import check:', {
@@ -1364,9 +1365,19 @@ export function AdvancedPriceChart({
             return
           }
 
+          // Check if series ref is still valid
+          if (!priceSeriesRef.current) {
+            console.error('[AdvancedPriceChart] ❌ priceSeriesRef.current is null, cannot set line data')
+            return
+          }
+
           console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', lineData.length, 'points')
-          priceSeriesRef.current.setData(lineData)
-          console.log('[AdvancedPriceChart] ✅ Line/area data set successfully!')
+          try {
+            priceSeriesRef.current.setData(lineData)
+            console.log('[AdvancedPriceChart] ✅ Line/area data set successfully!')
+          } catch (setDataError) {
+            console.error('[AdvancedPriceChart] ❌ Error setting line/area data:', setDataError)
+          }
         } else if (chartType === 'columns') {
           console.log('[AdvancedPriceChart] 📊 Transforming to histogram/columns data...')
 
@@ -1417,23 +1428,66 @@ export function AdvancedPriceChart({
             return
           }
 
-          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', histogramData.length, 'bars')
-          priceSeriesRef.current.setData(histogramData)
-          console.log('[AdvancedPriceChart] ✅ Histogram data set successfully!')
-        } else {
-          console.log('[AdvancedPriceChart] 🕯️ Using candlestick data directly (already validated)')
+          // Check if series ref is still valid
+          if (!priceSeriesRef.current) {
+            console.error('[AdvancedPriceChart] ❌ priceSeriesRef.current is null, cannot set histogram data')
+            return
+          }
 
-          // For candlestick charts, use full OHLC data
-          // Data is already validated when added to candleData array
-          console.log('[AdvancedPriceChart] 📊 Candlestick data:', {
-            totalCandles: candleData.length,
-            firstCandle: candleData[0],
-            lastCandle: candleData[candleData.length - 1]
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', histogramData.length, 'bars')
+          try {
+            priceSeriesRef.current.setData(histogramData)
+            console.log('[AdvancedPriceChart] ✅ Histogram data set successfully!')
+          } catch (setDataError) {
+            console.error('[AdvancedPriceChart] ❌ Error setting histogram data:', setDataError)
+          }
+        } else {
+          console.log('[AdvancedPriceChart] 🕯️ Validating candlestick data before setData...')
+
+          // For candlestick charts, use full OHLC data with STRICT validation
+          // Filter again right before setData to catch any edge cases
+          const validCandleData = candleData.filter((candle, i) => {
+            const isValid =
+              candle !== null &&
+              candle !== undefined &&
+              typeof candle.time === 'number' &&
+              typeof candle.open === 'number' && !isNaN(candle.open) && isFinite(candle.open) && candle.open > 0 &&
+              typeof candle.high === 'number' && !isNaN(candle.high) && isFinite(candle.high) && candle.high > 0 &&
+              typeof candle.low === 'number' && !isNaN(candle.low) && isFinite(candle.low) && candle.low > 0 &&
+              typeof candle.close === 'number' && !isNaN(candle.close) && isFinite(candle.close) && candle.close > 0
+
+            if (!isValid) {
+              console.error(`[AdvancedPriceChart] ❌ Filtering out INVALID candle ${i}:`, candle)
+            }
+            return isValid
           })
 
-          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', candleData.length, 'candles')
-          priceSeriesRef.current.setData(candleData)
-          console.log('[AdvancedPriceChart] ✅ Candlestick data set successfully!')
+          console.log('[AdvancedPriceChart] 📊 Candlestick data after final validation:', {
+            originalCount: candleData.length,
+            validCount: validCandleData.length,
+            filteredOut: candleData.length - validCandleData.length,
+            firstCandle: validCandleData[0],
+            lastCandle: validCandleData[validCandleData.length - 1]
+          })
+
+          if (validCandleData.length === 0) {
+            console.error('[AdvancedPriceChart] ❌ No valid candlestick data after filtering, ABORTING')
+            return
+          }
+
+          // Check if series ref is still valid (could have been removed during async operation)
+          if (!priceSeriesRef.current) {
+            console.error('[AdvancedPriceChart] ❌ priceSeriesRef.current is null, cannot set data')
+            return
+          }
+
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', validCandleData.length, 'valid candles')
+          try {
+            priceSeriesRef.current.setData(validCandleData)
+            console.log('[AdvancedPriceChart] ✅ Candlestick data set successfully!')
+          } catch (setDataError) {
+            console.error('[AdvancedPriceChart] ❌ Error setting candlestick data:', setDataError)
+          }
         }
         
         // Validate volume data before setting
@@ -1465,9 +1519,18 @@ export function AdvancedPriceChart({
         })
 
         if (validVolumeData.length > 0) {
-          console.log('[AdvancedPriceChart] 🚀 Setting volume data with', validVolumeData.length, 'bars')
-          volumeSeriesRef.current.setData(validVolumeData)
-          console.log('[AdvancedPriceChart] ✅ Volume data set successfully!')
+          // Check if volume series ref is still valid
+          if (!volumeSeriesRef.current) {
+            console.error('[AdvancedPriceChart] ❌ volumeSeriesRef.current is null, cannot set volume data')
+          } else {
+            console.log('[AdvancedPriceChart] 🚀 Setting volume data with', validVolumeData.length, 'bars')
+            try {
+              volumeSeriesRef.current.setData(validVolumeData)
+              console.log('[AdvancedPriceChart] ✅ Volume data set successfully!')
+            } catch (setDataError) {
+              console.error('[AdvancedPriceChart] ❌ Error setting volume data:', setDataError)
+            }
+          }
         } else {
           console.error('[AdvancedPriceChart] ❌ No valid volume data to set!')
         }
@@ -1926,23 +1989,20 @@ export function AdvancedPriceChart({
             })()}
           </div>
 
-          {/* Progress Bar to ATH with ATH Value - All in USD */}
+          {/* Animated ATH Progress Bar - like pump.fun */}
           <div className="flex items-center gap-2">
             {(() => {
               // USE BACKEND VALUES DIRECTLY - no frontend calculation!
               const currentMcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
               // ATH - use prop from parent, otherwise use current as baseline (backend should track ATH)
               const athMcapUsd = ath && ath > 0 ? ath : currentMcapUsd
-              const progressPercent = athMcapUsd > 0 ? Math.min((currentMcapUsd / athMcapUsd) * 100, 100) : 0
 
               return (
                 <>
-                  <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all duration-300"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
+                  <ATHProgressBar
+                    currentPrice={currentMcapUsd}
+                    athPrice={athMcapUsd}
+                  />
                   <span className="text-xs text-gray-400 font-medium">
                     ATH {formatMarketCap(athMcapUsd, 'USD')}
                   </span>

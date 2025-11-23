@@ -41,6 +41,10 @@ const config: Config = {
       animation: {
         shimmer: "shimmer 2s linear infinite",
         "pulse-green": "pulse-green 2s ease-in-out infinite",
+        "border-pulse": "border-pulse 1.5s ease-in-out infinite",
+        "gradient-shift": "gradient-shift 2s ease infinite",
+        "ath-shimmer": "ath-shimmer 2s linear infinite",
+        "sparkle": "sparkle 1s ease-in-out infinite",
       },
       keyframes: {
         shimmer: {
@@ -50,6 +54,23 @@ const config: Config = {
         "pulse-green": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
+        },
+        "border-pulse": {
+          "0%, 100%": { boxShadow: "0 0 4px rgba(250, 204, 21, 0.4)" },
+          "50%": { boxShadow: "0 0 12px rgba(250, 204, 21, 0.8)" },
+        },
+        "gradient-shift": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "ath-shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
+        "sparkle": {
+          "0%, 100%": { opacity: "0", transform: "scale(0)" },
+          "50%": { opacity: "1", transform: "scale(1)" },
         },
       },
     },
