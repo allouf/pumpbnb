@@ -2052,8 +2052,8 @@ export function AdvancedPriceChart({
           </div>
         </div>
         
-        {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB */}
-        <div className="flex items-center gap-2 mb-2">
+        {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB - Responsive with wrap */}
+        <div className="flex flex-wrap items-center gap-2 mb-2">
           {/* Duration Selector */}
           <select
             value={timeframe}
@@ -2093,7 +2093,7 @@ export function AdvancedPriceChart({
                 }
                 setDisplayMetric('Price')
               }}
-              className={`px-2 py-1 text-xs font-medium transition ${
+              className={`px-2 py-1 text-xs font-medium transition whitespace-nowrap ${
                 displayMetric === 'Price'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
@@ -2112,7 +2112,7 @@ export function AdvancedPriceChart({
                 }
                 setDisplayMetric('MCap')
               }}
-              className={`px-2 py-1 text-xs font-medium transition ${
+              className={`px-2 py-1 text-xs font-medium transition whitespace-nowrap ${
                 displayMetric === 'MCap'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
@@ -2132,7 +2132,7 @@ export function AdvancedPriceChart({
                 console.log('   → MCap will be:', backendStats?.marketCap, 'ASTER')
                 setPriceMode('ASTER')
               }}
-              className={`px-2 py-1 text-xs font-medium transition ${
+              className={`px-2 py-1 text-xs font-medium transition whitespace-nowrap ${
                 priceMode === 'ASTER'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
@@ -2148,7 +2148,7 @@ export function AdvancedPriceChart({
                 console.log('   → ASTER/USD rate:', asterUsdPrice)
                 setPriceMode('USD')
               }}
-              className={`px-2 py-1 text-xs font-medium transition ${
+              className={`px-2 py-1 text-xs font-medium transition whitespace-nowrap ${
                 priceMode === 'USD'
                   ? 'bg-primary text-black rounded'
                   : 'text-gray-400 hover:text-white'
@@ -2158,81 +2158,44 @@ export function AdvancedPriceChart({
             </button>
           </div>
         </div>
-        
-        {/* Row 3: Token Price/MCap Info + Security Menu */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Price or Market Cap display based on toggle - USE BACKEND VALUES DIRECTLY */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-white">
-                {displayMetric === 'MCap' ? 'Market Cap:' : 'Price:'}
-              </span>
-              <span className="text-lg font-bold text-primary">
-                {displayMetric === 'MCap'
-                  ? formatMarketCap(
-                      priceMode === 'USD'
-                        ? parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
-                        : parseFloat(backendStats?.marketCap || '0'),
-                      priceMode
-                    )
-                  : formatPrice(
-                      priceMode === 'USD'
-                        ? parseFloat(backendStats?.priceUsd || '0') || backendPriceUsd
-                        : parseFloat(backendStats?.price || '0'),
-                      priceMode
-                    )
-                }
-              </span>
-            </div>
-          </div>
-          
-          {/* Debug Button - Temporary for development */}
-          <button
-            onClick={logDebugInfo}
-            className="text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black rounded transition font-medium"
-            title="Log chart debug info to console"
-          >
-            DEBUG
-          </button>
 
-          {/* Security Menu with Three Dots */}
-          <div className="relative">
-            <button
-              className="text-gray-400 hover:text-white transition p-1"
-              title="More options"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
-            </button>
-          </div>
-          
-          {/* OHLC Values (Right Side) - Ultra Compact, no wrapping */}
-          <div className="flex items-center gap-1 text-xs whitespace-nowrap">
+        {/* Row 3: OHLC Values - Mobile Responsive - Stack on very small screens */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2">
+          {/* OHLC Values - Wrap on mobile */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {(hoveredData || currentOHLC) ? (
-              <div className="flex items-center gap-1">
-                <span className="text-gray-400 text-xs">
+              <>
+                <span className="text-gray-400">
                   O:{formatCompactPrice(hoveredData?.open ?? currentOHLC?.open ?? 0, priceMode)}
                 </span>
-                <span className="text-gray-400 text-xs">
+                <span className="text-gray-400">
                   H:{formatCompactPrice(hoveredData?.high ?? currentOHLC?.high ?? 0, priceMode)}
                 </span>
-                <span className="text-gray-400 text-xs">
+                <span className="text-gray-400">
                   L:{formatCompactPrice(hoveredData?.low ?? currentOHLC?.low ?? 0, priceMode)}
                 </span>
-                <span className="text-gray-400 text-xs">
+                <span className="text-gray-400">
                   C:{formatCompactPrice(hoveredData?.close ?? currentOHLC?.close ?? 0, priceMode)}
                 </span>
-                <span className={`text-xs font-medium ${
+                <span className={`font-medium ${
                   stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
                 </span>
-              </div>
+              </>
             ) : (
-              <span className="text-gray-500 text-xs">Hover for OHLC</span>
+              <span className="text-gray-500">Hover for OHLC</span>
             )}
           </div>
+
+          {/* Debug Button - Hide on mobile */}
+          <button
+            onClick={logDebugInfo}
+            className="hidden sm:block text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black rounded transition font-medium"
+            title="Log chart debug info to console"
+          >
+            DEBUG
+          </button>
         </div>
       </div>
 
@@ -2242,25 +2205,25 @@ export function AdvancedPriceChart({
         <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
-      {/* Stats Cards Row */}
-      <div className="px-4 py-3 bg-secondary border-t border-gray-700">
-        <div className="grid grid-cols-5 gap-3">
+      {/* Stats Cards Row - Responsive grid */}
+      <div className="px-2 sm:px-4 py-3 bg-secondary border-t border-gray-700">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
           {/* Volume Card - Use backendStats (source of truth) */}
-          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">Volume 24h</div>
-            <div className="text-sm font-semibold text-white">
+          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
+            <div className="text-xs text-gray-400 mb-1 truncate">Volume 24h</div>
+            <div className="text-xs sm:text-sm font-semibold text-white truncate" title={priceMode === 'USD' ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(1)}` : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)} ASTER`}>
               {priceMode === 'USD'
                 ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(1)}`
-                : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)} ASTER`}
+                : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)}`}
             </div>
           </div>
 
           {/* Price Card - Use backendStats (source of truth) */}
-          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">Price</div>
-            <div className={`text-sm font-semibold ${
+          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
+            <div className="text-xs text-gray-400 mb-1 truncate">Price</div>
+            <div className={`text-xs sm:text-sm font-semibold truncate ${
               parseFloat(backendStats?.priceChange24h || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-            }`}>
+            }`} title={formatPrice(priceMode === 'USD' ? parseFloat(backendStats?.priceUsd || '0') : parseFloat(backendStats?.price || '0'), priceMode)}>
               {formatPrice(
                 priceMode === 'USD'
                   ? parseFloat(backendStats?.priceUsd || '0')
@@ -2271,9 +2234,9 @@ export function AdvancedPriceChart({
           </div>
 
           {/* 5m Change Card */}
-          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">5m Change</div>
-            <div className={`text-sm font-semibold ${
+          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
+            <div className="text-xs text-gray-400 mb-1 truncate">5m Change</div>
+            <div className={`text-xs sm:text-sm font-semibold truncate ${
               periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
               {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(1)}%
@@ -2281,9 +2244,9 @@ export function AdvancedPriceChart({
           </div>
 
           {/* 1h Change Card */}
-          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">1h Change</div>
-            <div className={`text-sm font-semibold ${
+          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
+            <div className="text-xs text-gray-400 mb-1 truncate">1h Change</div>
+            <div className={`text-xs sm:text-sm font-semibold truncate ${
               periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
               {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(1)}%
@@ -2291,9 +2254,9 @@ export function AdvancedPriceChart({
           </div>
 
           {/* 6h Change Card */}
-          <div className="bg-secondary-light rounded-lg p-3 border border-gray-700">
-            <div className="text-xs text-gray-400 mb-1">6h Change</div>
-            <div className={`text-sm font-semibold ${
+          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
+            <div className="text-xs text-gray-400 mb-1 truncate">6h Change</div>
+            <div className={`text-xs sm:text-sm font-semibold truncate ${
               periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
               {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%

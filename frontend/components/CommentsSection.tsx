@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useAccount } from 'wagmi'
 import { useRouter } from 'next/navigation'
-import { useComments } from '@/lib/hooks/useSocialFeatures'
 import { Pagination } from './Pagination'
 import { ClickableWalletAddress } from './ClickableAddress'
 import toast from 'react-hot-toast'
 import Image from 'next/image'
+import * as commentsAPI from '@/lib/api/comments'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
@@ -45,16 +45,47 @@ interface CommentsSectionProps {
 export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   const router = useRouter()
   const { address, isConnected } = useAccount()
-  const { comments, addComment, likeComment } = useComments(tokenAddress)
+  const [comments, setComments] = useState<commentsAPI.Comment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest')
   const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({})
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const itemsPerPage = 20
+
+  // Fetch comments from backend
+  const fetchComments = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await commentsAPI.getTokenComments(tokenAddress, {
+        sortBy: sortOrder,
+        page: currentPage,
+        limit: itemsPerPage,
+        includeReplies: false,
+      })
+
+      setComments(response.data)
+      setTotalPages(Math.ceil(response.pagination.total / itemsPerPage))
+      setHasMore(response.pagination.hasMore)
+    } catch (error) {
+      console.error('Failed to fetch comments:', error)
+      toast.error('Failed to load comments')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [tokenAddress, sortOrder, currentPage])
+
+  useEffect(() => {
+    fetchComments()
+  }, [fetchComments])
 
   // Fetch user profiles for comment authors
   useEffect(() => {
     const fetchProfiles = async () => {
-      const uniqueAuthors = [...new Set(comments.map(c => c.author))]
+      const uniqueAuthors = [...new Set(comments.map(c => c.userAddress))]
       const newProfiles: Record<string, UserProfile> = {}
 
       for (const author of uniqueAuthors) {
@@ -93,27 +124,41 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
       return
     }
 
-    setIsSubmitting(true)
-    const success = addComment(address, newComment.trim())
-
-    if (success) {
+    try {
+      setIsSubmitting(true)
+      await commentsAPI.createComment(tokenAddress, address, newComment.trim())
       toast.success('Comment posted!')
       setNewComment('')
-    } else {
+      // Refresh comments after posting
+      await fetchComments()
+    } catch (error) {
+      console.error('Failed to post comment:', error)
       toast.error('Failed to post comment')
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
-  const handleLike = (commentId: string) => {
-    const success = likeComment(commentId)
-    if (success) {
+  const handleLike = async (commentId: string) => {
+    if (!isConnected || !address) {
+      toast.error('Please connect wallet to like comments')
+      return
+    }
+
+    try {
+      await commentsAPI.likeComment(commentId, address)
       toast.success('Liked!')
+      // Refresh comments to get updated like count
+      await fetchComments()
+    } catch (error) {
+      console.error('Failed to like comment:', error)
+      toast.error('Failed to like comment')
     }
   }
 
-  const formatTime = (timestamp: number) => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000)
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
     if (seconds < 60) return `${seconds}s ago`
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
@@ -128,16 +173,6 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
     router.push(`/profile/${userAddress}`)
   }
 
-  // Sort comments based on selected order
-  const sortedComments = useMemo(() => {
-    const sorted = [...comments]
-    if (sortOrder === 'newest') {
-      return sorted.sort((a, b) => b.timestamp - a.timestamp)
-    } else {
-      return sorted.sort((a, b) => a.timestamp - b.timestamp)
-    }
-  }, [comments, sortOrder])
-
   return (
     <div className="space-y-4">
       {/* Comment Input - Long textbox */}
@@ -148,13 +183,13 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
           placeholder="Add a comment..."
           rows={3}
           className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none text-sm placeholder-gray-400"
-          maxLength={500}
+          maxLength={1000}
           disabled={!isConnected}
         />
         {isConnected ? (
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-500">
-              {newComment.length}/500
+              {newComment.length}/1000
             </span>
             <button
               onClick={handleSubmit}
@@ -175,7 +210,10 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
           {comments.length} comment{comments.length !== 1 ? 's' : ''}
         </span>
         <button
-          onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
+          onClick={() => {
+            setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')
+            setCurrentPage(1) // Reset to first page when changing sort
+          }}
           className="text-sm text-gray-400 hover:text-white transition flex items-center gap-1"
         >
           Sort: {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
@@ -187,14 +225,19 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
 
       {/* Comments List */}
       <div className="space-y-4">
-        {comments.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="mt-2 text-gray-400">Loading comments...</p>
+          </div>
+        ) : comments.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-400">No comments yet</p>
             <p className="text-sm text-gray-500 mt-1">Be the first to share your thoughts!</p>
           </div>
         ) : (
-          sortedComments.map((comment) => {
-            const userProfile = userProfiles[comment.author.toLowerCase()]
+          comments.map((comment) => {
+            const userProfile = userProfiles[comment.userAddress.toLowerCase()]
 
             return (
               <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
@@ -203,7 +246,7 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
                   {/* User Avatar - Show profile image if available */}
                   <div
                     className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden"
-                    onClick={() => handleProfileClick(comment.author)}
+                    onClick={() => handleProfileClick(comment.userAddress)}
                   >
                     {userProfile?.profileImage ? (
                       <Image
@@ -225,35 +268,60 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
                   <div className="flex items-center gap-2">
                     <span
                       className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer transition"
-                      onClick={() => handleProfileClick(comment.author)}
+                      onClick={() => handleProfileClick(comment.userAddress)}
                     >
-                      {userProfile?.username || formatAddress(comment.author)}
+                      {userProfile?.username || formatAddress(comment.userAddress)}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {formatTime(comment.timestamp)}
+                      {formatTime(comment.createdAt)}
                     </span>
                   </div>
                 </div>
-              
-              {/* Comment Content */}
-              <p className="text-sm text-gray-200 mb-3 pl-11">
-                {comment.content}
-              </p>
-              
-              {/* Comment Actions */}
-              <div className="flex items-center gap-4 pl-11">
-                <button className="text-xs text-gray-400 hover:text-primary transition">
-                  Reply
-                </button>
-                <span className="text-xs text-gray-500">
-                  {comment.likes || 0}
-                </span>
+
+                {/* Comment Content */}
+                <p className="text-sm text-gray-200 mb-3 pl-11">
+                  {comment.content}
+                </p>
+
+                {/* Comment Actions */}
+                <div className="flex items-center gap-4 pl-11">
+                  <button
+                    onClick={() => handleLike(comment.id)}
+                    disabled={!isConnected}
+                    className="text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
+                  >
+                    Reply
+                  </button>
+                  <button
+                    onClick={() => handleLike(comment.id)}
+                    disabled={!isConnected}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
+                  >
+                    <span>👍</span>
+                    <span>{comment.likes || 0}</span>
+                  </button>
+                </div>
               </div>
-            </div>
             )
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && comments.length > 0 && totalPages > 1 && (
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={comments.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={() => {}} // Fixed items per page
+            itemsPerPageOptions={[itemsPerPage]}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
     </div>
   )
 }
