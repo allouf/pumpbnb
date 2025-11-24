@@ -222,9 +222,9 @@ export default function CreateTokenPage() {
           Launch your meme coin in seconds on BNB Chain
         </p>
 
-        <div className="grid lg:grid-cols-[1fr,400px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6 lg:gap-8">
           {/* Main Form - Left Side */}
-          <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
+          <div className="bg-secondary-light p-4 sm:p-6 lg:p-8 rounded-xl border border-gray-800">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Warning Banner */}
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
@@ -237,8 +237,8 @@ export default function CreateTokenPage() {
               <div>
                 <h2 className="text-xl font-bold mb-4">Coin details</h2>
 
-                {/* Name and Symbol - Side by side */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* Name and Symbol - Stack on mobile, side by side on larger screens */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium mb-2">
                       Coin name
@@ -305,8 +305,8 @@ export default function CreateTokenPage() {
                   </button>
 
                   {showSocialLinks && (
-                    <div className="space-y-3 pl-6">
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 pl-2 sm:pl-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="website" className="block text-sm font-medium mb-2">
                             Website
@@ -336,7 +336,7 @@ export default function CreateTokenPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="telegram" className="block text-sm font-medium mb-2">
                             Telegram
@@ -438,7 +438,7 @@ export default function CreateTokenPage() {
                     <p className="text-red-500 text-sm mt-2">{uploadError}</p>
                   )}
 
-                  <div className="mt-3 grid grid-cols-2 gap-4 text-xs text-gray-500">
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-500">
                     <div>
                       <p className="font-semibold mb-1">File size and type</p>
                       <ul className="list-disc list-inside space-y-0.5">
@@ -523,7 +523,7 @@ export default function CreateTokenPage() {
           </div>
 
           {/* Preview Panel - Right Side */}
-          <div className="bg-secondary-light p-8 rounded-xl border border-gray-800">
+          <div className="bg-secondary-light p-4 sm:p-6 lg:p-8 rounded-xl border border-gray-800 order-first lg:order-last">
             <h2 className="text-xl font-bold mb-4">Preview</h2>
             <div className="text-center text-gray-500">
               <p className="text-sm">

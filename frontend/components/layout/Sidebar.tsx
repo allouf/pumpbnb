@@ -160,8 +160,8 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
           {/* Full-screen overlay */}
           <div className="fixed inset-0 z-[998] bg-black/50 backdrop-blur-sm flex items-center justify-center" onClick={() => setIsMoreExpanded(false)}>
             {/* Popup content */}
-            <div 
-              className="bg-secondary-light border border-gray-700 rounded-xl p-6 w-80 mx-4 shadow-2xl transform animate-in zoom-in-95 duration-200" 
+            <div
+              className="bg-secondary-light border border-gray-700 rounded-xl p-4 sm:p-6 w-[calc(100%-2rem)] sm:w-80 max-w-sm mx-4 shadow-2xl transform animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">

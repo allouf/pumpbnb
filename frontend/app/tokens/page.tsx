@@ -30,32 +30,32 @@ function TokenCard({ token }: { token: any }) {
   return (
     <Link
       href={`/token/${token.address}`}
-      className="bg-secondary-light p-6 rounded-xl hover:bg-secondary-light/80 transition border border-gray-800 hover:border-primary/50 block"
+      className="bg-secondary-light p-4 sm:p-6 rounded-xl hover:bg-secondary-light/80 transition border border-gray-800 hover:border-primary/50 block"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           {token.imageUrl ? (
             <img
               src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
               alt={token.name}
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
             />
           ) : (
             <TokenAvatar symbol={token.symbol} size="md" />
           )}
-          <div>
-            <h3 className="text-xl font-bold">{token.name}</h3>
-            <p className="text-gray-400">${token.symbol}</p>
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-xl font-bold truncate">{token.name}</h3>
+            <p className="text-gray-400 text-sm">${token.symbol}</p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-primary">{marketCap} ASTER</div>
-          <p className="text-sm text-gray-400">Market Cap</p>
+        <div className="text-left sm:text-right">
+          <div className="text-xl sm:text-2xl font-bold text-primary">{marketCap} ASTER</div>
+          <p className="text-xs sm:text-sm text-gray-400">Market Cap</p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-xs sm:text-sm">
           <span className="text-gray-400">Progress to Graduation</span>
           <span className="font-semibold">{progress.toFixed(1)}%</span>
         </div>
@@ -71,13 +71,13 @@ function TokenCard({ token }: { token: any }) {
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-700 flex items-center justify-between text-sm">
+      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-700 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
         <div>
           <span className="text-gray-400">Created by: </span>
           <span className="font-mono text-xs">{token.creator.slice(0, 6)}...{token.creator.slice(-4)}</span>
         </div>
         <div className="flex gap-2">
-          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">
+          <span className="bg-primary/10 text-primary px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">
             Bonding Curve
           </span>
         </div>
@@ -119,36 +119,36 @@ export default function TokensPage() {
   )
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen py-6 sm:py-12">
+      <div className="container mx-auto px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Browse Tokens</h1>
-            <p className="text-gray-400">
+            <h1 className="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2">Browse Tokens</h1>
+            <p className="text-gray-400 text-sm sm:text-base">
               Discover and trade the latest meme coins on BNB Chain
             </p>
           </div>
           <Link
             href="/create"
-            className="bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition"
+            className="bg-primary text-black px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold hover:bg-primary-dark transition text-sm sm:text-base text-center"
           >
             Create Token
           </Link>
         </div>
 
         {/* Search and Filters */}
-        <div className="mb-6 flex gap-4">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4">
           <input
             type="text"
             placeholder="Search by name, symbol, or address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-4 py-3 bg-secondary-light rounded-lg border border-gray-700 focus:border-primary focus:outline-none"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-secondary-light rounded-lg border border-gray-700 focus:border-primary focus:outline-none text-sm sm:text-base"
           />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-3 bg-secondary-light rounded-lg border border-gray-700 focus:border-primary focus:outline-none"
+            className="px-3 sm:px-4 py-2 sm:py-3 bg-secondary-light rounded-lg border border-gray-700 focus:border-primary focus:outline-none text-sm sm:text-base"
           >
             <option value="recent">Most Recent</option>
             <option value="marketcap">Market Cap</option>
@@ -172,7 +172,7 @@ export default function TokensPage() {
 
         {/* Tokens Grid */}
         {!isLoading && filteredTokens.length > 0 && (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredTokens.map((token) => (
               <TokenCard key={token.address} token={token} />
             ))}

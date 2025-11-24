@@ -46,9 +46,9 @@ export function TrendingSection({ tokens }: TrendingSectionProps) {
         </div>
       </div>
       
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+      <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         {tokens.map(token => (
-          <div key={token.address} className="min-w-[300px] flex-shrink-0">
+          <div key={token.address} className="min-w-[260px] sm:min-w-[300px] flex-shrink-0">
             <TokenCard token={token} compact />
           </div>
         ))}

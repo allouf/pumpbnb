@@ -218,20 +218,20 @@ export default function Home() {
             </div>
           ) : (
             /* List View - Table Format like pump.fun */
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <table className="w-full text-xs min-w-[600px] sm:min-w-0">
                 <thead className="text-gray-400 border-b border-gray-800">
                   <tr>
-                    <th className="text-left py-2 px-2 text-xs">#</th>
-                    <th className="text-left py-2 px-2 text-xs">COIN</th>
-                    <th className="text-left py-2 px-2 text-xs">GRAPH</th>
-                    <th className="text-left py-2 px-2 text-xs">MCAP</th>
-                    <th className="text-left py-2 px-2 text-xs">PRICE</th>
-                    <th className="text-left py-2 px-2 text-xs">AGE</th>
-                    <th className="text-left py-2 px-2 text-xs">24H VOL</th>
-                    <th className="text-left py-2 px-2 text-xs">TRADES</th>
-                    <th className="text-left py-2 px-2 text-xs">1H</th>
-                    <th className="text-left py-2 px-2 text-xs">24H</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs">#</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs">COIN</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden sm:table-cell">GRAPH</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs">MCAP</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden md:table-cell">PRICE</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden lg:table-cell">AGE</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden lg:table-cell">24H VOL</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden xl:table-cell">TRADES</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs hidden md:table-cell">1H</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs">24H</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -247,10 +247,10 @@ export default function Home() {
                         className="border-b border-gray-800 hover:bg-secondary-light/30 transition-colors cursor-pointer"
                         onClick={() => window.location.href = `/token/${token.address}`}
                       >
-                        <td className="py-2 px-2 text-gray-500 text-xs">#{index + 1}</td>
-                        <td className="py-2 px-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <td className="py-2 px-1 sm:px-2 text-gray-500 text-xs">#{index + 1}</td>
+                        <td className="py-2 px-1 sm:px-2">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                               {token.imageUrl ? (
                                 <img
                                   src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
@@ -271,26 +271,26 @@ export default function Home() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-medium text-white text-xs truncate">{token.name}</div>
+                              <div className="font-medium text-white text-xs truncate max-w-[80px] sm:max-w-none">{token.name}</div>
                               <div className="text-xs text-gray-400">{token.symbol}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-2 px-2">
+                        <td className="py-2 px-1 sm:px-2 hidden sm:table-cell">
                           <MiniSparkline
                             priceChange24h={stats?.priceChange24h}
                             tokenAddress={token.address}
                           />
                         </td>
-                        <td className="py-2 px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
-                          {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') : 
+                        <td className="py-2 px-1 sm:px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
+                          {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') :
                            stats?.marketCap ? formatMarketCap(stats.marketCap, 'ASTER') : '$0'}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs" title={`${formatPrice(stats?.price || 0, { currency: 'ASTER' })}`}>
-                          {stats?.priceUsd && stats.priceUsd !== '0' ? formatPrice(stats.priceUsd, { currency: 'USD' }) : 
+                        <td className="py-2 px-1 sm:px-2 text-white text-xs hidden md:table-cell" title={`${formatPrice(stats?.price || 0, { currency: 'ASTER' })}`}>
+                          {stats?.priceUsd && stats.priceUsd !== '0' ? formatPrice(stats.priceUsd, { currency: 'USD' }) :
                            stats?.price ? formatPrice(stats.price, { currency: 'ASTER' }) : '$0'}
                         </td>
-                        <td className="py-2 px-2 text-gray-400 text-xs">
+                        <td className="py-2 px-1 sm:px-2 text-gray-400 text-xs hidden lg:table-cell">
                           {(() => {
                             const now = Date.now();
                             const created = token.timestamp * 1000;
@@ -301,16 +301,16 @@ export default function Home() {
                             return `${hours}h`;
                           })()}
                         </td>
-                        <td className="py-2 px-2 text-white text-xs" title={`${formatVolume(stats?.volume24h || 0, 'ASTER')}`}>
+                        <td className="py-2 px-1 sm:px-2 text-white text-xs hidden lg:table-cell" title={`${formatVolume(stats?.volume24h || 0, 'ASTER')}`}>
                           {stats?.volume24hUsd ? formatVolume(stats.volume24hUsd, 'USD') : '$0'}
                         </td>
-                        <td className="py-2 px-2 text-gray-400 text-xs">
+                        <td className="py-2 px-1 sm:px-2 text-gray-400 text-xs hidden xl:table-cell">
                           {stats?.trades24h || 0}
                         </td>
-                        <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange1h)}`}>
+                        <td className={`py-2 px-1 sm:px-2 text-xs font-medium hidden md:table-cell ${getPercentChangeColor(stats?.priceChange1h)}`}>
                           {formatPercentage(stats?.priceChange1h || 0)}
                         </td>
-                        <td className={`py-2 px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange24h)}`}>
+                        <td className={`py-2 px-1 sm:px-2 text-xs font-medium ${getPercentChangeColor(stats?.priceChange24h)}`}>
                           {formatPercentage(stats?.priceChange24h || 0)}
                         </td>
                       </tr>

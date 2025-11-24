@@ -302,16 +302,16 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
       </div>
 
       {/* Pump.fun Style Layout - Chart Width Token Header */}
-      <div className="flex-1 container mx-auto px-4 max-w-full overflow-hidden">
-        <div className="flex gap-6 h-full overflow-hidden">
+      <div className="flex-1 container mx-auto px-2 sm:px-4 max-w-full overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full overflow-hidden">
           {/* Left Column - Chart + Tabs + Token Info - Independent scroll */}
-          <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-2 h-full">
+          <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden lg:pr-2 h-full">
             {/* Token Info Header - Same Width as Chart - Larger Image Layout */}
-            <div className="bg-secondary-light rounded-xl p-6 mb-4 border border-gray-700">
-              <div className="flex items-center gap-6">
+            <div className="bg-secondary-light rounded-xl p-4 sm:p-6 mb-4 border border-gray-700">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-6">
                 {/* Token Image - Larger with Pump.fun style gradient border */}
                 <div className="flex-shrink-0 group relative">
-                  <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+                  <div className="relative w-16 h-16 sm:w-28 sm:h-28 md:w-32 md:h-32">
                     {/* Gradient border effect */}
                     <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-600 via-yellow-400 to-amber-600 p-[2px]">
                       <div className="h-full w-full rounded-lg bg-secondary-light"></div>
@@ -348,12 +348,12 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
                 {/* Token Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
                     <div className="flex-1 min-w-0">
-                      <h1 className="text-xl font-bold mb-1">{name}</h1>
-                      <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                      <h1 className="text-lg sm:text-xl font-bold mb-1">{name}</h1>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-gray-400 mb-1">
                         <span className="font-medium">${symbol}</span>
-                        <span>•</span>
+                        <span className="hidden sm:inline">•</span>
                         <ClickableWalletAddress address={address} />
                         {/* Hide creator address */}
                         {/* {creator && (
@@ -363,13 +363,13 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                             <ClickableWalletAddress address={creator} />
                           </>
                         )} */}
-                        <span>•</span>
+                        <span className="hidden sm:inline">•</span>
                         <span>{creationInfo}</span>
                       </div>
                     </div>
-                    
+
                     {/* Action Buttons - Always visible */}
-                    <div className="flex gap-2 flex-shrink-0 ml-4">
+                    <div className="flex gap-2 flex-shrink-0 sm:ml-4">
                       <button
                         onClick={handleShare}
                         className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary text-black hover:bg-primary/90 rounded-lg transition font-inter font-semibold text-xs"
@@ -411,7 +411,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   )} */}
 
                   {/* Social Links */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     {/* Website */}
                     {apiData?.website && (
                       <a
@@ -530,7 +530,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           </div>
 
           {/* Right Column - Trading Panel - Independent scroll */}
-          <div className="w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden pl-2 h-full">
+          <div className="w-full lg:w-80 flex-shrink-0 overflow-y-auto overflow-x-hidden lg:pl-2 h-auto lg:h-full">
             {/* Trading Panel - Aligned with token info header */}
             {bondingCurve ? (
               <TradingPanel

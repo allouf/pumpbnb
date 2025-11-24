@@ -189,16 +189,16 @@ export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: Rece
       </div>
 
       {/* Trades Table - Pump.fun style */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
         <table className="w-full text-xs">
           <thead>
             <tr className="text-gray-400 border-b border-gray-700">
-              <th className="text-left py-3 pl-3 font-medium w-[25%]">Account</th>
-              <th className="text-center py-3 font-medium w-[10%]">Type</th>
-              <th className="text-right py-3 font-medium w-[15%]">Amount (ASTER)</th>
-              <th className="text-right py-3 font-medium w-[20%]">Amount ({tokenSymbol})</th>
-              <th className="text-right py-3 font-medium w-[15%]">Time</th>
-              <th className="text-center py-3 pr-3 font-medium w-[15%]">Txn</th>
+              <th className="text-left py-2 sm:py-3 pl-2 sm:pl-3 font-medium">Account</th>
+              <th className="text-center py-2 sm:py-3 font-medium">Type</th>
+              <th className="text-right py-2 sm:py-3 font-medium hidden sm:table-cell">ASTER</th>
+              <th className="text-right py-2 sm:py-3 font-medium">{tokenSymbol}</th>
+              <th className="text-right py-2 sm:py-3 font-medium hidden md:table-cell">Time</th>
+              <th className="text-center py-2 sm:py-3 pr-2 sm:pr-3 font-medium">Txn</th>
             </tr>
           </thead>
           <tbody>
@@ -241,43 +241,43 @@ export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: Rece
                 
                 return (
                   <tr key={trade.txHash} className="border-b border-gray-800 hover:bg-gray-800/30 transition">
-                    <td className="py-3 pl-3">
-                      <ClickableWalletAddress 
-                        address={trade.trader} 
+                    <td className="py-2 sm:py-3 pl-2 sm:pl-3">
+                      <ClickableWalletAddress
+                        address={trade.trader}
                         className="text-primary hover:text-primary-light text-xs font-mono"
                       />
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="py-2 sm:py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                        <span className={`text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ${
                           trade.isBuy ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                         }`}>
                           {trade.isBuy ? 'Buy' : 'Sell'}
                         </span>
                         {('isLocal' in trade) && (
-                          <span className="text-xs text-yellow-400" title="Cached locally (indexing failed)">
+                          <span className="text-xs text-yellow-400 hidden sm:inline" title="Cached locally (indexing failed)">
                             📱
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 text-right text-xs font-mono text-white">
+                    <td className="py-2 sm:py-3 text-right text-xs font-mono text-white hidden sm:table-cell">
                       {asterValue.toFixed(3)}
                     </td>
-                    <td className="py-3 text-right text-xs font-mono text-white">
-                      {tokenValue > 1000000 
-                        ? `${(tokenValue/1000000).toFixed(1)}M` 
-                        : tokenValue > 1000 
-                        ? `${(tokenValue/1000).toFixed(1)}k` 
+                    <td className="py-2 sm:py-3 text-right text-xs font-mono text-white">
+                      {tokenValue > 1000000
+                        ? `${(tokenValue/1000000).toFixed(1)}M`
+                        : tokenValue > 1000
+                        ? `${(tokenValue/1000).toFixed(1)}k`
                         : tokenValue.toFixed(0)
                       }
                     </td>
-                    <td className="py-3 text-right text-xs text-gray-400">
+                    <td className="py-2 sm:py-3 text-right text-xs text-gray-400 hidden md:table-cell">
                       {formatTime(trade.timestamp)}
                     </td>
-                    <td className="py-3 pr-3 text-center">
-                      <ClickableTransactionHash 
-                        hash={trade.txHash} 
+                    <td className="py-2 sm:py-3 pr-2 sm:pr-3 text-center">
+                      <ClickableTransactionHash
+                        hash={trade.txHash}
                         className="text-primary hover:text-primary-light text-xs font-mono"
                       />
                     </td>

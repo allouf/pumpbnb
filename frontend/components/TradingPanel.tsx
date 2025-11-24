@@ -482,13 +482,13 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
   }
 
   return (
-    <div className="bg-secondary-light p-6 rounded-xl">
+    <div className="bg-secondary-light p-4 sm:p-6 rounded-xl">
       {/* Header with tabs and currency toggle */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
+        <div className="flex gap-2 flex-1">
           <button
             onClick={() => setActiveTab('buy')}
-            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+            className={`flex-1 py-2 px-3 sm:px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
               activeTab === 'buy'
                 ? 'bg-primary text-black'
                 : 'bg-secondary text-gray-400 hover:text-white'
@@ -498,7 +498,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
           </button>
           <button
             onClick={() => setActiveTab('sell')}
-            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition ${
+            className={`flex-1 py-2 px-3 sm:px-4 rounded-lg font-semibold transition text-sm sm:text-base ${
               activeTab === 'sell'
                 ? 'bg-red-500 text-white'
                 : 'bg-secondary text-gray-400 hover:text-white'
@@ -507,8 +507,8 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
             Sell
           </button>
         </div>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 flex-shrink-0">
           <SlippageSettings slippage={slippage} onSlippageChange={setSlippage} />
         </div>
       </div>

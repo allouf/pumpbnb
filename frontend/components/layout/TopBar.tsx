@@ -49,11 +49,11 @@ export function TopBar() {
 
   return (
     <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <div className="flex justify-between items-center px-4 py-3 gap-4">
+      <div className="flex justify-between items-center px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-4">
         {/* Left side - Search Bar */}
-        <form onSubmit={handleSearch} className="flex-1 max-w-md">
-          <div className="relative flex items-center gap-2">
-            <div className="relative flex-1">
+        <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md">
+          <div className="relative flex items-center gap-1 sm:gap-2">
+            <div className="relative flex-1 min-w-0">
               <input
                 type="text"
                 value={searchQuery}
@@ -66,7 +66,7 @@ export function TopBar() {
                 enterKeyHint="search"
                 id="search-token"
                 name="search-token"
-                className={`w-full bg-secondary text-white text-sm px-4 py-2 rounded-lg border ${
+                className={`w-full bg-secondary text-white text-sm px-3 sm:px-4 py-2 rounded-lg border ${
                   isSearchFocused ? 'border-primary' : 'border-gray-700'
                 } focus:border-primary outline-none transition-colors`}
               />
@@ -74,46 +74,50 @@ export function TopBar() {
             <button
               type="submit"
               aria-pressed="false"
-              className="bg-primary text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary-dark transition flex-shrink-0"
+              className="bg-primary text-black px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm hover:bg-primary-dark transition flex-shrink-0"
             >
-              Search
+              <span className="hidden xs:inline">Search</span>
+              <svg className="xs:hidden w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </button>
           </div>
         </form>
 
         {/* Right side - Create Coin and Login/Wallet */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <Link
             href="/create"
-            className="bg-primary text-black px-4 py-2 rounded-lg font-bold hover:bg-primary-dark transition text-sm"
+            className="bg-primary text-black px-2 sm:px-4 py-2 rounded-lg font-bold hover:bg-primary-dark transition text-xs sm:text-sm whitespace-nowrap"
           >
-            create a coin
+            <span className="hidden sm:inline">create a coin</span>
+            <span className="sm:hidden">+</span>
           </Link>
 
           {!isConnected || !user ? (
             <button
               onClick={handleLogin}
               disabled={isAuthenticating}
-              className="bg-secondary text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-700 transition border border-gray-600 text-sm"
+              className="bg-secondary text-white px-2 sm:px-4 py-2 rounded-lg font-bold hover:bg-gray-700 transition border border-gray-600 text-xs sm:text-sm whitespace-nowrap"
             >
-              {isAuthenticating ? 'Authenticating...' : 'log in'}
+              {isAuthenticating ? '...' : <><span className="hidden sm:inline">log in</span><span className="sm:hidden">Login</span></>}
             </button>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {user.profileImage ? (
                 <Link href={`/profile/${user.walletAddress}`}>
                   <img
                     src={user.profileImage}
                     alt={user.username || 'Profile'}
-                    className="w-8 h-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
                   />
                 </Link>
               ) : (
                 <Link
                   href={`/profile/${user.walletAddress}`}
-                  className="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
                 >
-                  <span className="text-sm font-bold text-black uppercase">
+                  <span className="text-xs sm:text-sm font-bold text-black uppercase">
                     {user.username?.[0] || user.walletAddress[2]}
                   </span>
                 </Link>
