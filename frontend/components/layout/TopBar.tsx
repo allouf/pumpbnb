@@ -94,7 +94,7 @@ export function TopBar() {
             <span className="sm:hidden">+</span>
           </Link>
 
-          {!isConnected || !user ? (
+          {!isConnected ? (
             <button
               onClick={handleLogin}
               disabled={isAuthenticating}
@@ -104,7 +104,7 @@ export function TopBar() {
             </button>
           ) : (
             <div className="flex items-center gap-1.5 sm:gap-3">
-              {user.profileImage ? (
+              {user?.profileImage ? (
                 <Link href={`/profile/${user.walletAddress}`}>
                   <img
                     src={user.profileImage}
@@ -112,7 +112,7 @@ export function TopBar() {
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
                   />
                 </Link>
-              ) : (
+              ) : user ? (
                 <Link
                   href={`/profile/${user.walletAddress}`}
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer hover:opacity-80 transition"
@@ -121,7 +121,7 @@ export function TopBar() {
                     {user.username?.[0] || user.walletAddress[2]}
                   </span>
                 </Link>
-              )}
+              ) : null}
               <ConnectButton
                 showBalance={false}
                 accountStatus={{

@@ -28,14 +28,14 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
+  { name: 'Portfolio', href: '/portfolio', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
-  { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
 ];
 
 // More dropdown menu items
 const moreMenuItems = [
-  { name: 'Portfolio', href: '/portfolio' },
+  { name: 'Dashboard', href: '/dashboard' },
   { name: 'Profile', href: (address?: string) => address ? `/profile/${address}` : '/profile' },
   { name: 'Support', href: '/support' },
   { name: 'How it works', href: '/how-it-works' },
