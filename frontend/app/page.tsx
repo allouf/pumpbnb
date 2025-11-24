@@ -148,7 +148,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-6 min-h-screen">
+    <div className="space-y-6 min-h-screen relative">
       {/* Trending Section - Only show when not searching */}
       {!searchQuery && !isTrendingLoading && trendingTokens.length > 0 && (
         <TrendingSection tokens={trendingTokens} />
@@ -162,6 +162,17 @@ export default function Home() {
         onAdvancedFilterChange={handleAdvancedFilterChange}
         onTabChange={handleTabChange}
       />
+
+      {/* Floating Create Coin Button - Mobile Only */}
+      <a
+        href="/create"
+        className="md:hidden fixed bottom-20 right-4 z-40 bg-primary hover:bg-primary-dark text-black font-bold rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95"
+        title="Create Coin"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+      </a>
 
       {/* Section Title */}
       {!isLoading && displayedTokens.length > 0 && (
