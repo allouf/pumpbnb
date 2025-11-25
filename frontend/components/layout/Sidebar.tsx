@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -58,7 +59,34 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const [isMoreExpanded, setIsMoreExpanded] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { address } = useAccount();
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle ESC key to close menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMoreExpanded) {
+        setIsMoreExpanded(false);
+      }
+    };
+
+    if (isMoreExpanded) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isMoreExpanded]);
 
   return (
     <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
@@ -130,16 +158,17 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
           <li>
             <div className="relative">
               <button
+                ref={moreButtonRef}
                 onClick={() => setIsMoreExpanded(!isMoreExpanded)}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
-                  text-gray-400 hover:text-white hover:bg-secondary-light
+                  ${isMoreExpanded ? 'bg-secondary-light text-white' : 'text-gray-400 hover:text-white hover:bg-secondary-light'}
                 `}
                 title={isCollapsed ? 'More' : undefined}
               >
                 <EllipsisHorizontalIcon className="w-5 h-5 flex-shrink-0" />
                 {!isCollapsed && <span className="whitespace-nowrap">More</span>}
-                
+
                 {/* Tooltip for collapsed state */}
                 {isCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-secondary-light border border-gray-700 rounded text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -147,106 +176,124 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
                   </div>
                 )}
               </button>
-              
+
             </div>
           </li>
         </ul>
         </div>
       </nav>
       
-      {/* More Menu Popup Overlay */}
-      {isMoreExpanded && (
-        <>
-          {/* Full-screen overlay */}
-          <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center" onClick={() => setIsMoreExpanded(false)}>
-            {/* Popup content */}
-            <div
-              className="bg-secondary-light border border-gray-700 rounded-xl p-4 sm:p-6 w-[calc(100%-2rem)] sm:w-80 max-w-sm mx-4 shadow-2xl transform animate-in zoom-in-95 duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">More Options</h3>
+      {/* More Menu Popup - Rendered via Portal */}
+      {mounted && isMoreExpanded && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 2147483647, // Maximum z-index
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            pointerEvents: 'auto',
+          }}
+          onClick={() => setIsMoreExpanded(false)}
+        >
+          {/* Dropdown positioned below the More button in sidebar */}
+          <div
+            style={{
+              position: 'fixed',
+              left: isCollapsed ? '80px' : '272px', // Position to the right of sidebar
+              top: moreButtonRef.current ? `${moreButtonRef.current.getBoundingClientRect().top}px` : '300px',
+              pointerEvents: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-secondary-light border border-gray-700 rounded-xl p-4 w-64 shadow-2xl animate-in fade-in slide-in-from-left-2 duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold text-white">More Options</h3>
                 <button
                   onClick={() => setIsMoreExpanded(false)}
-                  className="text-gray-400 hover:text-white text-xl hover:bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center transition"
-                  title="Close"
+                  className="text-gray-400 hover:text-white text-lg hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center transition"
+                  title="Close (ESC)"
                 >
                   ✕
                 </button>
               </div>
-              
+
               {/* Menu items */}
-              <div className="space-y-2 mb-6">
+              <div className="space-y-1 mb-4">
                 {moreMenuItems.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="block px-4 py-3 text-gray-300 hover:text-white hover:bg-secondary rounded-lg transition-colors"
+                    className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-secondary rounded-lg transition-colors text-sm"
                     onClick={() => setIsMoreExpanded(false)}
                   >
                     {item.name}
                   </Link>
                 ))}
               </div>
-              
+
               {/* Social Links */}
-              <div className="pt-4 border-t border-gray-700">
-                <h4 className="text-sm font-medium text-gray-400 mb-3">Follow Us</h4>
-                <div className="flex items-center gap-3">
+              <div className="pt-3 border-t border-gray-700">
+                <h4 className="text-xs font-medium text-gray-400 mb-2">Follow Us</h4>
+                <div className="flex items-center gap-2">
                   <a
                     href="https://x.com/Incentives01"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
                     title="Follow us on X"
                   >
-                    <Image src="https://www.idea-engine.ai/images/social_ic01.svg" width={18} height={18} alt="X" unoptimized />
+                    <Image src="https://www.idea-engine.ai/images/social_ic01.svg" width={14} height={14} alt="X" unoptimized />
                   </a>
 
                   <a
                     href="https://t.me/idea_engine_ai"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
                     title="Join our Telegram"
                   >
-                    <Image src="https://www.idea-engine.ai/images/social_ic02.svg" width={18} height={18} alt="Telegram" unoptimized />
+                    <Image src="https://www.idea-engine.ai/images/social_ic02.svg" width={14} height={14} alt="Telegram" unoptimized />
                   </a>
 
                   <a
                     href="https://incentives101.substack.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
                     title="Read our Substack"
                   >
-                    <Image src="https://www.idea-engine.ai/images/social_ic03.svg" width={18} height={18} alt="Substack" unoptimized />
+                    <Image src="https://www.idea-engine.ai/images/social_ic03.svg" width={14} height={14} alt="Substack" unoptimized />
                   </a>
 
                   <a
                     href="https://www.instagram.com/idea_engine.ai/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
                     title="Follow us on Instagram"
                   >
-                    <Image src="https://www.idea-engine.ai/images/social_ic04.svg" width={18} height={18} alt="Instagram" unoptimized />
+                    <Image src="https://www.idea-engine.ai/images/social_ic04.svg" width={14} height={14} alt="Instagram" unoptimized />
                   </a>
 
                   <a
                     href="https://www.youtube.com/@IDEA-EngineAI"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
+                    className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary-light flex items-center justify-center transition-colors"
                     title="Subscribe on YouTube"
                   >
-                    <Image src="https://www.idea-engine.ai/images/social_ic05.svg" width={18} height={18} alt="YouTube" unoptimized />
+                    <Image src="https://www.idea-engine.ai/images/social_ic05.svg" width={14} height={14} alt="YouTube" unoptimized />
                   </a>
                 </div>
               </div>
             </div>
           </div>
-        </>
+        </div>,
+        document.body
       )}
 
       {/* Create Coin Button */}
