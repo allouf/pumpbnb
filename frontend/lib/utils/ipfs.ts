@@ -61,12 +61,22 @@ export async function uploadImage(file: File): Promise<string> {
 }
 
 /**
- * Get IPFS URL from hash
+ * Get IPFS URL from hash or ipfs:// URL
  */
 export function getIpfsUrl(hash: string): string {
   if (!hash) return ''
 
-  // Use public IPFS gateway
+  // If already has ipfs:// prefix, replace with https gateway
+  if (hash.startsWith('ipfs://')) {
+    return hash.replace('ipfs://', 'https://ipfs.io/ipfs/')
+  }
+
+  // If already has https://, return as is
+  if (hash.startsWith('https://') || hash.startsWith('http://')) {
+    return hash
+  }
+
+  // Otherwise treat as IPFS hash and add gateway
   return `https://ipfs.io/ipfs/${hash}`
 }
 

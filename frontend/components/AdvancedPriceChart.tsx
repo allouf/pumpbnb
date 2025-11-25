@@ -142,6 +142,16 @@ export function AdvancedPriceChart({
   backendMarketCapUsd = 0,
   backendStats,
 }: AdvancedPriceChartProps) {
+  // Log when backend stats change
+  useEffect(() => {
+    console.log('[AdvancedPriceChart] 📊 Backend stats updated:', {
+      priceUsd: backendStats?.priceUsd,
+      marketCapUsd: backendStats?.marketCapUsd,
+      priceChange24h: backendStats?.priceChange24h,
+      volume24hUsd: backendStats?.volume24hUsd,
+    })
+  }, [backendStats])
+
   // Global error handler
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -2200,15 +2210,6 @@ export function AdvancedPriceChart({
               <span className="text-gray-500">Hover for OHLC</span>
             )}
           </div>
-
-          {/* Debug Button - Hide on mobile */}
-          <button
-            onClick={logDebugInfo}
-            className="hidden sm:block text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black rounded transition font-medium"
-            title="Log chart debug info to console"
-          >
-            DEBUG
-          </button>
         </div>
       </div>
 

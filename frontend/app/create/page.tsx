@@ -208,9 +208,9 @@ export default function CreateTokenPage() {
         // Don't block user flow - background indexer will catch it later
       })
 
-    // Redirect to tokens page
+    // Redirect to home page
     setTimeout(() => {
-      router.push('/tokens')
+      router.push('/')
     }, 2000)
   }
 

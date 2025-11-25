@@ -180,12 +180,20 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
   const progress = (asterReserves / 100) * 100
 
-  // Use backend stats for USD market cap (correct calculation)
-  // Backend calculates: marketCapUsd = asterReserves × ASTER_USD_PRICE
-  const marketCapUsd = apiData?.stats?.marketCapUsd ? parseFloat(apiData.stats.marketCapUsd) : 0
-  const marketCap = marketCapUsd > 0 ? marketCapUsd.toFixed(2) : asterReserves.toFixed(2)
-  const priceUsd = apiData?.stats?.priceUsd ? parseFloat(apiData.stats.priceUsd) : 0
-  const priceChange24h = apiData?.stats?.priceChange24h ? parseFloat(apiData.stats.priceChange24h) : 0
+  // Use backend stats for USD market cap (correct calculation) - Memoized to avoid unnecessary recalculations
+  const { marketCapUsd, marketCap, priceUsd, priceChange24h } = useMemo(() => {
+    const mcapUsd = apiData?.stats?.marketCapUsd ? parseFloat(apiData.stats.marketCapUsd) : 0
+    const mcap = mcapUsd > 0 ? mcapUsd.toFixed(2) : asterReserves.toFixed(2)
+    const pUsd = apiData?.stats?.priceUsd ? parseFloat(apiData.stats.priceUsd) : 0
+    const pChange = apiData?.stats?.priceChange24h ? parseFloat(apiData.stats.priceChange24h) : 0
+
+    return {
+      marketCapUsd: mcapUsd,
+      marketCap: mcap,
+      priceUsd: pUsd,
+      priceChange24h: pChange
+    }
+  }, [apiData?.stats, asterReserves])
 
   // Calculate 24hr market cap change from backend stats or transaction history
   const marketCapStats = useMemo(() => {
@@ -246,7 +254,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
     const ath = currentPrice > 0 ? parseFloat(marketCap) * (athPrice / currentPrice) : parseFloat(marketCap)
 
     return { change24hPercent, change24hDollar, ath }
-  }, [transactions, marketCap])
+  }, [apiData?.stats, transactions, marketCap])
 
   // Share function
   const handleShare = () => {
