@@ -25,6 +25,7 @@ import { ClickableWalletAddress } from '@/components/ClickableAddress'
 import { useTokenData } from '@/lib/hooks/useTokenData'
 import { useWatchTradeEvents } from '@/lib/hooks/useTokenEvents'
 import { useWatchlist } from '@/lib/hooks/useWatchlist'
+import { getIpfsUrl } from '@/lib/utils/ipfs'
 import toast from 'react-hot-toast'
 
 type Tab = 'comments' | 'trades'
@@ -331,7 +332,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                           {/* Blurred background */}
                           <div className="absolute inset-0 z-0">
                             <img
-                              src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                              src={getIpfsUrl(imageUrl)}
                               alt={name}
                               className="h-full w-full scale-110 object-cover opacity-30 blur-md transition-transform duration-300 group-hover:scale-125"
                             />
@@ -339,7 +340,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                           {/* Main image */}
                           <div className="absolute inset-0 z-10 flex items-center justify-center p-2">
                             <img
-                              src={imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                              src={getIpfsUrl(imageUrl)}
                               alt={name}
                               className="h-full w-full object-contain transition-all duration-300 group-hover:scale-110"
                             />

@@ -7,6 +7,7 @@ import { formatUnits } from 'viem';
 import type { Abi } from 'viem';
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json';
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice';
+import { getIpfsUrl } from '@/lib/utils/ipfs';
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi;
 
@@ -67,7 +68,7 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
         {/* Token Image */}
         {token.imageUrl ? (
           <img
-            src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+            src={getIpfsUrl(token.imageUrl)}
             alt={token.name}
             className={`w-12 h-12 rounded-full object-cover flex-shrink-0 ${
               !showAnimations ? 'pointer-events-none' : ''

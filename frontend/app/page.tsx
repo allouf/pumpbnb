@@ -14,6 +14,7 @@ import { cachedFetch } from '@/lib/utils/fetchWithRetry';
 import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/utils/formatNumbers';
 import { getPercentChangeColor } from '@/lib/utils/formatters';
 import { useWatchlist } from '@/lib/hooks/useWatchlist';
+import { getIpfsUrl } from '@/lib/utils/ipfs';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -264,7 +265,7 @@ export default function Home() {
                             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
                               {token.imageUrl ? (
                                 <img
-                                  src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                                  src={getIpfsUrl(token.imageUrl)}
                                   alt={token.name}
                                   className="w-full h-full object-cover"
                                   loading="lazy"

@@ -7,6 +7,7 @@ import { useTokenList } from '@/lib/hooks/useTokenList'
 import { useTransactionHistory } from '@/lib/hooks/useTransactionHistory'
 import { TokenAvatar } from '@/components/TokenAvatar'
 import { formatUnits } from 'viem'
+import { getIpfsUrl } from '@/lib/utils/ipfs'
 
 export default function DashboardPage() {
   const { address, isConnected } = useAccount()
@@ -187,7 +188,7 @@ function TokenCard({ token, onStatsCalculated }: { token: any, onStatsCalculated
         <div className="flex items-center gap-4 flex-1">
           {token.imageUrl ? (
             <img
-              src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+              src={getIpfsUrl(token.imageUrl)}
               alt={token.name}
               className="w-16 h-16 rounded-full object-cover"
               onError={(e) => {

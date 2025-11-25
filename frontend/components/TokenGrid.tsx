@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TokenAvatar } from './TokenAvatar'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
+import { getIpfsUrl } from '@/lib/utils/ipfs'
 
 interface TokenCardData {
   address: string
@@ -243,7 +244,7 @@ function TokenCard({ token, showUsd, usdRate }: TokenCardProps) {
         <div className="flex items-center gap-3 mb-3">
           {token.imageUrl && !imageError ? (
             <img
-              src={token.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+              src={getIpfsUrl(token.imageUrl)}
               alt={token.name}
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-700"
               onError={() => setImageError(true)}

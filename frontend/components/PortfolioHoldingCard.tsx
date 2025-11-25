@@ -5,6 +5,7 @@ import { Address } from 'viem'
 import { TokenAvatar } from './TokenAvatar'
 import { useTokenPrice } from '@/lib/hooks/useTokenPrice'
 import { TokenHolding } from '@/lib/hooks/useUserPortfolio'
+import { getIpfsUrl } from '@/lib/utils/ipfs'
 
 interface PortfolioHoldingCardProps {
   holding: TokenHolding
@@ -29,7 +30,7 @@ export function PortfolioHoldingCard({ holding }: PortfolioHoldingCardProps) {
           <div className="flex items-center gap-3 mb-3">
             {holding.imageUrl ? (
               <img
-                src={holding.imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                src={getIpfsUrl(holding.imageUrl)}
                 alt={holding.name}
                 className="w-12 h-12 rounded-full object-cover"
                 onError={(e) => {
