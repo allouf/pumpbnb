@@ -1335,7 +1335,8 @@ export function AdvancedPriceChart({
         
         // Color based on buy/sell volume majority (green for more buys, red for more sells)
         // This applies to BOTH the candlestick body AND the volume bar (pump.fun style)
-        const isBuyDominant = candle.buyVolume > candle.sellVolume
+        // Default to green when volumes are equal (including padding candles with 0/0)
+        const isBuyDominant = candle.buyVolume >= candle.sellVolume
         const candleColor = isBuyDominant ? '#22c55e' : '#ef4444' // Green for buys, red for sells
         
         candleData.push({
@@ -2095,13 +2096,13 @@ export function AdvancedPriceChart({
       <div className="px-4 py-3 border-b border-gray-700">
 
         {/* Row 1: Market Cap (3-line format) + Progress Bar to ATH */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
           <div className="flex flex-col">
             {/* Line 1: Market Cap title */}
-            <span className="text-sm text-gray-400 font-normal">Market Cap</span>
+            <span className="text-xs sm:text-sm text-gray-400 font-normal">Market Cap</span>
 
             {/* Line 2: Market Cap value - USE BACKEND VALUE DIRECTLY, no frontend calculation! */}
-            <span className="text-3xl font-bold text-white leading-none my-1">
+            <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-none my-0.5 sm:my-1">
               {formatMarketCap(parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd, 'USD')}
             </span>
 
@@ -2124,8 +2125,8 @@ export function AdvancedPriceChart({
             })()}
           </div>
 
-          {/* Animated ATH Progress Bar - like pump.fun */}
-          <div className="flex items-center gap-2">
+          {/* Animated ATH Progress Bar - like pump.fun - responsive */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {(() => {
               // USE BACKEND VALUES DIRECTLY - no frontend calculation!
               const currentMcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
@@ -2148,7 +2149,7 @@ export function AdvancedPriceChart({
                     currentPrice={currentMcapUsd}
                     athPrice={athMcapUsd}
                   />
-                  <span className="text-xs text-gray-400 font-medium">
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">
                     ATH {formatMarketCap(athMcapUsd, 'USD')}
                   </span>
                 </>
@@ -2158,7 +2159,7 @@ export function AdvancedPriceChart({
         </div>
         
         {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB - Responsive with wrap */}
-        <div className="flex flex-wrap items-center gap-2 mb-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
           {/* Duration Selector */}
           <select
             value={timeframe}
@@ -2301,26 +2302,27 @@ export function AdvancedPriceChart({
         <div ref={chartContainerRef} className="w-full transition-all duration-300" style={{ minHeight: '400px' }} />
       </div>
 
-      {/* Stats Cards Row - Responsive grid */}
-      <div className="px-2 sm:px-4 py-3 bg-secondary border-t border-gray-700">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
-          {/* Volume Card - Use backendStats (source of truth) */}
-          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
-            <div className="text-xs text-gray-400 mb-1 truncate">Volume 24h</div>
-            <div className="text-xs sm:text-sm font-semibold text-white truncate" title={priceMode === 'USD' ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(1)}` : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)} ASTER`}>
+      {/* Stats Cards Row - Horizontal scroll on mobile, grid on desktop */}
+      <div className="px-2 sm:px-4 py-2 sm:py-3 bg-secondary border-t border-gray-700">
+        {/* Mobile: Horizontal scroll strip, Desktop: Grid */}
+        <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-5 gap-2 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 -mx-2 px-2 sm:mx-0 sm:px-0 scrollbar-hide">
+          {/* Volume Card */}
+          <div className="flex-shrink-0 w-24 sm:w-auto bg-secondary-light rounded-lg p-2 border border-gray-700">
+            <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">Vol 24h</div>
+            <div className="text-xs sm:text-sm font-semibold text-white truncate">
               {priceMode === 'USD'
-                ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(1)}`
-                : `${parseFloat(backendStats?.volume24h || '0').toFixed(2)}`}
+                ? `$${parseFloat(backendStats?.volume24hUsd || '0').toFixed(0)}`
+                : `${parseFloat(backendStats?.volume24h || '0').toFixed(1)}`}
             </div>
           </div>
 
-          {/* Price Card - Use backendStats (source of truth) */}
-          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
-            <div className="text-xs text-gray-400 mb-1 truncate">Price</div>
+          {/* Price Card */}
+          <div className="flex-shrink-0 w-24 sm:w-auto bg-secondary-light rounded-lg p-2 border border-gray-700">
+            <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">Price</div>
             <div className={`text-xs sm:text-sm font-semibold truncate ${
               parseFloat(backendStats?.priceChange24h || '0') >= 0 ? 'text-green-400' : 'text-red-400'
-            }`} title={formatPrice(priceMode === 'USD' ? parseFloat(backendStats?.priceUsd || '0') : parseFloat(backendStats?.price || '0'), priceMode)}>
-              {formatPrice(
+            }`}>
+              {formatCompactPrice(
                 priceMode === 'USD'
                   ? parseFloat(backendStats?.priceUsd || '0')
                   : parseFloat(backendStats?.price || '0'),
@@ -2330,37 +2332,37 @@ export function AdvancedPriceChart({
           </div>
 
           {/* 5m Change Card */}
-          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
-            <div className="text-xs text-gray-400 mb-1 truncate">5m Change</div>
-            <div className={`text-xs sm:text-sm font-semibold truncate ${
+          <div className="flex-shrink-0 w-20 sm:w-auto bg-secondary-light rounded-lg p-2 border border-gray-700">
+            <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">5m</div>
+            <div className={`text-xs sm:text-sm font-semibold ${
               periodChanges['5m'] === null ? 'text-gray-500' :
               periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['5m'] === null ? 'New' :
+              {periodChanges['5m'] === null ? '-' :
                `${periodChanges['5m'] >= 0 ? '+' : ''}${periodChanges['5m'].toFixed(1)}%`}
             </div>
           </div>
 
           {/* 1h Change Card */}
-          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
-            <div className="text-xs text-gray-400 mb-1 truncate">1h Change</div>
-            <div className={`text-xs sm:text-sm font-semibold truncate ${
+          <div className="flex-shrink-0 w-20 sm:w-auto bg-secondary-light rounded-lg p-2 border border-gray-700">
+            <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">1h</div>
+            <div className={`text-xs sm:text-sm font-semibold ${
               periodChanges['1h'] === null ? 'text-gray-500' :
               periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['1h'] === null ? 'New' :
+              {periodChanges['1h'] === null ? '-' :
                `${periodChanges['1h'] >= 0 ? '+' : ''}${periodChanges['1h'].toFixed(1)}%`}
             </div>
           </div>
 
           {/* 6h Change Card */}
-          <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
-            <div className="text-xs text-gray-400 mb-1 truncate">6h Change</div>
-            <div className={`text-xs sm:text-sm font-semibold truncate ${
+          <div className="flex-shrink-0 w-20 sm:w-auto bg-secondary-light rounded-lg p-2 border border-gray-700">
+            <div className="text-[10px] sm:text-xs text-gray-400 mb-0.5">6h</div>
+            <div className={`text-xs sm:text-sm font-semibold ${
               periodChanges['6h'] === null ? 'text-gray-500' :
               periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['6h'] === null ? 'New' :
+              {periodChanges['6h'] === null ? '-' :
                `${periodChanges['6h'] >= 0 ? '+' : ''}${periodChanges['6h'].toFixed(1)}%`}
             </div>
           </div>

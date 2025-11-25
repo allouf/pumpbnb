@@ -61,10 +61,10 @@ export function ATHProgressBar({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Progress bar container */}
+      {/* Progress bar container - responsive width */}
       <div
         className={`
-          relative overflow-hidden rounded-full bg-gray-700 h-2.5 w-64 shrink-0
+          relative overflow-hidden rounded-full bg-gray-700 h-2 sm:h-2.5 w-20 sm:w-32 md:w-48 lg:w-64 shrink-0
           ${isNearATH || isNewATH ? 'animate-border-pulse' : ''}
           ${colors.border}
           ${colors.glow}

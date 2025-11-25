@@ -51,6 +51,91 @@ interface ProfileData {
 
 type TabType = 'coins' | 'balances' | 'replies'
 
+// Component to show token holdings from the correct API
+function TokenHoldings({ userAddress }: { userAddress: string }) {
+  const [holdings, setHoldings] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  
+  useEffect(() => {
+    async function fetchHoldings() {
+      try {
+        const response = await fetch(`${API_URL}/api/users/${userAddress}/portfolio`)
+        const data = await response.json()
+        if (data.success && data.data?.tokens) {
+          setHoldings(data.data.tokens)
+        }
+      } catch (error) {
+        console.error('[TokenHoldings] Error fetching:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchHoldings()
+  }, [userAddress])
+  
+  if (isLoading) {
+    return (
+      <div className="bg-secondary-light rounded-xl p-6">
+        <h2 className="text-xl font-bold mb-4">Token Holdings</h2>
+        <div className="animate-pulse space-y-3">
+          <div className="h-12 bg-gray-700 rounded"></div>
+          <div className="h-12 bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    )
+  }
+  
+  if (holdings.length === 0) {
+    return (
+      <div className="bg-secondary-light rounded-xl p-6 text-center">
+        <p className="text-gray-400">No token holdings yet</p>
+        <Link href="/tokens" className="text-primary hover:underline text-sm mt-2 inline-block">
+          Browse tokens to start trading
+        </Link>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="bg-secondary-light rounded-xl p-6">
+      <h2 className="text-xl font-bold mb-4">Token Holdings</h2>
+      <div className="space-y-3">
+        {holdings.map((holding: any) => (
+          <Link
+            key={holding.tokenAddress}
+            href={`/token/${holding.tokenAddress}`}
+            className="flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-gray-700 transition"
+          >
+            <div className="flex items-center gap-3">
+              {holding.imageUrl ? (
+                <img
+                  src={getImageUrl(holding.imageUrl)}
+                  alt={holding.symbol}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold">{holding.symbol?.slice(0, 3)}</span>
+                </div>
+              )}
+              <div>
+                <div className="font-semibold">{holding.name || 'Unknown'}</div>
+                <div className="text-sm text-gray-400">{holding.symbol || 'UNKNOWN'}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="font-bold">
+                {(Number(holding.balance || 0) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-sm text-gray-400">{holding.symbol}</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
   const { usdRate } = useUsdPrice()
@@ -568,45 +653,8 @@ export function ProfilePageClient({ address }: { address: string }) {
             </div>
           )}
 
-          {/* Other Token Holdings */}
-          {portfolio && portfolio.length > 0 ? (
-            <div className="bg-secondary-light rounded-xl p-6">
-              <h2 className="text-xl font-bold mb-4">Other Holdings</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left text-gray-400 text-sm border-b border-gray-700">
-                      <th className="pb-3">Token</th>
-                      <th className="pb-3">Balance</th>
-                      <th className="pb-3">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {portfolio.map((holding: any) => (
-                      <tr key={holding.id} className="border-t border-gray-700">
-                        <td className="py-3">
-                          <Link
-                            href={`/token/${holding.tokenAddress}`}
-                            className="text-primary hover:underline"
-                          >
-                            {holding.tokenAddress.slice(0, 10)}...
-                          </Link>
-                        </td>
-                        <td className="py-3">
-                          {(Number(holding.balance) / 1e18).toFixed(2)}
-                        </td>
-                        <td className="py-3 text-gray-400">-</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-secondary-light rounded-xl p-6 text-center">
-              <p className="text-gray-400">No other token holdings</p>
-            </div>
-          )}
+          {/* Other Token Holdings - Fetch from TokenHolder data */}
+          <TokenHoldings userAddress={address} />
         </div>
       )}
 
