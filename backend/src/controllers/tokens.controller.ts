@@ -268,6 +268,37 @@ class TokensController {
   }
 
   /**
+   * POST /api/v2/tokens/:address/refresh-stats
+   * Trigger immediate stats refresh for a token (after trades)
+   */
+  async refreshTokenStats(req: Request, res: Response, _next: NextFunction): Promise<void> {
+    try {
+      const { address } = req.params;
+      
+      // Import and use the token stats updater service
+      const { tokenStatsUpdaterService } = await import('../services/token-stats-updater.service');
+      
+      await tokenStatsUpdaterService.updateToken(address);
+      
+      // Also fetch the updated stats to return
+      const stats = await tokensService.getTokenStats(address);
+      
+      res.json({
+        success: true,
+        message: 'Token stats refreshed successfully',
+        data: stats,
+      });
+    } catch (error) {
+      logger.error('Error refreshing token stats:', error);
+      // Don't fail completely, just return a warning
+      res.json({
+        success: false,
+        message: 'Stats refresh triggered but may take a moment to reflect',
+      });
+    }
+  }
+
+  /**
    * GET /api/v2/tokens/graduated
    * Get graduated tokens
    */

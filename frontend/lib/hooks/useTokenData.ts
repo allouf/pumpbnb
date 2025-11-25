@@ -36,7 +36,10 @@ export interface TokenData {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
-export function useTokenData(tokenAddress: string) {
+// Polling interval for real-time stats updates (15 seconds)
+const POLLING_INTERVAL = 15000
+
+export function useTokenData(tokenAddress: string, enablePolling: boolean = true) {
   const [tokenData, setTokenData] = useState<TokenData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -47,6 +50,18 @@ export function useTokenData(tokenAddress: string) {
     console.log('[useTokenData] 🔄 Refetch triggered')
     setRefreshTrigger(prev => prev + 1)
   }, [])
+  
+  // Set up automatic polling for real-time updates
+  useEffect(() => {
+    if (!enablePolling || !tokenAddress) return
+    
+    const pollInterval = setInterval(() => {
+      console.log('[useTokenData] 🔄 Auto-polling token data...')
+      setRefreshTrigger(prev => prev + 1)
+    }, POLLING_INTERVAL)
+    
+    return () => clearInterval(pollInterval)
+  }, [tokenAddress, enablePolling])
 
   useEffect(() => {
     async function fetchTokenData() {

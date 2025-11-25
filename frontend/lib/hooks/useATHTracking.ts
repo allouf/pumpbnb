@@ -18,6 +18,8 @@ interface ATHTrackingData {
   percentFromATH: number
   historicalATHs: ATHData[]
   athCount: number
+  // New: Highest ever ATH (never decreases)
+  highestATH: number
 }
 
 interface UseATHTrackingProps {
@@ -25,20 +27,26 @@ interface UseATHTrackingProps {
   currentPrice: number
   currentVolume: number
   transactions: any[]
+  // Optional: use market cap instead of price for ATH tracking
+  currentMarketCap?: number
 }
 
 const ATH_STORAGE_KEY = 'ath_tracking_'
+const HIGHEST_ATH_STORAGE_KEY = 'highest_ath_'
 
 export function useATHTracking({ 
   tokenAddress, 
   currentPrice, 
   currentVolume, 
-  transactions 
+  transactions,
+  currentMarketCap = 0
 }: UseATHTrackingProps): ATHTrackingData {
   const [athData, setAthData] = useState<ATHData[]>([])
   const [isNewATH, setIsNewATH] = useState(false)
+  // Track the highest ever ATH (never decreases)
+  const [highestATH, setHighestATH] = useState<number>(0)
 
-  // Load stored ATH data
+  // Load stored ATH data and highest ATH
   useEffect(() => {
     const stored = localStorage.getItem(`${ATH_STORAGE_KEY}${tokenAddress}`)
     if (stored) {
@@ -49,7 +57,30 @@ export function useATHTracking({
         console.error('[useATHTracking] Failed to parse stored ATH data:', error)
       }
     }
+    
+    // Load highest ever ATH
+    const storedHighest = localStorage.getItem(`${HIGHEST_ATH_STORAGE_KEY}${tokenAddress}`)
+    if (storedHighest) {
+      try {
+        const parsed = parseFloat(storedHighest)
+        if (!isNaN(parsed) && parsed > 0) {
+          setHighestATH(parsed)
+        }
+      } catch (error) {
+        console.error('[useATHTracking] Failed to parse stored highest ATH:', error)
+      }
+    }
   }, [tokenAddress])
+  
+  // Update highest ATH when market cap changes (never decreases)
+  useEffect(() => {
+    const valueToTrack = currentMarketCap > 0 ? currentMarketCap : currentPrice
+    if (valueToTrack > highestATH) {
+      setHighestATH(valueToTrack)
+      localStorage.setItem(`${HIGHEST_ATH_STORAGE_KEY}${tokenAddress}`, valueToTrack.toString())
+      console.log('[useATHTracking] 🏆 New highest ATH:', valueToTrack)
+    }
+  }, [currentMarketCap, currentPrice, highestATH, tokenAddress])
 
   // Calculate ATH data from transactions
   const calculatedATHs = useMemo(() => {
@@ -160,6 +191,8 @@ export function useATHTracking({
     percentFromATH: derivedData.percentFromATH,
     historicalATHs: allATHs,
     athCount: allATHs.length,
+    // Return the highest ever ATH (for progress bar)
+    highestATH: Math.max(highestATH, currentATH?.price || 0),
   }
 }
 

@@ -1272,7 +1272,8 @@ export function AdvancedPriceChart({
     console.log('[AdvancedPriceChart] 📦 Created', candleMap.size, 'candles from transactions')
 
     // Convert to array format for TradingView
-    const candleData: Array<{time: UTCTimestamp, open: number, high: number, low: number, close: number}> = []
+    // Include optional color properties for sell-dominant candles (pump.fun style)
+    const candleData: Array<{time: UTCTimestamp, open: number, high: number, low: number, close: number, color?: string, borderColor?: string, wickColor?: string}> = []
     const volumeData: Array<{time: UTCTimestamp, value: number, color: string}> = []
 
     const sortedCandles = Array.from(candleMap.entries()).sort(([a], [b]) => a - b)
@@ -1331,15 +1332,23 @@ export function AdvancedPriceChart({
 
       if (isValidCandle) {
         console.log(`[AdvancedPriceChart] ✅ Candle ${index} is VALID, adding to candleData`)
+        
+        // Color based on buy/sell volume majority (green for more buys, red for more sells)
+        // This applies to BOTH the candlestick body AND the volume bar (pump.fun style)
+        const isBuyDominant = candle.buyVolume > candle.sellVolume
+        const candleColor = isBuyDominant ? '#22c55e' : '#ef4444' // Green for buys, red for sells
+        
         candleData.push({
           time: time as UTCTimestamp,
           open: candle.open,   // Keep full precision
           high: candle.high,
           low: candle.low,
           close: candle.close,
+          // Override colors based on trade type dominance (not just price movement)
+          color: candleColor,
+          borderColor: candleColor,
+          wickColor: candleColor,
         })
-        // Color based on buy/sell volume majority (green for more buys, red for more sells)
-        const isBuyDominant = candle.buyVolume > candle.sellVolume
         const volumeColor = isBuyDominant ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
 
         // Log volume bar coloring for debugging
@@ -2120,8 +2129,18 @@ export function AdvancedPriceChart({
             {(() => {
               // USE BACKEND VALUES DIRECTLY - no frontend calculation!
               const currentMcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
-              // ATH - use prop from parent, otherwise use current as baseline (backend should track ATH)
-              const athMcapUsd = ath && ath > 0 ? ath : currentMcapUsd
+              // ATH - use the HIGHEST EVER recorded ATH from localStorage (never decreases)
+              // This ensures the progress bar shows current vs highest ever, not current vs current
+              const storedHighestAth = typeof window !== 'undefined' 
+                ? parseFloat(localStorage.getItem(`highest_ath_${bondingCurveAddress}`) || '0')
+                : 0
+              // Use highest of: stored ATH, prop ATH, or current market cap (for first-time tokens)
+              const athMcapUsd = Math.max(storedHighestAth, ath || 0, currentMcapUsd)
+              
+              // Update stored ATH if current is higher
+              if (typeof window !== 'undefined' && currentMcapUsd > storedHighestAth) {
+                localStorage.setItem(`highest_ath_${bondingCurveAddress}`, currentMcapUsd.toString())
+              }
 
               return (
                 <>

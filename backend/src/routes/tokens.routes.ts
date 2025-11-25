@@ -68,6 +68,13 @@ router.get('/:address/info', tokensController.getTokenInfo.bind(tokensController
 router.get('/:address/stats', tokensController.getTokenStats.bind(tokensController));
 
 /**
+ * @route   POST /api/v2/tokens/:address/refresh-stats
+ * @desc    Trigger immediate stats refresh for a token (after trades)
+ * @access  Public
+ */
+router.post('/:address/refresh-stats', tokensController.refreshTokenStats.bind(tokensController));
+
+/**
  * Token Trades Endpoints
  */
 

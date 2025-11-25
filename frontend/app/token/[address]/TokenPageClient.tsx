@@ -105,18 +105,36 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   )
 
   // Callback for when trades are successful
-  const handleTradeSuccess = (tradeType: 'buy' | 'sell', txHash: string) => {
+  const handleTradeSuccess = async (tradeType: 'buy' | 'sell', txHash: string) => {
     console.log('[TokenPageClient] 🎯 Trade successful, triggering data refresh:', { tradeType, txHash })
 
     // Refetch reserves to update progress and market cap
     refetchReserves()
+
+    // Trigger immediate stats refresh on backend
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      console.log('[TokenPageClient] 🔄 Triggering immediate stats refresh on backend...')
+      await fetch(`${apiUrl}/api/v2/tokens/${address}/refresh-stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (error) {
+      console.warn('[TokenPageClient] ⚠️ Failed to trigger stats refresh:', error)
+    }
 
     // Refetch token data from backend API to get updated stats (price, mcap, volume, etc.)
     // Add a small delay to allow backend to process the new transaction
     setTimeout(() => {
       console.log('[TokenPageClient] 🔄 Refetching token data from backend...')
       refetchTokenData()
-    }, 2000) // 2 second delay for backend to index the transaction
+    }, 1000) // Reduced to 1 second since we triggered refresh
+    
+    // Refetch again after 3 seconds to ensure data is fully updated
+    setTimeout(() => {
+      console.log('[TokenPageClient] 🔄 Second refetch to ensure data is updated...')
+      refetchTokenData()
+    }, 3000)
 
     // Trigger immediate holders and trades refresh
     setHoldersRefreshTrigger(prev => prev + 1)
