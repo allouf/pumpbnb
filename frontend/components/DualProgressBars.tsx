@@ -176,9 +176,9 @@ export function DualProgressBars({
           </div>
         </div>
 
-        {/* ATH Progress Bar - Increased height from h-3 to h-6 */}
+        {/* ATH Progress Bar - Increased height to h-8 to match bonding curve */}
         <div className="relative">
-          <div className="w-full bg-gray-800 rounded-full h-6 overflow-hidden">
+          <div className="w-full bg-gray-800 rounded-full h-8 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isNewAth
@@ -214,9 +214,9 @@ export function DualProgressBars({
             </div>
           </div>
 
-          {/* ATH marker - Adjusted for new h-6 height */}
+          {/* ATH marker - Adjusted for new h-8 height */}
           {athProgress < 100 && (
-            <div className="absolute top-0 right-0 h-6 flex items-center">
+            <div className="absolute top-0 right-0 h-8 flex items-center">
               <div className="w-0.5 h-full bg-orange-500" />
               <div className="absolute -top-6 right-0 text-xs text-orange-500 font-semibold">
                 ATH

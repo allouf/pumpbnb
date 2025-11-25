@@ -1,9 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useBalance, useReadContract } from 'wagmi'
+import { formatUnits } from 'viem'
+import type { Abi } from 'viem'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
+import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
+import { CONTRACTS } from '@/lib/contracts'
+import MockERC20ABI from '@/lib/abis/MockERC20.json'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
@@ -48,6 +53,7 @@ type TabType = 'coins' | 'balances' | 'replies'
 
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
+  const { usdRate } = useUsdPrice()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [following, setFollowing] = useState(false)
@@ -59,6 +65,25 @@ export function ProfilePageClient({ address }: { address: string }) {
   const [activeTab, setActiveTab] = useState<TabType>('coins')
 
   const isOwnProfile = connectedAddress?.toLowerCase() === address.toLowerCase()
+
+  // Fetch BNB balance
+  const { data: bnbBalance } = useBalance({
+    address: address as `0x${string}`,
+  })
+
+  // Fetch ASTER balance (use MockASTER on testnet)
+  const { data: asterBalance } = useReadContract({
+    address: CONTRACTS.MockASTER as `0x${string}`,
+    abi: MockERC20ABI.abi as Abi,
+    functionName: 'balanceOf',
+    args: [address],
+  })
+
+  // Format balances
+  const bnbAmount = bnbBalance ? parseFloat(formatUnits(bnbBalance.value, 18)) : 0
+  const asterAmount = asterBalance ? parseFloat(formatUnits(asterBalance as bigint, 18)) : 0
+  const bnbUsd = bnbAmount * 600 // Approximate BNB price, you can fetch real price if needed
+  const asterUsd = asterToUsd(asterAmount, usdRate)
 
   useEffect(() => {
     fetchProfile()
@@ -465,7 +490,7 @@ export function ProfilePageClient({ address }: { address: string }) {
               <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-500 font-bold">BNB</span>
+                    <span className="text-yellow-500 font-bold text-xs">BNB</span>
                   </div>
                   <div>
                     <div className="font-semibold">Binance Coin</div>
@@ -473,8 +498,12 @@ export function ProfilePageClient({ address }: { address: string }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">0.00 BNB</div>
-                  <div className="text-sm text-gray-400">$0.00</div>
+                  <div className="font-bold">
+                    {bnbBalance ? `${bnbAmount.toFixed(4)} BNB` : 'Loading...'}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    ${bnbUsd.toFixed(2)}
+                  </div>
                 </div>
               </div>
 
@@ -482,7 +511,7 @@ export function ProfilePageClient({ address }: { address: string }) {
               <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-bold">AST</span>
+                    <span className="text-primary font-bold text-xs">AST</span>
                   </div>
                   <div>
                     <div className="font-semibold">ASTER</div>
@@ -490,8 +519,12 @@ export function ProfilePageClient({ address }: { address: string }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold">0.00 ASTER</div>
-                  <div className="text-sm text-gray-400">$0.00</div>
+                  <div className="font-bold">
+                    {asterBalance !== undefined ? `${asterAmount.toFixed(2)} ASTER` : 'Loading...'}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    {formatUsdPrice(asterUsd)}
+                  </div>
                 </div>
               </div>
             </div>

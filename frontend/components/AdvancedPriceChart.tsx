@@ -1107,7 +1107,7 @@ export function AdvancedPriceChart({
     console.log('[AdvancedPriceChart] 📊 Using candle interval:', intervalSeconds, 'seconds')
 
     // Aggregate transactions into candlesticks with proper USD conversion
-    const candleMap = new Map<number, {open: number, high: number, low: number, close: number, volume: number, lastTimestamp: number}>()
+    const candleMap = new Map<number, {open: number, high: number, low: number, close: number, volume: number, lastTimestamp: number, buyVolume: number, sellVolume: number}>()
 
     console.log('[AdvancedPriceChart] 🔍 Processing', filteredTransactions.length, 'transactions into candles...')
 
@@ -1211,13 +1211,16 @@ export function AdvancedPriceChart({
         })
 
         const existing = candleMap.get(candleTime)
+        const isBuy = tx.type === 'buy'
+
         if (!existing) {
           console.log(`[AdvancedPriceChart] ✨ TX ${index}: Creating NEW candle at ${new Date(candleTime * 1000).toISOString()}`, {
             open: displayPrice,
             high: displayPrice,
             low: displayPrice,
             close: displayPrice,
-            volume: asterAmount
+            volume: asterAmount,
+            type: tx.type
           })
           candleMap.set(candleTime, {
             open: displayPrice,     // Keep full precision for small values
@@ -1226,6 +1229,8 @@ export function AdvancedPriceChart({
             close: displayPrice,
             volume: asterAmount,
             lastTimestamp: tx.timestamp,
+            buyVolume: isBuy ? asterAmount : 0,
+            sellVolume: isBuy ? 0 : asterAmount,
           })
         } else {
           console.log(`[AdvancedPriceChart] 📊 TX ${index}: Updating EXISTING candle at ${new Date(candleTime * 1000).toISOString()}`, {
@@ -1236,7 +1241,8 @@ export function AdvancedPriceChart({
             oldClose: existing.close,
             newClose: tx.timestamp > existing.lastTimestamp ? displayPrice : existing.close,
             oldVolume: existing.volume,
-            newVolume: existing.volume + asterAmount
+            newVolume: existing.volume + asterAmount,
+            type: tx.type
           })
           existing.high = Math.max(existing.high, displayPrice)
           existing.low = Math.min(existing.low, displayPrice)
@@ -1245,6 +1251,11 @@ export function AdvancedPriceChart({
             existing.lastTimestamp = tx.timestamp
           }
           existing.volume += asterAmount
+          if (isBuy) {
+            existing.buyVolume += asterAmount
+          } else {
+            existing.sellVolume += asterAmount
+          }
         }
       })
 
@@ -1317,10 +1328,12 @@ export function AdvancedPriceChart({
           low: candle.low,
           close: candle.close,
         })
+        // Color based on buy/sell volume majority (green for more buys, red for more sells)
+        const isBuyDominant = candle.buyVolume > candle.sellVolume
         volumeData.push({
           time: time as UTCTimestamp,
           value: candle.volume,
-          color: candle.close >= candle.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)',
+          color: isBuyDominant ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)',
         })
       } else {
         console.error(`[AdvancedPriceChart] ❌ Candle ${index} is INVALID, skipping:`, candle)
