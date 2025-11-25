@@ -198,7 +198,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: Rece
               <th className="text-right py-2 sm:py-3 font-medium hidden sm:table-cell">ASTER</th>
               <th className="text-right py-2 sm:py-3 font-medium">{tokenSymbol}</th>
               <th className="text-right py-2 sm:py-3 font-medium hidden md:table-cell">Time</th>
-              <th className="text-center py-2 sm:py-3 pr-2 sm:pr-3 font-medium">Txn</th>
+              <th className="text-right py-2 sm:py-3 pr-2 sm:pr-3 font-medium">Txn</th>
             </tr>
           </thead>
           <tbody>
@@ -275,7 +275,7 @@ export function RecentTrades({ tokenAddress, tokenSymbol, refreshTrigger }: Rece
                     <td className="py-2 sm:py-3 text-right text-xs text-gray-400 hidden md:table-cell">
                       {formatTime(trade.timestamp)}
                     </td>
-                    <td className="py-2 sm:py-3 pr-2 sm:pr-3 text-center">
+                    <td className="py-2 sm:py-3 pr-2 sm:pr-3 text-right">
                       <ClickableTransactionHash
                         hash={trade.txHash}
                         className="text-primary hover:text-primary-light text-xs font-mono"

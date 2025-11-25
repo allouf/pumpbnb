@@ -355,14 +355,13 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                         <span className="font-medium">${symbol}</span>
                         <span className="hidden sm:inline">•</span>
                         <ClickableWalletAddress address={address} />
-                        {/* Hide creator address */}
-                        {/* {creator && (
+                        {creator && (
                           <>
                             <span>•</span>
                             <span>by </span>
-                            <ClickableWalletAddress address={creator} />
+                            <ClickableWalletAddress address={creator} showUsername={true} />
                           </>
-                        )} */}
+                        )}
                         <span className="hidden sm:inline">•</span>
                         <span>{creationInfo}</span>
                       </div>

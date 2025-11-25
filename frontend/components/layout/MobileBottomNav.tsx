@@ -94,9 +94,9 @@ export function MobileBottomNav() {
       {/* More Menu Popup Overlay */}
       {isMoreExpanded && (
         <>
-          {/* Full-screen overlay */}
+          {/* Full-screen overlay with very high z-index */}
           <div
-            className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center"
+            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center"
             onClick={() => setIsMoreExpanded(false)}
           >
             {/* Popup content - slides up from bottom on mobile */}

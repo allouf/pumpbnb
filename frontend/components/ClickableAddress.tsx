@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ClickableAddressProps {
   address: string
@@ -110,17 +110,52 @@ export function ClickableTransactionHash({ hash, className = "", children }: {
   )
 }
 
-export function ClickableWalletAddress({ address, className = "", children }: { 
+export function ClickableWalletAddress({ address, className = "", children, showUsername = false }: {
   address: string
   className?: string
-  children?: React.ReactNode 
+  children?: React.ReactNode
+  showUsername?: boolean
 }) {
+  const [username, setUsername] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!showUsername || !address) return
+
+    const fetchProfile = async () => {
+      setLoading(true)
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
+        const res = await fetch(`${API_URL}/api/profile/${address}`)
+        const data = await res.json()
+
+        if (data.success && data.data?.user?.username) {
+          setUsername(data.data.user.username)
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [address, showUsername])
+
+  const displayText = showUsername && username
+    ? username
+    : children || (address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address)
+
   return (
-    <ClickableAddress 
-      address={address} 
-      type="address" 
+    <ClickableAddress
+      address={address}
+      type="address"
       className={`text-gray-300 hover:text-white ${className}`}
-      children={children}
+      children={
+        <span className={loading ? 'animate-pulse' : ''}>
+          {displayText}
+        </span>
+      }
     />
   )
 }

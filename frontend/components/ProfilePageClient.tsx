@@ -44,7 +44,7 @@ interface ProfileData {
   portfolio: any[]
 }
 
-type TabType = 'coins' | 'balances' | 'replies' | 'notifications'
+type TabType = 'coins' | 'balances' | 'replies'
 
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
@@ -358,15 +358,15 @@ export function ProfilePageClient({ address }: { address: string }) {
       </div>
 
       {/* Tabs */}
-      <div className="bg-secondary-light rounded-xl mb-6">
+      <div className="bg-secondary-light rounded-xl mb-6 overflow-hidden">
         <div className="flex border-b border-gray-700">
           <button
             onClick={() => setActiveTab('coins')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'coins'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                ? 'text-primary bg-primary/10 border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+            } ${activeTab === 'coins' ? 'rounded-tl-xl' : ''}`}
           >
             Coins
           </button>
@@ -374,8 +374,8 @@ export function ProfilePageClient({ address }: { address: string }) {
             onClick={() => setActiveTab('balances')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'balances'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-primary bg-primary/10 border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
             }`}
           >
             Balances
@@ -384,21 +384,11 @@ export function ProfilePageClient({ address }: { address: string }) {
             onClick={() => setActiveTab('replies')}
             className={`flex-1 px-6 py-3 font-medium transition ${
               activeTab === 'replies'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-400 hover:text-white'
-            }`}
+                ? 'text-primary bg-primary/10 border-b-2 border-primary'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+            } ${activeTab === 'replies' ? 'rounded-tr-xl' : ''}`}
           >
             Replies
-          </button>
-          <button
-            onClick={() => setActiveTab('notifications')}
-            className={`flex-1 px-6 py-3 font-medium transition ${
-              activeTab === 'notifications'
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Notifications
           </button>
         </div>
       </div>
@@ -466,46 +456,125 @@ export function ProfilePageClient({ address }: { address: string }) {
 
       {/* Balances Tab */}
       {activeTab === 'balances' && (
-        <>
-          {portfolio && portfolio.length > 0 ? (
-        <div className="bg-secondary-light rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-4">Holdings</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-gray-400 text-sm border-b border-gray-700">
-                  <th className="pb-3">Token</th>
-                  <th className="pb-3">Balance</th>
-                  <th className="pb-3">Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {portfolio.map((holding: any) => (
-                  <tr key={holding.id} className="border-t border-gray-700">
-                    <td className="py-3">
-                      <Link
-                        href={`/token/${holding.tokenAddress}`}
-                        className="text-primary hover:underline"
-                      >
-                        {holding.tokenAddress.slice(0, 10)}...
-                      </Link>
-                    </td>
-                    <td className="py-3">
-                      {(Number(holding.balance) / 1e18).toFixed(2)}
-                    </td>
-                    <td className="py-3 text-gray-400">-</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="space-y-4">
+          {/* Native Token Balances */}
+          <div className="bg-secondary-light rounded-xl p-6">
+            <h2 className="text-xl font-bold mb-4">Native Tokens</h2>
+            <div className="space-y-3">
+              {/* BNB Balance */}
+              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-yellow-500 font-bold">BNB</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Binance Coin</div>
+                    <div className="text-sm text-gray-400">Native token</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold">0.00 BNB</div>
+                  <div className="text-sm text-gray-400">$0.00</div>
+                </div>
+              </div>
+
+              {/* ASTER Balance */}
+              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                    <span className="text-primary font-bold">AST</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">ASTER</div>
+                    <div className="text-sm text-gray-400">Trading token</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold">0.00 ASTER</div>
+                  <div className="text-sm text-gray-400">$0.00</div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-          ) : (
-            <div className="bg-secondary-light rounded-xl p-6 text-center">
-              <p className="text-gray-400">No token holdings yet</p>
+
+          {/* Created Tokens Balance */}
+          {tokens && tokens.length > 0 && (
+            <div className="bg-secondary-light rounded-xl p-6">
+              <h2 className="text-xl font-bold mb-4">Created Tokens</h2>
+              <div className="space-y-3">
+                {tokens.map((token: any) => (
+                  <Link
+                    key={token.id}
+                    href={`/token/${token.address}`}
+                    className="flex items-center justify-between p-3 bg-secondary rounded-lg hover:bg-gray-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      {token.imageUrl ? (
+                        <img
+                          src={getImageUrl(token.imageUrl)}
+                          alt={token.symbol}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">{token.symbol?.slice(0, 3)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold">{token.name}</div>
+                        <div className="text-sm text-gray-400">{token.symbol}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold">200M {token.symbol}</div>
+                      <div className="text-sm text-gray-400">Creator allocation</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
-        </>
+
+          {/* Other Token Holdings */}
+          {portfolio && portfolio.length > 0 ? (
+            <div className="bg-secondary-light rounded-xl p-6">
+              <h2 className="text-xl font-bold mb-4">Other Holdings</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-gray-400 text-sm border-b border-gray-700">
+                      <th className="pb-3">Token</th>
+                      <th className="pb-3">Balance</th>
+                      <th className="pb-3">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {portfolio.map((holding: any) => (
+                      <tr key={holding.id} className="border-t border-gray-700">
+                        <td className="py-3">
+                          <Link
+                            href={`/token/${holding.tokenAddress}`}
+                            className="text-primary hover:underline"
+                          >
+                            {holding.tokenAddress.slice(0, 10)}...
+                          </Link>
+                        </td>
+                        <td className="py-3">
+                          {(Number(holding.balance) / 1e18).toFixed(2)}
+                        </td>
+                        <td className="py-3 text-gray-400">-</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-secondary-light rounded-xl p-6 text-center">
+              <p className="text-gray-400">No other token holdings</p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Replies Tab */}
@@ -515,12 +584,6 @@ export function ProfilePageClient({ address }: { address: string }) {
         </div>
       )}
 
-      {/* Notifications Tab */}
-      {activeTab === 'notifications' && (
-        <div className="bg-secondary-light rounded-xl p-6 text-center">
-          <p className="text-gray-400">Notifications feature coming soon</p>
-        </div>
-      )}
 
       {/* Edit Profile Modal */}
       {isEditingProfile && (

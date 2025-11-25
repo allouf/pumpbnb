@@ -75,9 +75,9 @@ export function DualProgressBars({
           </div>
         </div>
 
-        {/* Progress Bar Container */}
+        {/* Progress Bar Container - Increased height from h-4 to h-8 */}
         <div className="relative">
-          <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden">
+          <div className="w-full bg-gray-800 rounded-full h-8 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isGraduated
@@ -105,8 +105,8 @@ export function DualProgressBars({
             </div>
           </div>
 
-          {/* Milestone markers */}
-          <div className="absolute top-0 w-full h-4">
+          {/* Milestone markers - Adjusted for new h-8 height */}
+          <div className="absolute top-0 w-full h-8">
             {[25, 50, 75].map((milestone) => (
               <div
                 key={milestone}
@@ -176,9 +176,9 @@ export function DualProgressBars({
           </div>
         </div>
 
-        {/* ATH Progress Bar */}
+        {/* ATH Progress Bar - Increased height from h-3 to h-6 */}
         <div className="relative">
-          <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-gray-800 rounded-full h-6 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isNewAth
@@ -214,9 +214,9 @@ export function DualProgressBars({
             </div>
           </div>
 
-          {/* ATH marker */}
+          {/* ATH marker - Adjusted for new h-6 height */}
           {athProgress < 100 && (
-            <div className="absolute top-0 right-0 h-3 flex items-center">
+            <div className="absolute top-0 right-0 h-6 flex items-center">
               <div className="w-0.5 h-full bg-orange-500" />
               <div className="absolute -top-6 right-0 text-xs text-orange-500 font-semibold">
                 ATH

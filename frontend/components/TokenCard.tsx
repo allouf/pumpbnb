@@ -6,6 +6,7 @@ import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
 import type { Abi } from 'viem';
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json';
+import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice';
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi;
 
@@ -25,6 +26,8 @@ interface TokenCardProps {
 }
 
 export function TokenCard({ token, compact = false, showAnimations = true }: TokenCardProps) {
+  const { usdRate } = useUsdPrice();
+
   // Fetch real bonding curve data
   const { data: reserves } = useReadContract({
     address: token.bondingCurve as `0x${string}`,
@@ -36,7 +39,10 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
   const asterReserves = reservesData ? reservesData[0] : BigInt(0);
   const asterAmount = Number(formatUnits(asterReserves, 18));
   const progress = asterAmount; // Out of 100 ASTER
-  const marketCap = asterAmount.toFixed(2);
+
+  // Calculate market cap in USD
+  const marketCapUsd = asterToUsd(asterAmount, usdRate);
+  const marketCapDisplay = formatUsdPrice(marketCapUsd);
   
   const isNearGraduation = progress >= 80 && progress < 100;
   const isGraduated = progress >= 100;
@@ -88,7 +94,7 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
             </div>
             <div className="text-right flex-shrink-0 ml-2">
               <p className="text-sm font-semibold text-white whitespace-nowrap">
-                {marketCap} ASTER
+                {marketCapDisplay}
               </p>
               <p className="text-xs text-gray-400 whitespace-nowrap">
                 Market Cap
