@@ -98,15 +98,29 @@ export function MobileBottomNav() {
         </div>
       </div>
 
-      {/* More Menu Popup Overlay - Rendered via Portal to ensure it's on top of everything */}
+      {/* More Menu Popup Overlay - Rendered via Portal with maximum z-index and pointer events */}
       {mounted && isMoreExpanded && createPortal(
         <div
-          className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 2147483647, // Maximum safe integer for z-index
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'auto',
+          }}
           onClick={() => setIsMoreExpanded(false)}
         >
           {/* Popup content - slides up from bottom on mobile */}
           <div
-            className="bg-secondary-light border-t md:border border-gray-700 md:rounded-xl p-6 w-full md:w-80 max-w-sm md:mx-4 shadow-2xl transform animate-in slide-in-from-bottom md:zoom-in-95 duration-200"
+            className="bg-secondary-light border-t md:border border-gray-700 md:rounded-xl p-6 w-full md:w-80 max-w-sm md:mx-4 shadow-2xl"
+            style={{ pointerEvents: 'auto' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">

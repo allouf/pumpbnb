@@ -53,9 +53,9 @@ export function DualProgressBars({
   const isNewAth = currentPrice >= athPrice && athPrice > 0
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-8 ${className}`}>
       {/* Bonding Curve Progress */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-white">
@@ -75,9 +75,9 @@ export function DualProgressBars({
           </div>
         </div>
 
-        {/* Progress Bar Container - Increased height from h-4 to h-8 */}
+        {/* Progress Bar Container - MUCH BIGGER: h-12 on mobile, h-16 on desktop */}
         <div className="relative">
-          <div className="w-full bg-gray-800 rounded-full h-8 overflow-hidden">
+          <div className="w-full bg-gray-800 rounded-full h-12 md:h-16 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isGraduated
@@ -105,8 +105,8 @@ export function DualProgressBars({
             </div>
           </div>
 
-          {/* Milestone markers - Adjusted for new h-8 height */}
-          <div className="absolute top-0 w-full h-8">
+          {/* Milestone markers - Adjusted for new h-12/h-16 height */}
+          <div className="absolute top-0 w-full h-12 md:h-16">
             {[25, 50, 75].map((milestone) => (
               <div
                 key={milestone}
@@ -149,7 +149,7 @@ export function DualProgressBars({
       </div>
 
       {/* ATH Progress */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-white">
@@ -176,9 +176,9 @@ export function DualProgressBars({
           </div>
         </div>
 
-        {/* ATH Progress Bar - Increased height to h-8 to match bonding curve */}
+        {/* ATH Progress Bar - MUCH BIGGER: h-12 on mobile, h-16 on desktop */}
         <div className="relative">
-          <div className="w-full bg-gray-800 rounded-full h-8 overflow-hidden">
+          <div className="w-full bg-gray-800 rounded-full h-12 md:h-16 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-1000 ease-out ${
                 isNewAth
@@ -214,9 +214,9 @@ export function DualProgressBars({
             </div>
           </div>
 
-          {/* ATH marker - Adjusted for new h-8 height */}
+          {/* ATH marker - Adjusted for new h-12/h-16 height */}
           {athProgress < 100 && (
-            <div className="absolute top-0 right-0 h-8 flex items-center">
+            <div className="absolute top-0 right-0 h-12 md:h-16 flex items-center">
               <div className="w-0.5 h-full bg-orange-500" />
               <div className="absolute -top-6 right-0 text-xs text-orange-500 font-semibold">
                 ATH
