@@ -1340,10 +1340,24 @@ export function AdvancedPriceChart({
         })
         // Color based on buy/sell volume majority (green for more buys, red for more sells)
         const isBuyDominant = candle.buyVolume > candle.sellVolume
+        const volumeColor = isBuyDominant ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+
+        // Log volume bar coloring for debugging
+        if (index < 5 || !isBuyDominant) { // Log first 5 or any sell-dominant bars
+          console.log(`[AdvancedPriceChart] 📊 Volume bar ${index}:`, {
+            time: new Date(time * 1000).toLocaleString(),
+            buyVolume: candle.buyVolume.toFixed(2),
+            sellVolume: candle.sellVolume.toFixed(2),
+            isBuyDominant,
+            color: volumeColor,
+            colorName: isBuyDominant ? 'GREEN (buy-dominant)' : 'RED (sell-dominant)'
+          })
+        }
+
         volumeData.push({
           time: time as UTCTimestamp,
           value: candle.volume,
-          color: isBuyDominant ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)',
+          color: volumeColor,
         })
       } else {
         console.error(`[AdvancedPriceChart] ❌ Candle ${index} is INVALID, skipping:`, candle)
@@ -1930,18 +1944,38 @@ export function AdvancedPriceChart({
     }
 
     const currentPrice = stats.currentPrice
-    const changes: Record<string, number> = {}
+    const changes: Record<string, number | null> = {}
+
+    // If no transactions, return nulls
+    if (transactions.length === 0) {
+      Object.keys(periods).forEach(period => {
+        changes[period] = null
+      })
+      return changes
+    }
+
+    // Get the oldest transaction timestamp to check if we have enough history
+    const oldestTxTimestamp = Math.min(...transactions.map(tx => tx.timestamp))
 
     Object.entries(periods).forEach(([period, seconds]) => {
       const cutoff = now - seconds
-      
+
+      // Check if token is older than the period
+      if (oldestTxTimestamp > cutoff) {
+        // Token is too new for this period
+        changes[period] = null
+        console.log(`[AdvancedPriceChart] ⏰ ${period}: Token too new (created ${Math.floor((now - oldestTxTimestamp) / 60)}m ago)`)
+        return
+      }
+
       // Find the transaction closest to the cutoff time (but before)
       const validTxs = transactions.filter(tx => {
         return (tx.asterAmountFormatted && tx.tokenAmountFormatted) || (tx.asterAmount && tx.tokenAmount)
-      }).sort((a, b) => b.timestamp - a.timestamp) // Sort newest first
-      
-      const oldTx = validTxs.find(tx => tx.timestamp <= cutoff)
-      
+      }).sort((a, b) => a.timestamp - b.timestamp) // Sort oldest first
+
+      // Find the first transaction at or before the cutoff
+      const oldTx = validTxs.reverse().find(tx => tx.timestamp <= cutoff)
+
       if (oldTx && currentPrice > 0) {
         let asterAmount, tokenAmount
         if (oldTx.asterAmountFormatted && oldTx.tokenAmountFormatted) {
@@ -1954,7 +1988,7 @@ export function AdvancedPriceChart({
           changes[period] = 0
           return
         }
-        
+
         // Calculate ASTER per token for consistency
         const oldAsterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
         if (oldAsterPerToken > 0) {
@@ -1962,7 +1996,7 @@ export function AdvancedPriceChart({
         } else {
           changes[period] = 0
         }
-        
+
         // Debug period changes
         console.log(`[AdvancedPriceChart] 📊 ${period} change:`, {
           oldTimestamp: new Date(oldTx.timestamp * 1000).toLocaleString(),
@@ -1971,8 +2005,37 @@ export function AdvancedPriceChart({
           change: changes[period].toFixed(2) + '%'
         })
       } else {
-        changes[period] = 0
-        console.log(`[AdvancedPriceChart] ❌ No transaction found for ${period} period (cutoff: ${new Date(cutoff * 1000).toLocaleString()})`)
+        // No transaction found at cutoff - calculate from first transaction
+        const firstTx = validTxs[0]
+        if (firstTx) {
+          let asterAmount, tokenAmount
+          if (firstTx.asterAmountFormatted && firstTx.tokenAmountFormatted) {
+            asterAmount = Number(firstTx.asterAmountFormatted)
+            tokenAmount = Number(firstTx.tokenAmountFormatted)
+          } else if (firstTx.asterAmount && firstTx.tokenAmount) {
+            asterAmount = Number(firstTx.asterAmount) / 1e18
+            tokenAmount = Number(firstTx.tokenAmount) / 1e18
+          } else {
+            changes[period] = 0
+            return
+          }
+
+          const firstAsterPerToken = tokenAmount > 0 ? asterAmount / tokenAmount : 0
+          if (firstAsterPerToken > 0) {
+            changes[period] = ((currentPrice - firstAsterPerToken) / firstAsterPerToken) * 100
+          } else {
+            changes[period] = 0
+          }
+          console.log(`[AdvancedPriceChart] 📊 ${period} change (from first tx):`, {
+            firstTimestamp: new Date(firstTx.timestamp * 1000).toLocaleString(),
+            firstAsterPerToken: firstAsterPerToken.toExponential(3),
+            currentAsterPerToken: currentPrice.toExponential(3),
+            change: changes[period].toFixed(2) + '%'
+          })
+        } else {
+          changes[period] = 0
+          console.log(`[AdvancedPriceChart] ❌ No transaction found for ${period} period`)
+        }
       }
     })
 
@@ -2251,9 +2314,11 @@ export function AdvancedPriceChart({
           <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
             <div className="text-xs text-gray-400 mb-1 truncate">5m Change</div>
             <div className={`text-xs sm:text-sm font-semibold truncate ${
+              periodChanges['5m'] === null ? 'text-gray-500' :
               periodChanges['5m'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['5m'] >= 0 ? '+' : ''}{periodChanges['5m'].toFixed(1)}%
+              {periodChanges['5m'] === null ? 'New' :
+               `${periodChanges['5m'] >= 0 ? '+' : ''}${periodChanges['5m'].toFixed(1)}%`}
             </div>
           </div>
 
@@ -2261,9 +2326,11 @@ export function AdvancedPriceChart({
           <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
             <div className="text-xs text-gray-400 mb-1 truncate">1h Change</div>
             <div className={`text-xs sm:text-sm font-semibold truncate ${
+              periodChanges['1h'] === null ? 'text-gray-500' :
               periodChanges['1h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['1h'] >= 0 ? '+' : ''}{periodChanges['1h'].toFixed(1)}%
+              {periodChanges['1h'] === null ? 'New' :
+               `${periodChanges['1h'] >= 0 ? '+' : ''}${periodChanges['1h'].toFixed(1)}%`}
             </div>
           </div>
 
@@ -2271,9 +2338,11 @@ export function AdvancedPriceChart({
           <div className="bg-secondary-light rounded-lg p-2 sm:p-3 border border-gray-700 min-w-0">
             <div className="text-xs text-gray-400 mb-1 truncate">6h Change</div>
             <div className={`text-xs sm:text-sm font-semibold truncate ${
+              periodChanges['6h'] === null ? 'text-gray-500' :
               periodChanges['6h'] >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {periodChanges['6h'] >= 0 ? '+' : ''}{periodChanges['6h'].toFixed(1)}%
+              {periodChanges['6h'] === null ? 'New' :
+               `${periodChanges['6h'] >= 0 ? '+' : ''}${periodChanges['6h'].toFixed(1)}%`}
             </div>
           </div>
         </div>

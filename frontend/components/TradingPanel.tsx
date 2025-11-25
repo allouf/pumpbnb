@@ -129,7 +129,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
     args: address && isConnected ? [address] : undefined,
   })
 
-  const { data: hash, isPending, writeContract, error: writeError } = useWriteContract()
+  const { data: hash, isPending, writeContract, error: writeError, reset: resetWrite } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
   // Debug logging for transaction states
@@ -327,6 +327,13 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
       }
 
       setAmount('')
+
+      // Reset wagmi hooks to allow new transactions
+      setTimeout(() => {
+        resetWrite()
+        console.log('[TradingPanel] 🔄 Wagmi hooks reset - ready for new transaction')
+      }, 1000) // Small delay to ensure UI updates properly
+
       refetchAsterAllowance()
       refetchTokenAllowance()
       // Refetch reserves to update market cap and progress
@@ -354,11 +361,14 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
         spender: bondingCurveAddress,
       })
 
+      // Approve maximum amount (type(uint256).max) to avoid repeated approvals
+      const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+
       writeContract({
         address: approveAddress as `0x${string}`,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [bondingCurveAddress, parseUnits('1000000', 18)], // Approve 1M tokens
+        args: [bondingCurveAddress, MAX_UINT256], // Approve maximum amount for unlimited trading
       }, {
         onSuccess: () => {
           toast.success(`${activeTab === 'buy' ? 'ASTER' : tokenSymbol} approval granted!`, { id: toastId })
