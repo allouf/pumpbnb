@@ -208,9 +208,9 @@ export default function CreateTokenPage() {
         // Don't block user flow - background indexer will catch it later
       })
 
-    // Redirect to home page
+    // Redirect to home page with newToken param to trigger refresh
     setTimeout(() => {
-      router.push('/')
+      router.push('/?newToken=true')
     }, 2000)
   }
 

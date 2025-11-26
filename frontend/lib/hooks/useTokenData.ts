@@ -10,7 +10,10 @@ interface TokenDataStats {
   volume24hUsd?: string    // 24h volume in USD
   trades24h?: number       // Number of trades in 24h
   holders?: number         // Number of holders
+  priceChange1h?: string   // 1h price change percentage
+  priceChange6h?: string   // 6h price change percentage
   priceChange24h?: string  // 24h price change percentage
+  athMarketCapUsd?: string // All-time high market cap in USD (never decreases)
   liquidity?: string       // Liquidity in ASTER
   liquidityUsd?: string    // Liquidity in USD
 }

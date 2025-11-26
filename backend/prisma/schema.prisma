@@ -79,7 +79,10 @@ model TokenStats {
   holders        Int      @default(0)
   liquidity      String
   liquidityUsd   String   @default("0") // Liquidity in USD
-  priceChange24h String   @default("0")
+  priceChange1h  String   @default("0") // 1 hour price change %
+  priceChange6h  String   @default("0") // 6 hour price change %
+  priceChange24h String   @default("0") // 24 hour price change %
+  athMarketCapUsd String  @default("0") // All-time high market cap in USD (never decreases)
   updatedAt      DateTime @updatedAt
 
   token Token @relation(fields: [tokenAddress], references: [address], onDelete: Cascade)

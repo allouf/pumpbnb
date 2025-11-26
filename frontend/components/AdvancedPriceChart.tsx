@@ -24,7 +24,10 @@ interface BackendTokenStats {
   volume24hUsd?: string
   trades24h?: number
   holders?: number
+  priceChange1h?: string
+  priceChange6h?: string
   priceChange24h?: string
+  athMarketCapUsd?: string // All-time high market cap from backend (never decreases)
   liquidity?: string
   liquidityUsd?: string
 }
@@ -54,7 +57,10 @@ const TOTAL_TOKEN_SUPPLY = 1_000_000_000
 
 // Format market cap with K, M, B suffixes
 const formatMarketCap = (mcap: number, currency: 'USD' | 'ASTER' = 'ASTER'): string => {
-  if (mcap === undefined || mcap === null || isNaN(mcap) || mcap === 0) return '0'
+  // Handle undefined, null, NaN, 0, or very small values (less than 0.01)
+  if (mcap === undefined || mcap === null || isNaN(mcap) || mcap < 0.01) {
+    return currency === 'USD' ? '$0' : '0 ASTER'
+  }
 
   const prefix = currency === 'USD' ? '$' : ''
   const suffix = currency === 'ASTER' ? ' ASTER' : ''
@@ -2128,20 +2134,10 @@ export function AdvancedPriceChart({
           {/* Animated ATH Progress Bar - like pump.fun - responsive */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             {(() => {
-              // USE BACKEND VALUES DIRECTLY - no frontend calculation!
+              // USE BACKEND VALUES DIRECTLY - no frontend calculation or localStorage!
               const currentMcapUsd = parseFloat(backendStats?.marketCapUsd || '0') || backendMarketCapUsd
-              // ATH - use the HIGHEST EVER recorded ATH from localStorage (never decreases)
-              // This ensures the progress bar shows current vs highest ever, not current vs current
-              const storedHighestAth = typeof window !== 'undefined' 
-                ? parseFloat(localStorage.getItem(`highest_ath_${bondingCurveAddress}`) || '0')
-                : 0
-              // Use highest of: stored ATH, prop ATH, or current market cap (for first-time tokens)
-              const athMcapUsd = Math.max(storedHighestAth, ath || 0, currentMcapUsd)
-              
-              // Update stored ATH if current is higher
-              if (typeof window !== 'undefined' && currentMcapUsd > storedHighestAth) {
-                localStorage.setItem(`highest_ath_${bondingCurveAddress}`, currentMcapUsd.toString())
-              }
+              // ATH from backend - this is the single source of truth (never decreases, persisted in DB)
+              const athMcapUsd = parseFloat(backendStats?.athMarketCapUsd || '0') || ath || currentMcapUsd
 
               return (
                 <>

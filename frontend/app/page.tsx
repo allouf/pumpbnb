@@ -22,6 +22,7 @@ export default function Home() {
   const { address } = useAccount();
   const searchParams = useSearchParams();
   const urlSearchQuery = searchParams.get('search') || '';
+  const isNewTokenCreated = searchParams.get('newToken') === 'true';
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAnimations, setShowAnimations] = useState(true);
@@ -29,6 +30,7 @@ export default function Home() {
   const [sortOption, setSortOption] = useState('featured');
   const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [activeTab, setActiveTab] = useState<'explore' | 'watchlist'>('explore');
+  const [forceRefresh, setForceRefresh] = useState(isNewTokenCreated);
 
   // Update searchQuery when URL param changes
   useEffect(() => {
@@ -62,7 +64,21 @@ export default function Home() {
   }), [sortOption, showNsfw, searchQuery, JSON.stringify(advancedFilters)]);
 
   // Fetch all tokens with current filters - NO POLLING
-  const { tokens, isLoading, error, isOffline, offlineMessage } = useTokenList({ filters: tokenFilters, disablePolling: true });
+  // Force bypass cache if a new token was just created
+  const { tokens, isLoading, error, isOffline, offlineMessage, refetch } = useTokenList({ 
+    filters: tokenFilters, 
+    disablePolling: true,
+    bypassCache: forceRefresh 
+  });
+
+  // Clear the newToken param and forceRefresh flag after initial load
+  useEffect(() => {
+    if (isNewTokenCreated && !isLoading && forceRefresh) {
+      setForceRefresh(false);
+      // Remove the query param from URL without triggering a re-render
+      window.history.replaceState({}, '', '/');
+    }
+  }, [isNewTokenCreated, isLoading, forceRefresh]);
 
   // Filter tokens based on active tab (explore vs watchlist)
   const displayedTokens = useMemo(() => {

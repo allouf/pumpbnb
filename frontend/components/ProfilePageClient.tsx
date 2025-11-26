@@ -364,18 +364,20 @@ export function ProfilePageClient({ address }: { address: string }) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Profile Header */}
-      <div className="bg-secondary-light rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative group">
+      <div className="bg-secondary-light rounded-xl p-4 sm:p-6 mb-6">
+        {/* Mobile: Stack vertically, Desktop: Horizontal */}
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-4">
+          {/* Avatar - Larger on mobile */}
+          <div className="relative group mx-auto sm:mx-0">
             {user.profileImage ? (
               <img
                 src={getImageUrl(user.profileImage)}
                 alt={user.username || 'Profile'}
-                className="w-20 h-20 rounded-full object-cover"
+                className="w-24 h-24 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-primary/30"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-3xl font-bold text-black uppercase">
+              <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full bg-primary flex items-center justify-center border-4 border-primary/30">
+                <span className="text-4xl sm:text-3xl font-bold text-black uppercase">
                   {user.username?.[0] || address[2]}
                 </span>
               </div>
@@ -400,11 +402,13 @@ export function ProfilePageClient({ address }: { address: string }) {
               </label>
             )}
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-1">
+
+          {/* User Info */}
+          <div className="flex-1 text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl font-bold mb-1">
               {user.username || shortAddress}
             </h1>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
               <p className="text-gray-400 text-sm">{shortAddress}</p>
               <button
                 onClick={copyAddress}
@@ -423,14 +427,40 @@ export function ProfilePageClient({ address }: { address: string }) {
             </a>
           </div>
 
-          {/* Follow/Edit Button */}
+          {/* Follow/Edit Button - Hidden on mobile, shown on desktop */}
+          <div className="hidden sm:block">
+            {!isOwnProfile ? (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`px-6 py-2 rounded-lg font-bold transition ${
+                  following
+                    ? 'bg-secondary text-white hover:bg-gray-700'
+                    : 'bg-primary text-black hover:bg-primary-dark'
+                }`}
+              >
+                {followLoading ? '...' : following ? 'Unfollow' : 'Follow'}
+              </button>
+            ) : (
+              <button
+                onClick={handleEditProfile}
+                className="px-6 py-2 rounded-lg font-bold bg-secondary text-white hover:bg-gray-700 transition border border-gray-600"
+              >
+                Edit Profile
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Follow/Edit Button */}
+        <div className="sm:hidden mb-4">
           {!isOwnProfile ? (
             <button
               onClick={handleFollow}
               disabled={followLoading}
-              className={`px-6 py-2 rounded-lg font-bold transition ${
+              className={`w-full px-6 py-2.5 rounded-lg font-bold transition ${
                 following
-                  ? 'bg-secondary text-white hover:bg-gray-700'
+                  ? 'bg-secondary text-white hover:bg-gray-700 border border-gray-600'
                   : 'bg-primary text-black hover:bg-primary-dark'
               }`}
             >
@@ -439,7 +469,7 @@ export function ProfilePageClient({ address }: { address: string }) {
           ) : (
             <button
               onClick={handleEditProfile}
-              className="px-6 py-2 rounded-lg font-bold bg-secondary text-white hover:bg-gray-700 transition border border-gray-600"
+              className="w-full px-6 py-2.5 rounded-lg font-bold bg-secondary text-white hover:bg-gray-700 transition border border-gray-600"
             >
               Edit Profile
             </button>
@@ -447,22 +477,22 @@ export function ProfilePageClient({ address }: { address: string }) {
         </div>
 
         {user.bio && (
-          <p className="text-gray-300 mb-4">{user.bio}</p>
+          <p className="text-gray-300 mb-4 text-center sm:text-left">{user.bio}</p>
         )}
 
-        {/* Stats */}
-        <div className="flex gap-6 text-sm">
-          <div>
+        {/* Stats - Compact row that fits on one line */}
+        <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm flex-wrap">
+          <div className="flex items-center gap-1">
             <span className="font-bold">{user.followersCount}</span>
-            <span className="text-gray-400 ml-1">Followers</span>
+            <span className="text-gray-400">Followers</span>
           </div>
-          <div>
+          <div className="flex items-center gap-1">
             <span className="font-bold">{user.followingCount}</span>
-            <span className="text-gray-400 ml-1">Following</span>
+            <span className="text-gray-400">Following</span>
           </div>
-          <div>
+          <div className="flex items-center gap-1">
             <span className="font-bold">{user.createdTokensCount}</span>
-            <span className="text-gray-400 ml-1">Created coins</span>
+            <span className="text-gray-400">Created</span>
           </div>
         </div>
       </div>

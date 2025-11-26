@@ -159,7 +159,10 @@ export function formatMarketCap(
     num = smartConvertToAster(num)
   }
   
-  if (num === 0) return currency === 'USD' ? '$0' : '0 ASTER'
+  // Handle zero, NaN, undefined, or very small values (less than 0.01)
+  if (isNaN(num) || num === undefined || num === null || num < 0.01) {
+    return currency === 'USD' ? '$0' : '0 ASTER'
+  }
   
   const compactNum = formatCompactNumber(num)
   return currency === 'USD' ? `$${compactNum}` : `${compactNum} ASTER`

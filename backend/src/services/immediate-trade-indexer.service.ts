@@ -10,6 +10,7 @@ import logger from '../utils/logger';
 import { prisma } from './database.service';
 import { holderUpdaterService } from './holder-updater.service';
 import { ohlcvAggregatorService } from './ohlcv-aggregator.service';
+import { userService } from './user.service';
 import BondingCurveABI from '../../artifacts/contracts/BondingCurve.sol/BondingCurve.json';
 
 let provider: ethers.JsonRpcProvider;
@@ -191,6 +192,19 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
 
       logger.info(`[Immediate Trade Indexer] ✅ Trade event emitted`);
 
+      // Update user portfolio (buy: add tokens, add investment)
+      try {
+        await userService.updatePortfolio(
+          buyer.toLowerCase(),
+          request.tokenAddress.toLowerCase(),
+          tokensOut, // Positive: received tokens
+          asterIn // Positive: invested ASTER
+        );
+        logger.info(`[Immediate Trade Indexer] 📊 User portfolio updated for buyer`);
+      } catch (err) {
+        logger.error(`[Immediate Trade Indexer] ⚠️ Failed to update buyer portfolio:`, err);
+      }
+
       // Trigger OHLCV aggregation for this token (all timeframes)
       ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())
         .catch(err => logger.error('Failed to aggregate OHLCV after buy:', err));
@@ -255,6 +269,19 @@ export async function indexTradeFromTransaction(request: IndexTradeRequest): Pro
       });
 
       logger.info(`[Immediate Trade Indexer] ✅ Trade event emitted`);
+
+      // Update user portfolio (sell: remove tokens, reduce investment proportionally)
+      try {
+        await userService.updatePortfolio(
+          seller.toLowerCase(),
+          request.tokenAddress.toLowerCase(),
+          `-${tokensIn}`, // Negative: sold tokens
+          '0' // We don't reduce invested amount on sell (realized P&L is tracked separately)
+        );
+        logger.info(`[Immediate Trade Indexer] 📊 User portfolio updated for seller`);
+      } catch (err) {
+        logger.error(`[Immediate Trade Indexer] ⚠️ Failed to update seller portfolio:`, err);
+      }
 
       // Trigger OHLCV aggregation for this token (all timeframes)
       ohlcvAggregatorService.aggregateAllTimeframesForToken(request.tokenAddress.toLowerCase())

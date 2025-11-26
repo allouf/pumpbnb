@@ -10,17 +10,54 @@ export class UserService {
    * Get user portfolio
    */
   async getUserPortfolio(userAddress: string): Promise<UserPortfolio> {
-    const holdings = await prisma.userPortfolio.findMany({
+    // Get holdings from UserPortfolio table
+    let holdings = await prisma.userPortfolio.findMany({
       where: { userAddress: userAddress.toLowerCase() },
     });
+
+    // If UserPortfolio is empty, fall back to TokenHolder data
+    if (holdings.length === 0) {
+      const tokenHoldings = await prisma.tokenHolder.findMany({
+        where: { 
+          holderAddress: userAddress.toLowerCase(),
+          balance: { not: '0' }
+        },
+      });
+      
+      // Convert TokenHolder to UserPortfolio format
+      holdings = tokenHoldings.map(th => ({
+        id: th.id,
+        userAddress: th.holderAddress,
+        tokenAddress: th.tokenAddress,
+        balance: th.balance,
+        averageBuyPrice: '0',
+        totalInvested: '0',
+        updatedAt: th.updatedAt,
+      }));
+    }
+
+    // Get all token addresses
+    const tokenAddresses = holdings.map(h => h.tokenAddress);
+    
+    // Fetch token details and stats in one query
+    const tokenData = await prisma.token.findMany({
+      where: { address: { in: tokenAddresses } },
+      include: { stats: true },
+    });
+    
+    // Create a map for easy lookup
+    const tokenMap = new Map(tokenData.map(t => [t.address.toLowerCase(), t]));
 
     let totalValue = BigInt(0);
     let totalProfitLoss = BigInt(0);
 
     const tokens = holdings.map((holding) => {
       const balance = BigInt(holding.balance);
-      // TODO: Fetch token stats separately for accurate pricing
-      const currentPrice = BigInt('0'); // Simplified for now
+      const token = tokenMap.get(holding.tokenAddress.toLowerCase());
+      
+      // Get current price from stats
+      const currentPriceStr = token?.stats?.price || '0';
+      const currentPrice = BigInt(Math.floor(parseFloat(currentPriceStr) * 1e18));
       const value = (balance * currentPrice) / BigInt(10 ** 18);
 
       const invested = BigInt(holding.totalInvested);
@@ -33,6 +70,9 @@ export class UserService {
 
       return {
         tokenAddress: holding.tokenAddress,
+        name: token?.name || 'Unknown',
+        symbol: token?.symbol || 'UNKNOWN',
+        imageUrl: token?.imageUrl || undefined,
         balance: holding.balance,
         value: value.toString(),
         profitLoss: profitLoss.toString(),

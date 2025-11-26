@@ -221,30 +221,49 @@ class TokenStatsUpdaterService extends EventEmitter {
       const priceUsd = usdPriceService.tokenPriceToUsd(currentPriceInAster);
       const marketCapUsd = usdPriceService.asterToUsd(asterReserves);
 
-      // Calculate price change 24h using current price vs 24h ago price
-      let priceChange24h = '0';
-      if (tradesFor24h.length > 0 && currentPriceInAster > 0) {
-        // Get the earliest trade in 24h window
-        const oldestTrade = tradesFor24h[0];
-        let asterAmount = parseFloat(oldestTrade.asterAmount || '0');
-        let tokenAmount = parseFloat(oldestTrade.tokenAmount || '0');
+      // Helper function to calculate price change for a given period
+      const calculatePriceChange = async (periodSeconds: number, currentPrice: number): Promise<string> => {
+        if (currentPrice <= 0) return '0';
         
-        // Handle Wei conversion
-        if (asterAmount > 1e15) {
-          asterAmount = asterAmount / 1e18;
-        }
-        if (tokenAmount > 1e15) {
-          tokenAmount = tokenAmount / 1e18;
-        }
+        const cutoffTime = new Date(Date.now() - periodSeconds * 1000);
+        const oldTrade = await prisma.trade.findFirst({
+          where: {
+            tokenAddress: tokenAddress.toLowerCase(),
+            timestamp: { lte: cutoffTime },
+          },
+          select: {
+            asterAmount: true,
+            tokenAmount: true,
+          },
+          orderBy: {
+            timestamp: 'desc',
+          },
+        });
         
-        if (tokenAmount > 0) {
-          const oldPrice = asterAmount / tokenAmount;
+        if (oldTrade) {
+          let asterAmount = parseFloat(oldTrade.asterAmount || '0');
+          let tokenAmount = parseFloat(oldTrade.tokenAmount || '0');
           
-          if (oldPrice > 0) {
-            priceChange24h = (((currentPriceInAster - oldPrice) / oldPrice) * 100).toFixed(2);
+          // Handle Wei conversion
+          if (asterAmount > 1e15) asterAmount = asterAmount / 1e18;
+          if (tokenAmount > 1e15) tokenAmount = tokenAmount / 1e18;
+          
+          if (tokenAmount > 0) {
+            const oldPrice = asterAmount / tokenAmount;
+            if (oldPrice > 0) {
+              return (((currentPrice - oldPrice) / oldPrice) * 100).toFixed(2);
+            }
           }
         }
-      }
+        return '0';
+      };
+
+      // Calculate price changes for different periods
+      const [priceChange1h, priceChange6h, priceChange24h] = await Promise.all([
+        calculatePriceChange(3600, currentPriceInAster),      // 1 hour
+        calculatePriceChange(21600, currentPriceInAster),     // 6 hours
+        calculatePriceChange(86400, currentPriceInAster),     // 24 hours
+      ]);
 
       // Get unique holders count
       const holders = await prisma.tokenHolder.count({
@@ -253,6 +272,14 @@ class TokenStatsUpdaterService extends EventEmitter {
           balance: { gt: '0' }
         },
       });
+
+      // Get existing ATH to ensure it never decreases
+      const existingStats = await prisma.tokenStats.findUnique({
+        where: { tokenAddress: tokenAddress.toLowerCase() },
+        select: { athMarketCapUsd: true },
+      });
+      const existingAth = parseFloat(existingStats?.athMarketCapUsd || '0');
+      const newAth = Math.max(existingAth, marketCapUsd).toFixed(2);
 
       // Update token stats with both ASTER and USD values
       await prisma.tokenStats.upsert({
@@ -266,7 +293,10 @@ class TokenStatsUpdaterService extends EventEmitter {
           volume24hUsd: usdPriceService.asterToUsd(parseFloat(volume24h)).toFixed(2),
           trades24h: trades24hResult,
           holders: holders || 1,
+          priceChange1h: priceChange1h,
+          priceChange6h: priceChange6h,
           priceChange24h: priceChange24h,
+          athMarketCapUsd: newAth, // ATH never decreases
           liquidity: asterReserves.toFixed(2),
           liquidityUsd: marketCapUsd.toFixed(2), // Same as market cap for now
           updatedAt: new Date(),
@@ -281,13 +311,16 @@ class TokenStatsUpdaterService extends EventEmitter {
           volume24hUsd: usdPriceService.asterToUsd(parseFloat(volume24h)).toFixed(2),
           trades24h: trades24hResult,
           holders: holders || 1,
+          priceChange1h: priceChange1h,
+          priceChange6h: priceChange6h,
           priceChange24h: priceChange24h,
+          athMarketCapUsd: marketCapUsd.toFixed(2), // Initial ATH is current market cap
           liquidity: asterReserves.toFixed(2),
           liquidityUsd: marketCapUsd.toFixed(2),
         },
       });
 
-      logger.info(`Updated stats for ${symbol}: MC=${marketCap} ASTER ($${marketCapUsd.toFixed(2)}), Vol=${volume24h}, Price=${currentPrice} ASTER ($${priceUsd.toFixed(8)}), Change=${priceChange24h}%`);
+      logger.info(`Updated stats for ${symbol}: MC=$${marketCapUsd.toFixed(2)}, ATH=$${newAth}, Vol=${volume24h}, 1h=${priceChange1h}%, 6h=${priceChange6h}%, 24h=${priceChange24h}%`);
     } catch (error) {
       logger.error(`Error updating token stats for ${symbol} (${tokenAddress}):`, error);
     }
