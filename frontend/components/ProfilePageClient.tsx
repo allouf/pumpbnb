@@ -701,11 +701,11 @@ export function ProfilePageClient({ address }: { address: string }) {
               {/* ASTER Balance */}
               <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500">
-                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
-                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#fff" stroke="#fff" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
+                  <img
+                    src="/aster.webp"
+                    alt="ASTER"
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
                   <div>
                     <div className="font-semibold">ASTER</div>
                     <div className="text-sm text-gray-400">Trading Token</div>
