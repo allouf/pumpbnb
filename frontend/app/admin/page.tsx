@@ -5,7 +5,9 @@ import { useAccount, useReadContract, useBalance } from 'wagmi'
 import { formatUnits } from 'viem'
 import Link from 'next/link'
 import { CONTRACTS } from '@/lib/contracts/addresses'
-import PlatformConfigABI from '@/lib/abis/PlatformConfig.json'
+import PlatformConfigArtifact from '@/lib/abis/PlatformConfig.json'
+
+const PlatformConfigABI = PlatformConfigArtifact.abi
 
 interface PlatformStats {
   overview: {
