@@ -7,7 +7,7 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "npx -p prisma@5.22.0 -p @prisma/client@5.22.0 prisma generate && npx tsc",
     "build:fresh": "npx -p prisma@5.22.0 prisma generate && npx tsc && npx -p prisma@5.22.0 prisma migrate reset --force",
-    "start": "npx -p prisma@5.22.0 prisma migrate deploy && node dist/server.js",
+    "start": "npx -p prisma@5.22.0 prisma db push && node dist/server.js",
     "start:simple": "node dist/server.js",
     "start:migrate": "npx -p prisma@5.22.0 -p @prisma/client@5.22.0 prisma generate && npx tsc && npx -p prisma@5.22.0 prisma migrate deploy && node dist/server.js",
     "start:reset": "npx -p prisma@5.22.0 prisma migrate reset --force && node dist/server.js",
