@@ -12,5 +12,3 @@ export * from './useTokenEvents';
 export * from './useTokenList';
 export * from './useTokenPrice';
 export * from './useTransactionHistory';
-export * from './useUserPnL';
-export * from './useUserPortfolio';
