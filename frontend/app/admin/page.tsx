@@ -121,10 +121,22 @@ export default function AdminPage() {
   }, [])
 
   const formatAster = (wei: string) => {
-    const value = Number(formatUnits(BigInt(wei || '0'), 18))
-    if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`
-    if (value >= 1000) return `${(value / 1000).toFixed(2)}K`
-    return value.toFixed(4)
+    try {
+      // Check if it's already a decimal number (not wei)
+      if (wei.includes('.')) {
+        const value = parseFloat(wei || '0')
+        if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`
+        if (value >= 1000) return `${(value / 1000).toFixed(2)}K`
+        return value.toFixed(4)
+      }
+      // Otherwise treat as wei (BigInt)
+      const value = Number(formatUnits(BigInt(wei || '0'), 18))
+      if (value >= 1000000) return `${(value / 1000000).toFixed(2)}M`
+      if (value >= 1000) return `${(value / 1000).toFixed(2)}K`
+      return value.toFixed(4)
+    } catch {
+      return '0.0000'
+    }
   }
 
   const formatBps = (bps: bigint | undefined) => {

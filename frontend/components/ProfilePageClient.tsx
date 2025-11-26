@@ -677,12 +677,15 @@ export function ProfilePageClient({ address }: { address: string }) {
               {/* BNB Balance */}
               <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-500 font-bold text-xs">BNB</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-[#F3BA2F]">
+                    <svg viewBox="0 0 126.61 126.61" className="w-6 h-6">
+                      <path fill="#fff" d="M38.73 53.2l24.59-24.58 24.6 24.6 14.3-14.31L63.32 0l-38.9 38.9zM0 63.31l14.3-14.31 14.31 14.31-14.31 14.3zM38.73 73.41l24.59 24.59 24.6-24.6 14.31 14.29-38.9 38.91-38.91-38.88zM97.99 63.31l14.3-14.31 14.32 14.31-14.31 14.3z"/>
+                      <path fill="#fff" d="M77.83 63.3l-14.51-14.52-10.73 10.73-1.24 1.23-2.54 2.54 14.51 14.5 14.51-14.47z"/>
+                    </svg>
                   </div>
                   <div>
-                    <div className="font-semibold">Binance Coin</div>
-                    <div className="text-sm text-gray-400">Native token</div>
+                    <div className="font-semibold">BNB</div>
+                    <div className="text-sm text-gray-400">Native Gas Token</div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -698,12 +701,14 @@ export function ProfilePageClient({ address }: { address: string }) {
               {/* ASTER Balance */}
               <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary font-bold text-xs">AST</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#fff" stroke="#fff" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                   <div>
                     <div className="font-semibold">ASTER</div>
-                    <div className="text-sm text-gray-400">Trading token</div>
+                    <div className="text-sm text-gray-400">Trading Token</div>
                   </div>
                 </div>
                 <div className="text-right">
