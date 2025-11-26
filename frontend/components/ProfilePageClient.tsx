@@ -51,6 +51,76 @@ interface ProfileData {
 
 type TabType = 'coins' | 'balances' | 'replies'
 
+// Component to show P&L stats
+function PnLStats({ userAddress }: { userAddress: string }) {
+  const [pnl, setPnl] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  useEffect(() => {
+    async function fetchPnL() {
+      try {
+        const response = await fetch(`${API_URL}/api/users/${userAddress}/pnl`)
+        const data = await response.json()
+        if (data.success) {
+          setPnl(data.data)
+        }
+      } catch (error) {
+        console.error('[PnLStats] Error fetching:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchPnL()
+  }, [userAddress])
+  
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-secondary-light rounded-xl p-4 animate-pulse">
+            <div className="h-4 bg-gray-700 rounded w-20 mb-2"></div>
+            <div className="h-6 bg-gray-700 rounded w-16"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  
+  if (!pnl) return null
+  
+  const totalPnL = parseFloat(pnl.totalPnL || '0') / 1e18
+  const realizedPnL = parseFloat(pnl.realizedPnL || '0') / 1e18
+  const totalBuyVol = parseFloat(pnl.totalBuyVolume || '0') / 1e18
+  const totalSellVol = parseFloat(pnl.totalSellVolume || '0') / 1e18
+  
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div className={`rounded-xl p-4 border ${
+        totalPnL >= 0 ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
+      }`}>
+        <p className="text-xs text-gray-400 mb-1">Total P&L</p>
+        <p className={`text-lg font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          {totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)}
+        </p>
+      </div>
+      <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
+        <p className="text-xs text-gray-400 mb-1">Realized</p>
+        <p className={`text-lg font-bold ${realizedPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          {realizedPnL >= 0 ? '+' : ''}{realizedPnL.toFixed(2)}
+        </p>
+      </div>
+      <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
+        <p className="text-xs text-gray-400 mb-1">Buy Vol</p>
+        <p className="text-lg font-bold">{totalBuyVol.toFixed(2)}</p>
+      </div>
+      <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
+        <p className="text-xs text-gray-400 mb-1">Trades</p>
+        <p className="text-lg font-bold">{pnl.totalTrades || 0}</p>
+      </div>
+    </div>
+  )
+}
+
 // Component to show token holdings from the correct API
 function TokenHoldings({ userAddress }: { userAddress: string }) {
   const [holdings, setHoldings] = useState<any[]>([])
@@ -597,6 +667,9 @@ export function ProfilePageClient({ address }: { address: string }) {
       {/* Balances Tab */}
       {activeTab === 'balances' && (
         <div className="space-y-4">
+          {/* P&L Stats - Only show on own profile */}
+          {isOwnProfile && <PnLStats userAddress={address} />}
+          
           {/* Native Token Balances */}
           <div className="bg-secondary-light rounded-xl p-6">
             <h2 className="text-xl font-bold mb-4">Native Tokens</h2>

@@ -34,7 +34,6 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
-  { name: 'Portfolio', href: '/portfolio', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   {
     name: 'Profile',
     href: (address?: string) => address ? `/profile/${address}` : '/profile',

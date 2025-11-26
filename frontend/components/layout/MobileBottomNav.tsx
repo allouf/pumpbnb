@@ -8,14 +8,14 @@ import { useAccount } from 'wagmi';
 import {
   HomeIcon,
   PlusIcon,
-  ChartBarIcon,
+  UserIcon,
   ClockIcon,
   EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
 import {
   HomeIcon as HomeIconSolid,
   PlusIcon as PlusIconSolid,
-  ChartBarIcon as ChartBarIconSolid,
+  UserIcon as UserIconSolid,
   ClockIcon as ClockIconSolid,
   EllipsisHorizontalIcon as EllipsisHorizontalIconSolid
 } from '@heroicons/react/24/solid';
@@ -29,8 +29,13 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
-  { name: 'Portfolio', href: '/portfolio', icon: ChartBarIcon, iconSolid: ChartBarIconSolid },
   { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
+  {
+    name: 'Profile',
+    href: (address?: string) => address ? `/profile/${address}` : '/profile',
+    icon: UserIcon,
+    iconSolid: UserIconSolid
+  },
   { name: 'History', href: '/history', icon: ClockIcon, iconSolid: ClockIconSolid },
 ];
 
