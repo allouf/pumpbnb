@@ -1,81 +1,77 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
 export interface Comment {
   id: string
   tokenAddress: string
-  author: string
-  content: string
-  timestamp: number
-  likes: number
-}
-
-export interface TokenLike {
-  tokenAddress: string
   userAddress: string
-  timestamp: number
+  content: string
+  createdAt: string
+  likes: number
+  replyTo?: string
 }
 
-const COMMENTS_KEY = 'pumpbnb_comments'
-const LIKES_KEY = 'pumpbnb_likes'
+export interface WatchlistItem {
+  tokenAddress: string
+  addedAt: string
+}
 
+// Hook for token comments - uses backend API
 export function useComments(tokenAddress: string) {
   const [comments, setComments] = useState<Comment[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    loadComments()
-  }, [tokenAddress])
-
-  const loadComments = () => {
+  const loadComments = useCallback(async () => {
     try {
-      const stored = localStorage.getItem(COMMENTS_KEY)
-      if (stored) {
-        const allComments: Comment[] = JSON.parse(stored)
-        const tokenComments = allComments.filter(c => c.tokenAddress.toLowerCase() === tokenAddress.toLowerCase())
-        tokenComments.sort((a, b) => b.timestamp - a.timestamp)
-        setComments(tokenComments)
+      setIsLoading(true)
+      const res = await fetch(`${API_URL}/api/tokens/${tokenAddress}/comments`)
+      if (res.ok) {
+        const data = await res.json()
+        setComments(data.data?.comments || [])
       }
     } catch (err) {
       console.error('Error loading comments:', err)
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [tokenAddress])
 
-  const addComment = (author: string, content: string) => {
-    try {
-      const newComment: Comment = {
-        id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        tokenAddress,
-        author,
-        content,
-        timestamp: Date.now(),
-        likes: 0,
-      }
-
-      const stored = localStorage.getItem(COMMENTS_KEY)
-      const allComments: Comment[] = stored ? JSON.parse(stored) : []
-      allComments.push(newComment)
-      localStorage.setItem(COMMENTS_KEY, JSON.stringify(allComments))
-
+  useEffect(() => {
+    if (tokenAddress) {
       loadComments()
-      return true
+    }
+  }, [tokenAddress, loadComments])
+
+  const addComment = async (userAddress: string, content: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/tokens/${tokenAddress}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress, content }),
+      })
+      if (res.ok) {
+        await loadComments()
+        return true
+      }
+      return false
     } catch (err) {
       console.error('Error adding comment:', err)
       return false
     }
   }
 
-  const likeComment = (commentId: string) => {
+  const likeComment = async (commentId: string, userAddress: string) => {
     try {
-      const stored = localStorage.getItem(COMMENTS_KEY)
-      if (!stored) return false
-
-      const allComments: Comment[] = JSON.parse(stored)
-      const comment = allComments.find(c => c.id === commentId)
-      if (comment) {
-        comment.likes += 1
-        localStorage.setItem(COMMENTS_KEY, JSON.stringify(allComments))
-        loadComments()
+      const res = await fetch(`${API_URL}/api/v2/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAddress }),
+      })
+      if (res.ok) {
+        await loadComments()
         return true
       }
       return false
@@ -85,83 +81,90 @@ export function useComments(tokenAddress: string) {
     }
   }
 
-  return { comments, addComment, likeComment, refresh: loadComments }
+  return { comments, isLoading, addComment, likeComment, refresh: loadComments }
 }
 
+// Hook for token favorites/watchlist - uses backend API
 export function useTokenLikes(tokenAddress: string, userAddress?: string) {
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const loadLikes = useCallback(async () => {
+    if (!userAddress) {
+      setIsLiked(false)
+      return
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/user/${userAddress}/watchlist`)
+      if (res.ok) {
+        const data = await res.json()
+        const watchlist: WatchlistItem[] = data.data?.watchlist || []
+        const isInWatchlist = watchlist.some(
+          item => item.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+        )
+        setIsLiked(isInWatchlist)
+        // Note: likeCount would need a separate endpoint to count all users who liked this token
+        // For now, we just track if the current user liked it
+      }
+    } catch (err) {
+      console.error('Error loading watchlist:', err)
+    }
+  }, [tokenAddress, userAddress])
 
   useEffect(() => {
     loadLikes()
-  }, [tokenAddress, userAddress])
+  }, [loadLikes])
 
-  const loadLikes = () => {
-    try {
-      const stored = localStorage.getItem(LIKES_KEY)
-      if (stored) {
-        const allLikes: TokenLike[] = JSON.parse(stored)
-        const tokenLikes = allLikes.filter(l => l.tokenAddress.toLowerCase() === tokenAddress.toLowerCase())
-        setLikeCount(tokenLikes.length)
-
-        if (userAddress) {
-          const userLike = tokenLikes.some(l => l.userAddress.toLowerCase() === userAddress.toLowerCase())
-          setIsLiked(userLike)
-        }
-      }
-    } catch (err) {
-      console.error('Error loading likes:', err)
-    }
-  }
-
-  const toggleLike = () => {
+  const toggleLike = async () => {
     if (!userAddress) return false
 
     try {
-      const stored = localStorage.getItem(LIKES_KEY)
-      let allLikes: TokenLike[] = stored ? JSON.parse(stored) : []
-
-      const existingIndex = allLikes.findIndex(
-        l => l.tokenAddress.toLowerCase() === tokenAddress.toLowerCase() &&
-             l.userAddress.toLowerCase() === userAddress.toLowerCase()
-      )
-
-      if (existingIndex >= 0) {
-        // Unlike
-        allLikes.splice(existingIndex, 1)
-      } else {
-        // Like
-        allLikes.push({
-          tokenAddress,
-          userAddress,
-          timestamp: Date.now(),
+      setIsLoading(true)
+      
+      if (isLiked) {
+        // Remove from watchlist
+        const res = await fetch(`${API_URL}/api/user/${userAddress}/watchlist/${tokenAddress}`, {
+          method: 'DELETE',
         })
+        if (res.ok) {
+          setIsLiked(false)
+          return true
+        }
+      } else {
+        // Add to watchlist
+        const res = await fetch(`${API_URL}/api/user/${userAddress}/watchlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tokenAddress }),
+        })
+        if (res.ok) {
+          setIsLiked(true)
+          return true
+        }
       }
-
-      localStorage.setItem(LIKES_KEY, JSON.stringify(allLikes))
-      loadLikes()
-      return true
-    } catch (err) {
-      console.error('Error toggling like:', err)
       return false
+    } catch (err) {
+      console.error('Error toggling watchlist:', err)
+      return false
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  return { isLiked, likeCount, toggleLike, refresh: loadLikes }
+  return { isLiked, likeCount, toggleLike, isLoading, refresh: loadLikes }
 }
 
-export function getFavoriteTokens(userAddress: string): string[] {
+// Get user's favorite tokens from backend
+export async function getFavoriteTokens(userAddress: string): Promise<string[]> {
   try {
-    const stored = localStorage.getItem(LIKES_KEY)
-    if (!stored) return []
+    const res = await fetch(`${API_URL}/api/user/${userAddress}/watchlist`)
+    if (!res.ok) return []
 
-    const allLikes: TokenLike[] = JSON.parse(stored)
-    const userLikes = allLikes
-      .filter(l => l.userAddress.toLowerCase() === userAddress.toLowerCase())
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map(l => l.tokenAddress)
-
-    return userLikes
+    const data = await res.json()
+    const watchlist: WatchlistItem[] = data.data?.watchlist || []
+    return watchlist.map(item => item.tokenAddress)
   } catch (err) {
     console.error('Error getting favorites:', err)
     return []

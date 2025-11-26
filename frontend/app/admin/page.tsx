@@ -99,24 +99,29 @@ export default function AdminPage() {
   const isAdmin = isConnected && address && ADMIN_WALLETS.includes(address.toLowerCase())
 
   // Fetch platform stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/platform-stats`)
-        if (!response.ok) throw new Error('Failed to fetch platform stats')
-        const data = await response.json()
-        setStats(data.data)
-      } catch (err: any) {
+  const fetchStats = async (showLoading = true) => {
+    try {
+      if (showLoading && !stats) setIsLoading(true)
+      setError(null)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/platform-stats`)
+      if (!response.ok) throw new Error('Failed to fetch platform stats')
+      const data = await response.json()
+      setStats(data.data)
+    } catch (err: any) {
+      // Only show error if we have no data to display
+      if (!stats) {
         setError(err.message)
-      } finally {
-        setIsLoading(false)
       }
+      console.error('[Admin] Fetch error:', err.message)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchStats()
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchStats, 30000)
+    // Refresh every 60 seconds (reduced frequency to avoid issues)
+    const interval = setInterval(() => fetchStats(false), 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -176,13 +181,25 @@ export default function AdminPage() {
               Platform statistics and revenue tracking
             </p>
           </div>
-          {!isAdmin && (
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-4 py-2">
-              <p className="text-yellow-500 text-sm">
-                ⚠️ View-only mode (not admin)
-              </p>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchStats()}
+              disabled={isLoading}
+              className="flex items-center gap-2 bg-secondary-light border border-gray-700 px-4 py-2 rounded-lg hover:border-primary transition disabled:opacity-50"
+            >
+              <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
+            {!isAdmin && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-4 py-2">
+                <p className="text-yellow-500 text-sm">
+                  ⚠️ View-only mode
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Fee Wallet Section */}
@@ -247,7 +264,13 @@ export default function AdminPage() {
           </div>
         ) : error ? (
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
-            <p className="text-red-500">{error}</p>
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={() => fetchStats()}
+              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
+            >
+              Retry
+            </button>
           </div>
         ) : stats ? (
           <>

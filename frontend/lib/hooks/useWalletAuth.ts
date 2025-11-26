@@ -79,10 +79,6 @@ export function useWalletAuth() {
       setUser(userData)
       setShowProfileCard(true) // Show profile card after auth
 
-      // Store in localStorage
-      localStorage.setItem('pumpbnb_user', JSON.stringify(userData))
-      localStorage.setItem('pumpbnb_user_address', address.toLowerCase())
-
       toast.success('Successfully authenticated!')
 
       return userData
@@ -110,7 +106,6 @@ export function useWalletAuth() {
 
       if (data.success && data.data.user) {
         setUser(data.data.user)
-        localStorage.setItem('pumpbnb_user', JSON.stringify(data.data.user))
       }
     } catch (error) {
       console.error('[useWalletAuth] Error refreshing user:', error)
@@ -120,24 +115,31 @@ export function useWalletAuth() {
   const logout = () => {
     setUser(null)
     setShowProfileCard(false)
-    localStorage.removeItem('pumpbnb_user')
-    localStorage.removeItem('pumpbnb_user_address')
   }
 
-  // Restore user from localStorage on wallet connect
+  // Restore user from backend on wallet connect
   useEffect(() => {
     if (isConnected && address && !user) {
-      // Check localStorage first
-      const storedUser = localStorage.getItem('pumpbnb_user')
-      const storedAddress = localStorage.getItem('pumpbnb_user_address')
+      // Always fetch fresh user data from backend
+      const fetchUserFromBackend = async () => {
+        try {
+          console.log('[useWalletAuth] 🔍 Checking backend for user...')
+          const res = await fetch(`${API_URL}/api/profile/${address}`)
+          const data = await res.json()
 
-      if (storedUser && storedAddress === address.toLowerCase()) {
-        console.log('[useWalletAuth] 📦 Restoring user from localStorage')
-        setUser(JSON.parse(storedUser))
-      } else {
-        // Don't auto-authenticate - user must click "log in" button
-        console.log('[useWalletAuth] ⏳ Wallet connected, waiting for user to log in...')
+          if (data.success && data.data.user) {
+            console.log('[useWalletAuth] ✅ User found in backend')
+            setUser(data.data.user)
+          } else {
+            // User doesn't exist in backend - need to authenticate
+            console.log('[useWalletAuth] ⏳ User not found, waiting for login...')
+          }
+        } catch (error) {
+          console.log('[useWalletAuth] ⏳ Could not reach backend, waiting for login...')
+        }
       }
+
+      fetchUserFromBackend()
     } else if (!isConnected && user) {
       // Clear user when disconnected
       logout()
