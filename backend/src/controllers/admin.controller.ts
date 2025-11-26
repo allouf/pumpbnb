@@ -49,6 +49,19 @@ export class AdminController {
       data: status,
     });
   });
+
+  /**
+   * GET /api/admin/platform-stats
+   * Get comprehensive platform statistics for admin dashboard
+   */
+  getPlatformStats = asyncHandler(async (_req: Request, res: Response) => {
+    const stats = await adminService.getPlatformStats();
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  });
 }
 
 export const adminController = new AdminController();

@@ -248,6 +248,130 @@ class AdminService {
       throw error;
     }
   }
+
+  /**
+   * Get comprehensive platform statistics for admin dashboard
+   */
+  async getPlatformStats() {
+    try {
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      // Get token counts
+      const [totalTokens, graduatedTokens, totalTrades, totalUsers] = await Promise.all([
+        prisma.token.count(),
+        prisma.token.count({ where: { isGraduated: true } }),
+        prisma.trade.count(),
+        prisma.user.count(),
+      ]);
+
+      // Get 24h stats
+      const [trades24h, tokensCreated24h, newUsers24h] = await Promise.all([
+        prisma.trade.count({ where: { timestamp: { gte: twentyFourHoursAgo } } }),
+        prisma.token.count({ where: { createdAt: { gte: twentyFourHoursAgo } } }),
+        prisma.user.count({ where: { createdAt: { gte: twentyFourHoursAgo } } }),
+      ]);
+
+      // Get 7d stats
+      const [trades7d, tokensCreated7d, newUsers7d] = await Promise.all([
+        prisma.trade.count({ where: { timestamp: { gte: oneWeekAgo } } }),
+        prisma.token.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+        prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+      ]);
+
+      // Calculate total trading volume and fees
+      const allTrades = await prisma.trade.findMany({
+        select: { asterAmount: true, fee: true },
+      });
+
+      let totalVolume = BigInt(0);
+      let totalPlatformFees = BigInt(0);
+
+      for (const trade of allTrades) {
+        if (trade.asterAmount) {
+          totalVolume += BigInt(trade.asterAmount);
+        }
+        if (trade.fee) {
+          // Platform gets 70% of fees (0.7% of 1% total fee)
+          const platformFee = (BigInt(trade.fee) * BigInt(70)) / BigInt(100);
+          totalPlatformFees += platformFee;
+        }
+      }
+
+      // 24h volume
+      const trades24hData = await prisma.trade.findMany({
+        where: { timestamp: { gte: twentyFourHoursAgo } },
+        select: { asterAmount: true, fee: true },
+      });
+
+      let volume24h = BigInt(0);
+      let fees24h = BigInt(0);
+
+      for (const trade of trades24hData) {
+        if (trade.asterAmount) {
+          volume24h += BigInt(trade.asterAmount);
+        }
+        if (trade.fee) {
+          const platformFee = (BigInt(trade.fee) * BigInt(70)) / BigInt(100);
+          fees24h += platformFee;
+        }
+      }
+
+      // Get unique traders count
+      const uniqueTraders = await prisma.trade.groupBy({
+        by: ['trader'],
+        _count: true,
+      });
+
+      // Get top tokens by volume
+      const topTokensByVolume = await prisma.tokenStats.findMany({
+        take: 5,
+        orderBy: { volume24h: 'desc' },
+        include: {
+          token: {
+            select: { name: true, symbol: true, address: true },
+          },
+        },
+      });
+
+      return {
+        overview: {
+          totalTokens,
+          graduatedTokens,
+          graduationRate: totalTokens > 0 ? ((graduatedTokens / totalTokens) * 100).toFixed(2) : '0',
+          totalTrades,
+          totalUsers,
+          uniqueTraders: uniqueTraders.length,
+          totalVolume: totalVolume.toString(),
+          totalPlatformFees: totalPlatformFees.toString(),
+        },
+        last24h: {
+          trades: trades24h,
+          tokensCreated: tokensCreated24h,
+          newUsers: newUsers24h,
+          volume: volume24h.toString(),
+          platformFees: fees24h.toString(),
+        },
+        last7d: {
+          trades: trades7d,
+          tokensCreated: tokensCreated7d,
+          newUsers: newUsers7d,
+        },
+        topTokensByVolume: topTokensByVolume.map((t) => ({
+          address: t.token.address,
+          name: t.token.name,
+          symbol: t.token.symbol,
+          volume24h: t.volume24h,
+          trades24h: t.trades24h,
+        })),
+        timestamp: now.toISOString(),
+      };
+    } catch (error) {
+      logger.error('Error getting platform stats:', error);
+      throw error;
+    }
+  }
 }
 
 export const adminService = new AdminService();

@@ -38,4 +38,7 @@ router.post('/reindex-blocks', validate(reindexBlocksSchema), adminController.re
 // GET /api/admin/indexer-status - Get current indexer status
 router.get('/indexer-status', adminController.getIndexerStatus);
 
+// GET /api/admin/platform-stats - Get platform statistics for admin dashboard
+router.get('/platform-stats', adminController.getPlatformStats);
+
 export default router;

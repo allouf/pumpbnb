@@ -45,6 +45,8 @@ const navigation: NavigationItem[] = [
 
 // More dropdown menu items
 const moreMenuItems = [
+  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Admin Panel', href: '/admin' },
   { name: 'Support', href: '/support' },
   { name: 'How it works', href: '/how-it-works' },
   { name: 'Documentation', href: '/docs' },
