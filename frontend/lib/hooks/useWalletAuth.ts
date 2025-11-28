@@ -1,5 +1,5 @@
 import { useAccount, useSignMessage } from 'wagmi'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, createContext, useContext, useCallback, type ReactNode } from 'react'
 import { toast } from 'react-hot-toast'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
@@ -18,14 +18,26 @@ export interface User {
   lastUsernameChange?: string
 }
 
-export function useWalletAuth() {
+interface WalletAuthContextType {
+  user: User | null
+  isAuthenticating: boolean
+  authenticate: () => Promise<User | undefined>
+  refreshUser: () => Promise<void>
+  logout: () => void
+  showProfileCard: boolean
+  setShowProfileCard: (show: boolean) => void
+}
+
+const WalletAuthContext = createContext<WalletAuthContextType | null>(null)
+
+export function WalletAuthProvider({ children }: { children: ReactNode }) {
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const [user, setUser] = useState<User | null>(null)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [showProfileCard, setShowProfileCard] = useState(false)
 
-  const authenticate = async () => {
+  const authenticate = useCallback(async () => {
     if (!address || !isConnected) return
 
     setIsAuthenticating(true)
@@ -95,27 +107,29 @@ export function useWalletAuth() {
     } finally {
       setIsAuthenticating(false)
     }
-  }
+  }, [address, isConnected, signMessageAsync])
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!address) return
 
     try {
+      console.log('[useWalletAuth] 🔄 Refreshing user data...')
       const res = await fetch(`${API_URL}/api/profile/${address}`)
       const data = await res.json()
 
       if (data.success && data.data.user) {
+        console.log('[useWalletAuth] ✅ User data refreshed')
         setUser(data.data.user)
       }
     } catch (error) {
       console.error('[useWalletAuth] Error refreshing user:', error)
     }
-  }
+  }, [address])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null)
     setShowProfileCard(false)
-  }
+  }, [])
 
   // Restore user from backend on wallet connect
   useEffect(() => {
@@ -144,9 +158,9 @@ export function useWalletAuth() {
       // Clear user when disconnected
       logout()
     }
-  }, [isConnected, address])
+  }, [isConnected, address, user, logout])
 
-  return {
+  const value = {
     user,
     isAuthenticating,
     authenticate,
@@ -155,4 +169,18 @@ export function useWalletAuth() {
     showProfileCard,
     setShowProfileCard,
   }
+
+  return React.createElement(
+    WalletAuthContext.Provider,
+    { value },
+    children
+  )
+}
+
+export function useWalletAuth() {
+  const context = useContext(WalletAuthContext)
+  if (!context) {
+    throw new Error('useWalletAuth must be used within a WalletAuthProvider')
+  }
+  return context
 }

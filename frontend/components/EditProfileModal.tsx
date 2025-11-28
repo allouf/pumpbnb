@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'react-hot-toast'
-import type { User } from '@/lib/hooks/useWalletAuth'
+import { useWalletAuth, type User } from '@/lib/hooks/useWalletAuth'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com'
 
@@ -13,6 +13,7 @@ interface EditProfileModalProps {
 }
 
 export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProps) {
+  const { refreshUser } = useWalletAuth()
   const [username, setUsername] = useState(user.username || '')
   const [bio, setBio] = useState(user.bio || '')
   const [profileImage, setProfileImage] = useState(user.profileImage || '')
@@ -106,6 +107,9 @@ export function EditProfileModal({ user, onClose, onSave }: EditProfileModalProp
 
       // Update localStorage
       localStorage.setItem('pumpbnb_user', JSON.stringify(data.data.user))
+
+      // Refresh the global user state so header updates immediately
+      await refreshUser()
 
       toast.success('Profile updated successfully!')
       onSave()

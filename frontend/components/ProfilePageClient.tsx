@@ -7,6 +7,7 @@ import type { Abi } from 'viem'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
+import { useWalletAuth } from '@/lib/hooks/useWalletAuth'
 import { CONTRACTS } from '@/lib/contracts'
 import MockERC20ABI from '@/lib/abis/MockERC20.json'
 
@@ -209,6 +210,7 @@ function TokenHoldings({ userAddress }: { userAddress: string }) {
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
   const { usdRate } = useUsdPrice()
+  const { refreshUser } = useWalletAuth()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [following, setFollowing] = useState(false)
@@ -356,6 +358,8 @@ export function ProfilePageClient({ address }: { address: string }) {
           ...profile!,
           user: updateData.data.user,
         })
+        // Refresh the global user state so header updates immediately
+        await refreshUser()
         toast.success('Profile image updated!')
       } else {
         throw new Error(updateData.error || 'Failed to update profile')
@@ -394,6 +398,8 @@ export function ProfilePageClient({ address }: { address: string }) {
           ...profile!,
           user: updateData.data.user,
         })
+        // Refresh the global user state so header updates immediately
+        await refreshUser()
         setIsEditingProfile(false)
         toast.success('Profile updated!')
       } else {

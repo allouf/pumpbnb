@@ -5,7 +5,7 @@ import { type ReactNode, useState } from 'react'
 import { type State, WagmiProvider } from 'wagmi'
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
 import { config } from '@/lib/wagmi'
-import { useWalletAuth } from '@/lib/hooks/useWalletAuth'
+import { WalletAuthProvider, useWalletAuth } from '@/lib/hooks/useWalletAuth'
 import { ProfileCard } from './ProfileCard'
 
 // Import RainbowKit styles
@@ -36,9 +36,11 @@ export function Web3Provider({ children, initialState }: Props) {
     <WagmiProvider config={config} initialState={initialState}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={darkTheme()}>
-          <Web3ProviderContent>
-            {children}
-          </Web3ProviderContent>
+          <WalletAuthProvider>
+            <Web3ProviderContent>
+              {children}
+            </Web3ProviderContent>
+          </WalletAuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
