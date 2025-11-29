@@ -23,7 +23,7 @@ export function HomeHeader({ onSearch }: HomeHeaderProps = {}) {
         if (onSearch) {
           onSearch(searchQuery)
         } else {
-          router.push(`/tokens?search=${encodeURIComponent(searchQuery)}`)
+          router.push(`/?search=${encodeURIComponent(searchQuery)}`)
         }
       }
     }

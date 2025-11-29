@@ -303,7 +303,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
             Unable to load token data.
           </p>
           <a
-            href="/tokens"
+            href="/"
             className="inline-block bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition"
           >
             Browse Tokens

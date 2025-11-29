@@ -160,7 +160,7 @@ function TokenHoldings({ userAddress }: { userAddress: string }) {
     return (
       <div className="bg-secondary-light rounded-xl p-6 text-center">
         <p className="text-gray-400">No token holdings yet</p>
-        <Link href="/tokens" className="text-primary hover:underline text-sm mt-2 inline-block">
+        <Link href="/" className="text-primary hover:underline text-sm mt-2 inline-block">
           Browse tokens to start trading
         </Link>
       </div>

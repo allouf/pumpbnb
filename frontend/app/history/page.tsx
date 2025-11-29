@@ -234,7 +234,7 @@ export default function HistoryPage() {
             <h2 className="text-2xl font-bold mb-2">No Transactions Found</h2>
             <p className="text-gray-400 mb-6">Start trading to see your transaction history</p>
             <Link
-              href="/tokens"
+              href="/"
               className="inline-block bg-primary text-black px-6 py-3 rounded-lg font-bold hover:bg-primary-dark transition"
             >
               Browse Tokens
