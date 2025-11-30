@@ -207,3 +207,22 @@ export async function unlikeComment(commentId: string, userAddress: string): Pro
     throw new Error(error.error || `Failed to unlike comment: ${response.statusText}`)
   }
 }
+
+/**
+ * Get replies for a comment
+ */
+export async function getCommentReplies(
+  tokenAddress: string,
+  parentCommentId: string
+): Promise<Comment[]> {
+  const response = await fetch(
+    `${API_URL}/api/v2/tokens/${tokenAddress}/comments?replyTo=${parentCommentId}&sortBy=oldest`
+  )
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch replies: ${response.statusText}`)
+  }
+
+  const data = await response.json()
+  return data.data || []
+}

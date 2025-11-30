@@ -6,6 +6,9 @@ export function ToastProvider() {
   return (
     <Toaster
       position="top-right"
+      containerStyle={{
+        top: 70, // Push below the header
+      }}
       toastOptions={{
         duration: 5000,
         style: {

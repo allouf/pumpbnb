@@ -97,26 +97,28 @@ function PnLStats({ userAddress }: { userAddress: string }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
       <div className={`rounded-xl p-4 border ${
-        totalPnL >= 0 ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'
+        totalPnL >= 0 ? 'bg-secondary-light border-gray-700' : 'bg-red-500/10 border-red-500/30'
       }`}>
         <p className="text-xs text-gray-400 mb-1">Total P&L</p>
-        <p className={`text-lg font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+        <p className={`text-lg font-bold ${totalPnL >= 0 ? 'text-white' : 'text-red-500'}`}>
           {totalPnL >= 0 ? '+' : ''}{totalPnL.toFixed(2)}
         </p>
       </div>
-      <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
+      <div className={`rounded-xl p-4 border ${
+        realizedPnL >= 0 ? 'bg-secondary-light border-gray-700' : 'bg-red-500/10 border-red-500/30'
+      }`}>
         <p className="text-xs text-gray-400 mb-1">Realized</p>
-        <p className={`text-lg font-bold ${realizedPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+        <p className={`text-lg font-bold ${realizedPnL >= 0 ? 'text-white' : 'text-red-500'}`}>
           {realizedPnL >= 0 ? '+' : ''}{realizedPnL.toFixed(2)}
         </p>
       </div>
       <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
         <p className="text-xs text-gray-400 mb-1">Buy Vol</p>
-        <p className="text-lg font-bold">{totalBuyVol.toFixed(2)}</p>
+        <p className="text-lg font-bold text-white">{totalBuyVol.toFixed(2)}</p>
       </div>
       <div className="bg-secondary-light rounded-xl p-4 border border-gray-700">
         <p className="text-xs text-gray-400 mb-1">Trades</p>
-        <p className="text-lg font-bold">{pnl.totalTrades || 0}</p>
+        <p className="text-lg font-bold text-white">{pnl.totalTrades || 0}</p>
       </div>
     </div>
   )

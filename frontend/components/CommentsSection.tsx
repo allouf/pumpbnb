@@ -42,6 +42,244 @@ interface CommentsSectionProps {
   tokenAddress: string
 }
 
+// Single Comment Component with reply support
+function CommentItem({
+  comment,
+  tokenAddress,
+  userProfile,
+  isConnected,
+  address,
+  onLike,
+  onReplySubmit,
+  onProfileClick,
+  formatTime,
+  formatAddress,
+  userProfiles,
+  depth = 0,
+}: {
+  comment: commentsAPI.Comment
+  tokenAddress: string
+  userProfile?: UserProfile
+  isConnected: boolean
+  address?: string
+  onLike: (commentId: string) => void
+  onReplySubmit: (parentId: string, content: string) => Promise<void>
+  onProfileClick: (address: string) => void
+  formatTime: (timestamp: string) => string
+  formatAddress: (addr: string) => string
+  userProfiles: Record<string, UserProfile>
+  depth?: number
+}) {
+  const [showReplyForm, setShowReplyForm] = useState(false)
+  const [replyContent, setReplyContent] = useState('')
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false)
+  const [replies, setReplies] = useState<commentsAPI.Comment[]>([])
+  const [showReplies, setShowReplies] = useState(false)
+  const [isLoadingReplies, setIsLoadingReplies] = useState(false)
+  const [replyCount, setReplyCount] = useState(0)
+
+  // Fetch reply count on mount
+  useEffect(() => {
+    const fetchReplyCount = async () => {
+      try {
+        const replyData = await commentsAPI.getCommentReplies(tokenAddress, comment.id)
+        setReplyCount(replyData.length)
+      } catch (error) {
+        console.error('Failed to fetch reply count:', error)
+      }
+    }
+    fetchReplyCount()
+  }, [tokenAddress, comment.id])
+
+  const handleToggleReplies = async () => {
+    if (!showReplies && replies.length === 0) {
+      setIsLoadingReplies(true)
+      try {
+        const replyData = await commentsAPI.getCommentReplies(tokenAddress, comment.id)
+        setReplies(replyData)
+        setReplyCount(replyData.length)
+      } catch (error) {
+        console.error('Failed to fetch replies:', error)
+        toast.error('Failed to load replies')
+      } finally {
+        setIsLoadingReplies(false)
+      }
+    }
+    setShowReplies(!showReplies)
+  }
+
+  const handleReplySubmit = async () => {
+    if (!replyContent.trim()) return
+
+    setIsSubmittingReply(true)
+    try {
+      await onReplySubmit(comment.id, replyContent.trim())
+      setReplyContent('')
+      setShowReplyForm(false)
+      // Refresh replies
+      const replyData = await commentsAPI.getCommentReplies(tokenAddress, comment.id)
+      setReplies(replyData)
+      setReplyCount(replyData.length)
+      setShowReplies(true)
+    } catch (error) {
+      console.error('Failed to post reply:', error)
+    } finally {
+      setIsSubmittingReply(false)
+    }
+  }
+
+  const maxDepth = 3 // Maximum nesting depth
+
+  return (
+    <div className={`${depth > 0 ? 'ml-8 border-l-2 border-gray-700 pl-4' : ''}`}>
+      <div className="border-b border-gray-800 pb-4 last:border-b-0">
+        {/* Comment Header */}
+        <div className="flex items-center gap-3 mb-2">
+          {/* User Avatar */}
+          <div
+            className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden flex-shrink-0"
+            onClick={() => onProfileClick(comment.userAddress)}
+          >
+            {userProfile?.profileImage ? (
+              <Image
+                src={getImageUrl(userProfile.profileImage)}
+                alt={userProfile.username || 'User'}
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+
+          {/* User Info */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer transition"
+              onClick={() => onProfileClick(comment.userAddress)}
+            >
+              {userProfile?.username || formatAddress(comment.userAddress)}
+            </span>
+            <span className="text-xs text-gray-500">
+              {formatTime(comment.createdAt)}
+            </span>
+          </div>
+        </div>
+
+        {/* Comment Content */}
+        <p className="text-sm text-gray-200 mb-3 pl-11 break-words">
+          {comment.content}
+        </p>
+
+        {/* Comment Actions */}
+        <div className="flex items-center gap-4 pl-11">
+          {depth < maxDepth && (
+            <button
+              onClick={() => setShowReplyForm(!showReplyForm)}
+              disabled={!isConnected}
+              className="text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
+            >
+              Reply
+            </button>
+          )}
+          <button
+            onClick={() => onLike(comment.id)}
+            disabled={!isConnected}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
+          >
+            <span>👍</span>
+            <span>{comment.likes || 0}</span>
+          </button>
+          {replyCount > 0 && (
+            <button
+              onClick={handleToggleReplies}
+              className="text-xs text-primary hover:text-primary/80 transition flex items-center gap-1"
+            >
+              {isLoadingReplies ? (
+                <span className="animate-pulse">Loading...</span>
+              ) : (
+                <>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <span>{replyCount} {replyCount === 1 ? 'reply' : 'replies'}</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Reply Form */}
+        {showReplyForm && isConnected && (
+          <div className="mt-3 pl-11">
+            <textarea
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              placeholder={`Reply to ${userProfile?.username || formatAddress(comment.userAddress)}...`}
+              rows={2}
+              className="w-full px-3 py-2 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none text-sm placeholder-gray-400"
+              maxLength={500}
+            />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs text-gray-500">{replyContent.length}/500</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setShowReplyForm(false)
+                    setReplyContent('')
+                  }}
+                  className="text-xs text-gray-400 hover:text-white transition px-3 py-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReplySubmit}
+                  disabled={isSubmittingReply || !replyContent.trim()}
+                  className="bg-primary text-black px-3 py-1 rounded text-xs font-medium hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingReply ? 'Posting...' : 'Reply'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Nested Replies */}
+        {showReplies && replies.length > 0 && (
+          <div className="mt-4 space-y-4">
+            {replies.map((reply) => (
+              <CommentItem
+                key={reply.id}
+                comment={reply}
+                tokenAddress={tokenAddress}
+                userProfile={userProfiles[reply.userAddress.toLowerCase()]}
+                isConnected={isConnected}
+                address={address}
+                onLike={onLike}
+                onReplySubmit={onReplySubmit}
+                onProfileClick={onProfileClick}
+                formatTime={formatTime}
+                formatAddress={formatAddress}
+                userProfiles={userProfiles}
+                depth={depth + 1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   const router = useRouter()
   const { address, isConnected } = useAccount()
@@ -67,7 +305,9 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
         includeReplies: false,
       })
 
-      setComments(response.data)
+      // Filter out replies (only show top-level comments)
+      const topLevelComments = response.data.filter(c => !c.replyTo)
+      setComments(topLevelComments)
       setTotalPages(Math.ceil(response.pagination.total / itemsPerPage))
       setHasMore(response.pagination.hasMore)
     } catch (error) {
@@ -136,6 +376,22 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
       toast.error('Failed to post comment')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleReplySubmit = async (parentId: string, content: string) => {
+    if (!isConnected || !address) {
+      toast.error('Please connect wallet to reply')
+      return
+    }
+
+    try {
+      await commentsAPI.createComment(tokenAddress, address, content, parentId)
+      toast.success('Reply posted!')
+    } catch (error) {
+      console.error('Failed to post reply:', error)
+      toast.error('Failed to post reply')
+      throw error
     }
   }
 
@@ -240,68 +496,20 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
             const userProfile = userProfiles[comment.userAddress.toLowerCase()]
 
             return (
-              <div key={comment.id} className="border-b border-gray-800 pb-4 last:border-b-0">
-                {/* Comment Header */}
-                <div className="flex items-center gap-3 mb-2">
-                  {/* User Avatar - Show profile image if available */}
-                  <div
-                    className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden"
-                    onClick={() => handleProfileClick(comment.userAddress)}
-                  >
-                    {userProfile?.profileImage ? (
-                      <Image
-                        src={getImageUrl(userProfile.profileImage)}
-                        alt={userProfile.username || 'User'}
-                        width={32}
-                        height={32}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </div>
-
-                  {/* User Info */}
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer transition"
-                      onClick={() => handleProfileClick(comment.userAddress)}
-                    >
-                      {userProfile?.username || formatAddress(comment.userAddress)}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {formatTime(comment.createdAt)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Comment Content */}
-                <p className="text-sm text-gray-200 mb-3 pl-11">
-                  {comment.content}
-                </p>
-
-                {/* Comment Actions */}
-                <div className="flex items-center gap-4 pl-11">
-                  <button
-                    onClick={() => handleLike(comment.id)}
-                    disabled={!isConnected}
-                    className="text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
-                  >
-                    Reply
-                  </button>
-                  <button
-                    onClick={() => handleLike(comment.id)}
-                    disabled={!isConnected}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
-                  >
-                    <span>👍</span>
-                    <span>{comment.likes || 0}</span>
-                  </button>
-                </div>
-              </div>
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                tokenAddress={tokenAddress}
+                userProfile={userProfile}
+                isConnected={isConnected}
+                address={address}
+                onLike={handleLike}
+                onReplySubmit={handleReplySubmit}
+                onProfileClick={handleProfileClick}
+                formatTime={formatTime}
+                formatAddress={formatAddress}
+                userProfiles={userProfiles}
+              />
             )
           })
         )}
