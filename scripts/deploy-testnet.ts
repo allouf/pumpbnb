@@ -128,7 +128,7 @@ async function main() {
   console.log("-".repeat(60));
 
   const TokenFactory = await ethers.getContractFactory("TokenFactory");
-  const virtualAsterReserve = ethers.parseEther("200"); // 200 ASTER virtual reserve
+  const virtualAsterReserve = ethers.parseEther("10000"); // 10,000 ASTER virtual reserve for ~$10k initial MC
   const tokenFactory = await TokenFactory.deploy(
     platformConfigAddress,
     virtualAsterReserve

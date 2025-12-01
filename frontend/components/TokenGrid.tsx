@@ -6,6 +6,33 @@ import { TokenAvatar } from './TokenAvatar'
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice'
 import { getIpfsUrl } from '@/lib/utils/ipfs'
 
+// Format very small prices with subscript notation (e.g., 0.0₈123)
+const formatSmallPrice = (price: number): string => {
+  if (price === 0) return '0'
+  if (price >= 0.001) return price.toFixed(6)
+  if (price >= 0.0001) return price.toFixed(8)
+
+  // For very small numbers, use subscript notation
+  const priceStr = price.toFixed(20)
+  const match = priceStr.match(/^0\.(0+)(\d{1,4})/)
+
+  if (match) {
+    const zeroCount = match[1].length
+    const significantDigits = match[2]
+
+    // Use subscript digits for the zero count
+    const subscripts: Record<string, string> = {
+      '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+      '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+    }
+
+    const subscriptCount = zeroCount.toString().split('').map(d => subscripts[d]).join('')
+    return `0.0${subscriptCount}${significantDigits}`
+  }
+
+  return price.toFixed(8)
+}
+
 interface TokenCardData {
   address: string
   name: string
@@ -229,7 +256,7 @@ function TokenCard({ token, showUsd, usdRate }: TokenCardProps) {
 
   const priceDisplay = showUsd
     ? formatUsdPrice(asterToUsd(token.currentPrice, usdRate))
-    : token.currentPrice.toFixed(8)
+    : formatSmallPrice(token.currentPrice)
 
   return (
     <Link href={`/token/${token.address}`}>

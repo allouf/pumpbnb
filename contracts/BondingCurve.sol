@@ -30,10 +30,13 @@ contract BondingCurve is ReentrancyGuard {
     /// @notice Token creator address
     address public immutable creator;
 
-    /// @notice Virtual ASTER reserve (equivalent to 0.3 BNB worth)
+    /// @notice Virtual ASTER reserve (curve parameter, sets initial price)
+    /// @dev With 10,000 ASTER virtual reserve: price = 10,000 / 1B = 0.00001 ASTER/token
+    /// @dev Initial MC = 0.00001 * 1B = 10,000 ASTER = $10,000 at $1/ASTER
     uint256 public immutable virtualAsterReserve;
 
-    /// @notice Virtual token reserve (200M tokens)
+    /// @notice Virtual token reserve (curve parameter, set to 0)
+    /// @dev Set to 0 because realTokenReserve (1B) IS the actual token liquidity
     uint256 public constant VIRTUAL_TOKEN_RESERVE = Constants.VIRTUAL_TOKEN_RESERVE;
 
     /// @notice Real ASTER reserve accumulated from trades

@@ -58,13 +58,17 @@ router.get(
           },
         },
 
-        // Token creation parameters
+        // Token creation parameters (Fair Launch Model - like pump.fun)
         tokenConfig: {
           totalSupply: '1000000000', // 1 billion tokens
-          creatorAllocation: '200000000', // 200M (20%)
-          bondingCurveAllocation: '800000000', // 800M (80%)
-          virtualAsterReserve: '200000000', // 200M ASTER virtual reserve
-          graduationThreshold: '100', // 100 ASTER
+          creatorAllocation: '0', // 0% - fair launch (all tokens tradeable)
+          bondingCurveAllocation: '1000000000', // 1B (100%) - real tokens in curve
+          virtualTokenReserve: '0', // 0 - real tokens ARE the liquidity
+          virtualAsterReserve: '10000', // 10,000 ASTER (curve parameter for initial price)
+          graduationThreshold: '10000', // 10,000 ASTER to graduate to DEX
+          // Initial price = virtualAsterReserve / realTokenReserve
+          // = 10,000 ASTER / 1,000,000,000 tokens = 0.00001 ASTER/token
+          // Initial MC = 0.00001 * 1B = 10,000 ASTER = $10,000 at $1/ASTER
         },
       },
     });

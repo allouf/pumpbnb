@@ -6,8 +6,8 @@ import "./Constants.sol";
 
 /**
  * @title PumpToken
- * @notice BEP-20 token deployed via TokenFactory with creator allocation locking
- * @dev Fixed supply of 1B tokens: 800M to bonding curve, 200M locked for creator
+ * @notice BEP-20 token deployed via TokenFactory for fair launch
+ * @dev Fixed supply of 1B tokens: 100% to bonding curve, 0% to creator (fair launch model)
  */
 contract PumpToken is ERC20 {
     /// @notice Token metadata URI (IPFS or external storage)
@@ -65,13 +65,13 @@ contract PumpToken is ERC20 {
         creator = _creator;
         bondingCurve = _bondingCurve;
         factory = msg.sender;
-        creatorAllocationUnlocked = false;
 
         // Mint total supply to this contract
         _mint(address(this), Constants.TOTAL_SUPPLY);
 
-        // Lock 200M for creator
+        // Set creator locked balance (0 for fair launch)
         creatorLockedBalance = Constants.CREATOR_SUPPLY;
+        creatorAllocationUnlocked = (Constants.CREATOR_SUPPLY == 0);
 
         emit TokenDeployed(address(this), _creator, _name, _symbol, _uri);
     }
@@ -96,11 +96,18 @@ contract PumpToken is ERC20 {
     /**
      * @notice Unlock creator allocation (called by bonding curve at graduation)
      * @dev Can only be called once by the bonding curve contract
+     * @dev For fair launch (0% creator allocation), this is a no-op
      */
     function unlockCreatorAllocation() external {
         require(msg.sender == bondingCurve, "Only bonding curve");
+
+        // For fair launch with 0% creator allocation, just mark as unlocked
+        if (creatorLockedBalance == 0) {
+            creatorAllocationUnlocked = true;
+            return;
+        }
+
         require(!creatorAllocationUnlocked, "Already unlocked");
-        require(creatorLockedBalance > 0, "No locked balance");
 
         creatorAllocationUnlocked = true;
 

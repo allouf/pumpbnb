@@ -20,7 +20,7 @@ contract TokenFactory is ReentrancyGuard, AccessControl {
     /// @notice Counter for total tokens created
     uint256 public tokenCounter;
 
-    /// @notice Virtual ASTER reserve for bonding curves (equivalent to 0.3 BNB in ASTER)
+    /// @notice Virtual ASTER reserve for bonding curves (~$10k initial MC at 10k ASTER)
     uint256 public virtualAsterReserve;
 
     /// @notice Mapping from token address to bonding curve address
