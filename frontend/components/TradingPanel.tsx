@@ -83,7 +83,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
 
   // Read ASTER allowance (for buy)
   const { data: asterAllowance, refetch: refetchAsterAllowance } = useReadContract({
-    address: CONTRACTS.MockASTER as `0x${string}`,
+    address: CONTRACTS.ASTER_TOKEN as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'allowance',
     args: address && isConnected ? [address, bondingCurveAddress] : undefined,
@@ -99,7 +99,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
 
   // Read user's ASTER balance (for buy)
   const { data: asterBalance } = useReadContract({
-    address: CONTRACTS.MockASTER as `0x${string}`,
+    address: CONTRACTS.ASTER_TOKEN as `0x${string}`,
     abi: [
       {
         constant: true,
@@ -352,7 +352,7 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
     try {
       const toastId = toast.loading(`Requesting ${activeTab === 'buy' ? 'ASTER' : tokenSymbol} approval...`)
 
-      const approveAddress = activeTab === 'buy' ? CONTRACTS.MockASTER : tokenAddress
+      const approveAddress = activeTab === 'buy' ? CONTRACTS.ASTER_TOKEN : tokenAddress
 
       console.log('[TradingPanel] 📝 Approving token:', {
         activeTab,

@@ -230,9 +230,9 @@ export function ProfilePageClient({ address }: { address: string }) {
     address: address as `0x${string}`,
   })
 
-  // Fetch ASTER balance (use MockASTER on testnet)
+  // Fetch ASTER balance
   const { data: asterBalance } = useReadContract({
-    address: CONTRACTS.MockASTER as `0x${string}`,
+    address: CONTRACTS.ASTER_TOKEN as `0x${string}`,
     abi: MockERC20ABI.abi as Abi,
     functionName: 'balanceOf',
     args: [address],
