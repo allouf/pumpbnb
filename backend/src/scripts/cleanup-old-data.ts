@@ -16,7 +16,8 @@ const prisma = new PrismaClient();
 // Old bonding curve addresses (tokens created with old factory - 200 ASTER virtual reserve)
 // These are the ONLY tokens that should trigger cleanup
 const OLD_BONDING_CURVES = [
-  '0x94f0c4b589e44f94f203e6a6d4c6395f2d0ac884'.toLowerCase(), // Top Coin bonding curve
+  '0x94f0c4b589e44f94f203e6a6d4c6395f2d0ac884'.toLowerCase(), // Top Coin (old factory)
+  '0x9aadf72c679240b4f575fa37f7732bf54a0761f9'.toLowerCase(), // New token accidentally created via old factory
 ];
 
 async function cleanupOldData() {

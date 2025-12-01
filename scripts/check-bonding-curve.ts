@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
 
-// Token and bonding curve addresses from the user's token
-const TOKEN_ADDRESS = "0xd5a214d3f736dacb7681a4e247ae05f31fb06fb6";
-const BONDING_CURVE_ADDRESS = "0x94f0c4b589e44f94f203e6a6d4c6395f2d0ac884";
+// Token and bonding curve addresses from the user's NEW token
+const BONDING_CURVE_ADDRESS = "0x9aadf72c679240b4f575fa37f7732bf54a0761f9";
 
 // New TokenFactory address
 const NEW_TOKEN_FACTORY = "0x535dD472F8A7B20B8c852A9fa7AFc1028D22E52D";
@@ -35,13 +34,6 @@ async function main() {
   const tokenFactory = await ethers.getContractAt("TokenFactory", NEW_TOKEN_FACTORY);
   const factoryVirtualReserve = await tokenFactory.virtualAsterReserve();
   console.log(`   Factory Virtual Reserve: ${ethers.formatEther(factoryVirtualReserve)} ASTER`);
-  
-  // Check if this token was created by the new factory
-  const bondingCurveFromFactory = await tokenFactory.getBondingCurve(TOKEN_ADDRESS);
-  console.log(`   Token in new factory: ${bondingCurveFromFactory !== ethers.ZeroAddress}`);
-  if (bondingCurveFromFactory !== ethers.ZeroAddress) {
-    console.log(`   Bonding curve matches: ${bondingCurveFromFactory.toLowerCase() === BONDING_CURVE_ADDRESS.toLowerCase()}`);
-  }
 
   // Calculate expected initial price
   console.log("\n📐 Price Analysis:");
