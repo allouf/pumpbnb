@@ -3,7 +3,7 @@
  * 
  * This script clears old data from the database when contracts are redeployed.
  * It runs automatically during backend deployment to Render.
- * After successful cleanup, it marks itself as complete to avoid running again.
+ * It only runs if it detects tokens from the OLD deployment (200 ASTER virtual reserve).
  * 
  * Usage: npx ts-node src/scripts/cleanup-old-data.ts
  * Or: node dist/scripts/cleanup-old-data.js (after build)
@@ -13,37 +13,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// New contract addresses (Dec 1, 2025 deployment)
-const NEW_TOKEN_FACTORY = '0x535dD472F8A7B20B8c852A9fa7AFc1028D22E52D'.toLowerCase();
-const NEW_SAMPLE_TOKEN = '0x1Fc9e9982A27Ea1762dB7385E031563d7a09fA78'.toLowerCase();
-
 // Old bonding curve addresses (tokens created with old factory - 200 ASTER virtual reserve)
+// These are the ONLY tokens that should trigger cleanup
 const OLD_BONDING_CURVES = [
   '0x94f0c4b589e44f94f203e6a6d4c6395f2d0ac884'.toLowerCase(), // Top Coin bonding curve
 ];
 
 async function cleanupOldData() {
-  console.log('🧹 Database Cleanup Script (One-Time)\n');
+  console.log('\n🧹 Database Cleanup Script\n');
   console.log('='.repeat(50));
 
   try {
-    // Check if cleanup was already performed
-    const cleanupMarker = await prisma.indexerState.findFirst({
-      where: { key: 'cleanup_dec1_2025_complete' },
-    });
-
-    if (cleanupMarker) {
-      console.log('✅ Cleanup already performed on', cleanupMarker.value);
-      console.log('   Skipping to preserve data.\n');
-      return;
-    }
-
     // Check if there are any tokens to clean up
     const totalTokens = await prisma.token.count();
     
     if (totalTokens === 0) {
-      console.log('✅ Database is empty. Marking cleanup as complete.\n');
-      await markCleanupComplete();
+      console.log('✅ Database is empty. Nothing to clean.\n');
       return;
     }
 
@@ -59,14 +44,14 @@ async function cleanupOldData() {
     });
 
     if (oldTokens.length === 0) {
-      console.log('✅ No old deployment tokens found. Marking cleanup as complete.\n');
-      await markCleanupComplete();
+      console.log('✅ No old deployment tokens found. Skipping cleanup.\n');
       return;
     }
 
-    console.log(`⚠️  Found ${oldTokens.length} token(s) from old deployment:`);
+    console.log(`⚠️  Found ${oldTokens.length} token(s) from OLD deployment:`);
     oldTokens.forEach(t => console.log(`   - ${t.name} (${t.symbol}): ${t.address}`));
-    console.log('\nStarting cleanup...\n');
+    console.log('\nThese tokens use 200 ASTER virtual reserve (should be 10,000).');
+    console.log('Starting cleanup...\n');
 
     // Delete in order to respect foreign key constraints
     const tables = [
@@ -94,40 +79,16 @@ async function cleanupOldData() {
       }
     }
 
-    // Mark cleanup as complete
-    await markCleanupComplete();
-
     console.log('\n🎉 Database cleanup complete!');
     console.log('='.repeat(50));
-    console.log('\nNew contract addresses:');
-    console.log(`  TokenFactory: ${NEW_TOKEN_FACTORY}`);
-    console.log(`  Sample Token: ${NEW_SAMPLE_TOKEN}`);
-    console.log('\nThe indexer will now start indexing from the new contracts.\n');
+    console.log('\nOld tokens removed. New tokens will use 10,000 ASTER virtual reserve.');
+    console.log('The indexer will now start fresh.\n');
 
   } catch (error) {
     console.error('❌ Cleanup failed:', error);
     // Don't throw - allow the server to start even if cleanup fails
   } finally {
     await prisma.$disconnect();
-  }
-}
-
-/**
- * Mark cleanup as complete to prevent future runs
- */
-async function markCleanupComplete() {
-  try {
-    await prisma.indexerState.upsert({
-      where: { key: 'cleanup_dec1_2025_complete' },
-      update: { value: new Date().toISOString() },
-      create: {
-        key: 'cleanup_dec1_2025_complete',
-        value: new Date().toISOString(),
-      },
-    });
-    console.log('\n✅ Marked cleanup as complete (will not run again)');
-  } catch (error) {
-    console.warn('⚠️  Could not mark cleanup as complete:', error);
   }
 }
 
