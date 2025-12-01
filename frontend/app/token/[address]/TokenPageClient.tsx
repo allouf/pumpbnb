@@ -50,7 +50,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
   // Blockchain fallback
   const { data: bondingCurveAddress, isLoading: loadingBC } = useReadContract({
-    address: CONTRACTS.TokenFactory as `0x${string}`,
+    address: CONTRACTS.TOKEN_FACTORY as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
     args: [address],
