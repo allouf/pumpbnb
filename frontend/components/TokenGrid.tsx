@@ -248,11 +248,11 @@ function TokenCard({ token, showUsd, usdRate }: TokenCardProps) {
 
   const marketCapDisplay = showUsd 
     ? formatUsdPrice(asterToUsd(token.marketCap, usdRate))
-    : `${token.marketCap.toFixed(2)} ASTER`
+    : token.marketCap === 0 ? '0 ASTER' : `${token.marketCap.toFixed(2)} ASTER`
 
   const volumeDisplay = showUsd
     ? formatUsdPrice(asterToUsd(token.volume24h, usdRate))
-    : `${token.volume24h.toFixed(2)} ASTER`
+    : token.volume24h === 0 ? '0 ASTER' : `${token.volume24h.toFixed(2)} ASTER`
 
   const priceDisplay = showUsd
     ? formatUsdPrice(asterToUsd(token.currentPrice, usdRate))

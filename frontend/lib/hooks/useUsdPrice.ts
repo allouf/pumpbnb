@@ -95,6 +95,10 @@ export function asterToUsd(asterAmount: number, usdRate: number): number {
 
 // Utility function to format USD price
 export function formatUsdPrice(usdAmount: number): string {
+  // Handle zero case - don't show excessive decimal places
+  if (usdAmount === 0) {
+    return '$0'
+  }
   if (usdAmount >= 1000000) {
     return `$${(usdAmount / 1000000).toFixed(2)}M`
   }
