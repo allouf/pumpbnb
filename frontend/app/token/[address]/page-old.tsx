@@ -31,7 +31,7 @@ export default function TokenPage({ params }: { params: Promise<{ address: strin
 
   // Blockchain fallback - only used if API fails or returns no data
   const { data: bondingCurveAddress, isLoading: loadingBC, error: errorBC } = useReadContract({
-    address: CONTRACTS.TokenFactory as `0x${string}`,
+    address: CONTRACTS.TOKEN_FACTORY as `0x${string}`,
     abi: TokenFactoryABI,
     functionName: 'tokenToBondingCurve',
     args: [address],

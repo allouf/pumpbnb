@@ -18,7 +18,7 @@ export function useWatchTokenCreated(
   onTokenCreated?: (event: TokenCreatedEvent) => void
 ) {
   useWatchContractEvent({
-    address: CONTRACTS.TokenFactory as `0x${string}`,
+    address: CONTRACTS.TOKEN_FACTORY as `0x${string}`,
     abi: TokenFactoryABI,
     eventName: 'TokenCreated',
     // Only watch for NEW events, don't query historical events
