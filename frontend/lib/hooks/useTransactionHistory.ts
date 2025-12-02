@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -18,10 +18,17 @@ export interface Transaction {
   price?: string // Price at time of trade (ASTER per token with 18 decimals)
 }
 
-export function useTransactionHistory(bondingCurveAddress?: string, userAddress?: string) {
+export function useTransactionHistory(bondingCurveAddress?: string, userAddress?: string, refreshTrigger?: number) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const [manualRefresh, setManualRefresh] = useState(0)
+
+  // Function to manually trigger a refresh
+  const refetch = useCallback(() => {
+    console.log('[useTransactionHistory] 🔄 Manual refetch triggered')
+    setManualRefresh(prev => prev + 1)
+  }, [])
 
   useEffect(() => {
     async function fetchTransactions() {
@@ -104,13 +111,13 @@ export function useTransactionHistory(bondingCurveAddress?: string, userAddress?
     // Initial fetch
     fetchTransactions()
 
-    // Poll every 30 seconds for new trades (reduced from 5 seconds for smoother UX)
+    // Poll every 10 seconds for new trades
     const pollInterval = setInterval(() => {
       fetchTransactions()
-    }, 30000)
+    }, 10000)
 
     return () => clearInterval(pollInterval)
-  }, [bondingCurveAddress, userAddress])
+  }, [bondingCurveAddress, userAddress, refreshTrigger, manualRefresh])
 
-  return { transactions, isLoading, error }
+  return { transactions, isLoading, error, refetch }
 }

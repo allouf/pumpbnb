@@ -671,24 +671,9 @@ export function AdvancedPriceChart({
       leftPriceScale: {
         visible: false, // Hidden but helps with drag
       },
-      kineticScroll: {
-        touch: true,
-        mouse: true, // Enable mouse kinetic scroll for smoother dragging
-      },
-      handleScroll: {
-        mouseWheel: true,
-        pressedMouseMove: true,
-        horzTouchDrag: true,
-        vertTouchDrag: true,
-      },
-      handleScale: {
-        axisPressedMouseMove: {
-          time: true,
-          price: true, // Enable vertical (price) axis dragging
-        },
-        mouseWheel: true,
-        pinch: true,
-      },
+      // Scroll/pan configuration - ALL TRUE for maximum interactivity
+      handleScroll: true, // Allow scrolling by any method
+      handleScale: true,  // Allow scaling by any method
     })
 
     console.log('[AdvancedPriceChart] ✅ Chart instance created successfully')

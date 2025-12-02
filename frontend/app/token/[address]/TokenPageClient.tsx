@@ -40,6 +40,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const [showSharePopup, setShowSharePopup] = useState(false)
   const [holdersRefreshTrigger, setHoldersRefreshTrigger] = useState(0)
   const [tradesRefreshTrigger, setTradesRefreshTrigger] = useState(0)
+  const [chartRefreshTrigger, setChartRefreshTrigger] = useState(0)
 
   // Watchlist from database
   const { isInWatchlist, toggleWatchlist, isLoading: watchlistLoading } = useWatchlist(userAddress)
@@ -81,8 +82,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
   const createdAt = apiData?.createdAt
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  // Get transaction history - called unconditionally
-  const { transactions } = useTransactionHistory(bondingCurve || '')
+  // Get transaction history - called unconditionally, with refresh trigger for chart updates
+  const { transactions, refetch: refetchTransactions } = useTransactionHistory(bondingCurve || '', undefined, chartRefreshTrigger)
 
   // Read bonding curve reserves - called unconditionally
   const { data: reserves, refetch: refetchReserves } = useReadContract({
@@ -136,9 +137,15 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
       refetchTokenData()
     }, 3000)
 
-    // Trigger immediate holders and trades refresh
+    // Trigger immediate holders, trades, and chart refresh
     setHoldersRefreshTrigger(prev => prev + 1)
     setTradesRefreshTrigger(prev => prev + 1)
+    setChartRefreshTrigger(prev => prev + 1)
+    
+    // Also trigger manual refetch for instant chart update
+    setTimeout(() => {
+      refetchTransactions()
+    }, 500)
   }
 
   // Calculate creation time - memoized
@@ -659,7 +666,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                       <span className="text-sm text-white">Liquidity pool</span>
                     </div>
                     <span className="text-sm font-bold text-primary">
-                      {progress >= 100 ? '15.00%' : Math.max(10, 80 - progress).toFixed(1) + '%'}
+                      {progress >= 100 ? '15.00%' : Math.max(0, 100 - progress).toFixed(1) + '%'}
                     </span>
                   </div>
                   
