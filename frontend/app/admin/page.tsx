@@ -212,27 +212,32 @@ export default function AdminPage() {
               Platform Fee Wallet
             </h2>
             {/* Wallet Address with Copy */}
-            <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2">
-              <span className="font-mono text-sm text-gray-300">
-                {protocolFeeRecipient 
-                  ? `${(protocolFeeRecipient as string).slice(0, 6)}...${(protocolFeeRecipient as string).slice(-4)}`
-                  : 'Loading...'}
-              </span>
-              {protocolFeeRecipient && (
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(protocolFeeRecipient as string)
-                    alert('Address copied!')
-                  }}
-                  className="p-1.5 hover:bg-gray-600 rounded transition" 
-                  title="Copy address"
-                >
-                  <svg className="w-4 h-4 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
-              )}
-            </div>
+            {(() => {
+              const walletAddr = protocolFeeRecipient as string | undefined;
+              return (
+                <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2">
+                  <span className="font-mono text-sm text-gray-300">
+                    {walletAddr 
+                      ? `${walletAddr.slice(0, 6)}...${walletAddr.slice(-4)}`
+                      : 'Loading...'}
+                  </span>
+                  {walletAddr && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(walletAddr)
+                        alert('Address copied!')
+                      }}
+                      className="p-1.5 hover:bg-gray-600 rounded transition" 
+                      title="Copy address"
+                    >
+                      <svg className="w-4 h-4 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-secondary/30 rounded-xl p-4">
