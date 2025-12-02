@@ -197,7 +197,8 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
 
   const reservesData = reserves as readonly [bigint, bigint] | undefined
   const asterReserves = reservesData ? Number(formatUnits(reservesData[0], 18)) : 0
-  const progress = (asterReserves / 100) * 100
+  // New contract: graduation threshold is 10,000 ASTER (not 100)
+  const progress = (asterReserves / 10000) * 100
 
   // Use backend stats for USD market cap (correct calculation) - Memoized to avoid unnecessary recalculations
   const { marketCapUsd, marketCap, priceUsd, priceChange24h } = useMemo(() => {
@@ -616,11 +617,11 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Target for Graduation</span>
-                      <span className="text-primary font-mono">100.00 ASTER</span>
+                      <span className="text-primary font-mono">10,000.00 ASTER</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Remaining</span>
-                      <span className="text-orange-400 font-mono">{Math.max(0, 100 - asterReserves).toFixed(2)} ASTER</span>
+                      <span className="text-orange-400 font-mono">{Math.max(0, 10000 - asterReserves).toFixed(2)} ASTER</span>
                     </div>
                   </div>
                 </div>
@@ -635,7 +636,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
                     <div className="text-gray-300 text-sm font-medium mb-1">Pre-Market Phase</div>
                     <div className="text-xs text-gray-400">
-                      {(100 - asterReserves).toFixed(2)} ASTER needed for graduation
+                      {(10000 - asterReserves).toFixed(2)} ASTER needed for graduation
                     </div>
                   </div>
                 )}

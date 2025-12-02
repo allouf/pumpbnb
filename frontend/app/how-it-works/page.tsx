@@ -24,7 +24,7 @@ const steps = [
   {
     number: '04',
     title: 'Watch Tokens Graduate',
-    description: 'When a token reaches 100 ASTER in liquidity, it graduates to PancakeSwap with permanent liquidity. LP tokens are burned to prevent rug pulls.',
+    description: 'When a token reaches 10,000 ASTER in liquidity, it graduates to PancakeSwap with permanent liquidity. LP tokens are burned to prevent rug pulls.',
     icon: '🎓',
   },
 ]
@@ -126,7 +126,7 @@ export default function HowItWorksPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-blue-500">Graduation</h4>
-                    <p className="text-gray-400 text-sm">At 100 ASTER liquidity, the token migrates to PancakeSwap with burned LP tokens.</p>
+                    <p className="text-gray-400 text-sm">At 10,000 ASTER liquidity, the token migrates to PancakeSwap with burned LP tokens.</p>
                   </div>
                 </div>
               </div>

@@ -1290,20 +1290,23 @@ export function AdvancedPriceChart({
       const firstCandle = sortedCandles[0][1]
       const paddingIntervals = 3 // Add 3 intervals before first trade
       
-      for (let i = paddingIntervals; i > 0; i--) {
-        const paddedTime = (firstTime - (intervalSeconds * i)) as UTCTimestamp
-        candleData.push({
-          time: paddedTime,
-          open: firstCandle.open,
-          high: firstCandle.open,
-          low: firstCandle.open,
-          close: firstCandle.open,
-        })
-        volumeData.push({
-          time: paddedTime,
-          value: 0,
-          color: 'rgba(34, 197, 94, 0.5)',
-        })
+      // Only add padding if first candle has valid values
+      if (firstCandle.open > 0 && !isNaN(firstCandle.open) && isFinite(firstCandle.open)) {
+        for (let i = paddingIntervals; i > 0; i--) {
+          const paddedTime = (firstTime - (intervalSeconds * i)) as UTCTimestamp
+          candleData.push({
+            time: paddedTime,
+            open: firstCandle.open,
+            high: firstCandle.open,
+            low: firstCandle.open,
+            close: firstCandle.open,
+          })
+          volumeData.push({
+            time: paddedTime,
+            value: 0,
+            color: 'rgba(34, 197, 94, 0.5)',
+          })
+        }
       }
     }
     

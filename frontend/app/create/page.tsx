@@ -506,15 +506,11 @@ export default function CreateTokenPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Bonding Curve:</span>
-                  <span className="font-mono">800,000,000 (80%)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Creator (locked):</span>
-                  <span className="font-mono">200,000,000 (20%)</span>
+                  <span className="font-mono">1,000,000,000 (100%)</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-700 pt-2 mt-2">
                   <span className="text-gray-400">Graduation Threshold:</span>
-                  <span className="font-mono text-primary">100 ASTER</span>
+                  <span className="font-mono text-primary">10,000 ASTER</span>
                 </div>
               </div>
 
@@ -604,7 +600,7 @@ export default function CreateTokenPage() {
           <div className="text-center">
             <div className="text-2xl mb-2">🎯</div>
             <h3 className="font-semibold mb-1">Auto Liquidity</h3>
-            <p className="text-sm text-gray-400">Graduates to PancakeSwap at 100 ASTER</p>
+            <p className="text-sm text-gray-400">Graduates to PancakeSwap at 10,000 ASTER</p>
           </div>
         </div>
       </div>

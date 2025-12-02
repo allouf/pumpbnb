@@ -39,15 +39,16 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
   const reservesData = reserves as readonly [bigint, bigint] | undefined;
   const asterReserves = reservesData ? reservesData[0] : BigInt(0);
   const asterAmount = Number(formatUnits(asterReserves, 18));
-  const progress = asterAmount; // Out of 100 ASTER
+  // Graduation threshold is 10,000 ASTER
+  const progressPercentage = (asterAmount / 10000) * 100;
 
   // Calculate market cap in USD
   const marketCapUsd = asterToUsd(asterAmount, usdRate);
   const marketCapDisplay = formatUsdPrice(marketCapUsd);
   
-  const isNearGraduation = progress >= 80 && progress < 100;
-  const isGraduated = progress >= 100;
-  const progressPercentage = Math.min(progress, 100);
+  const isNearGraduation = progressPercentage >= 80 && progressPercentage < 100;
+  const isGraduated = progressPercentage >= 100;
+  const displayPercentage = Math.min(progressPercentage, 100);
 
   // Format time ago
   const formatTimeAgo = (timestamp?: number) => {
@@ -117,7 +118,7 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
             {isGraduated ? '🎉 Graduated!' : isNearGraduation ? 'Graduating soon! 🚀' : 'Bonding curve progress:'}
           </span>
           <span className="text-xs font-medium text-gray-400">
-            {progressPercentage.toFixed(1)}%
+            {displayPercentage.toFixed(1)}%
           </span>
         </div>
         <div className="w-full bg-secondary rounded-full h-2">
@@ -127,12 +128,12 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
                 ? 'bg-gradient-to-r from-primary to-primary-green animate-pulse-green' 
                 : 'bg-primary'
             }`}
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${displayPercentage}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-gray-600 mt-1">
           <span>0 ASTER</span>
-          <span>100 ASTER</span>
+          <span>10K ASTER</span>
         </div>
       </div>
 
