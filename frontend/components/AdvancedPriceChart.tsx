@@ -719,19 +719,27 @@ export function AdvancedPriceChart({
           type: 'custom',
           // Custom formatter for Y-axis with Pump.fun style subscript notation
           formatter: (price: number) => {
+            // CRITICAL: Handle undefined, null, NaN, or non-finite values
+            if (price === undefined || price === null || !Number.isFinite(price)) {
+              return '0'
+            }
             if (price === 0) return '0'
 
             // For very small values, use Pump.fun style subscript notation
             if (Math.abs(price) < 0.0001) {
-              const priceStr = price.toFixed(20)
-              const match = priceStr.match(/^0\.0+/)
+              try {
+                const priceStr = price.toFixed(20)
+                const match = priceStr.match(/^0\.0+/)
 
-              if (match) {
-                const leadingZeros = match[0].length - 2
-                const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
-                const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
-                const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
-                return `0.0${subscriptCount}${significantDigits}`
+                if (match) {
+                  const leadingZeros = match[0].length - 2
+                  const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+                  const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+                  const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+                  return `0.0${subscriptCount}${significantDigits}`
+                }
+              } catch {
+                return price.toExponential(4)
               }
             }
 
@@ -1539,12 +1547,64 @@ export function AdvancedPriceChart({
             return
           }
 
-          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', validCandleData.length, 'valid candles')
+          // CRITICAL: Create a clean copy of the data with only the required fields
+          // This ensures no undefined properties or unexpected fields reach TradingView
+          const cleanCandleData = validCandleData.map(candle => {
+            const cleanCandle: {
+              time: number;
+              open: number;
+              high: number;
+              low: number;
+              close: number;
+              color?: string;
+              borderColor?: string;
+              wickColor?: string;
+            } = {
+              time: Number(candle.time),
+              open: Number(candle.open),
+              high: Number(candle.high),
+              low: Number(candle.low),
+              close: Number(candle.close),
+            }
+            // Only add color properties if they are defined strings
+            if (typeof candle.color === 'string') cleanCandle.color = candle.color
+            if (typeof candle.borderColor === 'string') cleanCandle.borderColor = candle.borderColor
+            if (typeof candle.wickColor === 'string') cleanCandle.wickColor = candle.wickColor
+            return cleanCandle
+          })
+
+          // Final sanity check - ensure all values are valid numbers
+          const finalData = cleanCandleData.filter(c => 
+            Number.isFinite(c.time) && c.time > 0 &&
+            Number.isFinite(c.open) && c.open > 0 &&
+            Number.isFinite(c.high) && c.high > 0 &&
+            Number.isFinite(c.low) && c.low > 0 &&
+            Number.isFinite(c.close) && c.close > 0
+          )
+
+          console.log('[AdvancedPriceChart] 📊 Final clean candlestick data:', {
+            cleanCount: finalData.length,
+            sample: finalData.slice(0, 3).map(c => ({
+              time: c.time,
+              open: c.open.toExponential(4),
+              high: c.high.toExponential(4),
+              low: c.low.toExponential(4),
+              close: c.close.toExponential(4),
+            }))
+          })
+
+          if (finalData.length === 0) {
+            console.error('[AdvancedPriceChart] ❌ No valid candlestick data after final clean, ABORTING')
+            return
+          }
+
+          console.log('[AdvancedPriceChart] 🚀 Calling priceSeriesRef.current.setData() with', finalData.length, 'valid candles')
           try {
-            priceSeriesRef.current.setData(validCandleData)
+            priceSeriesRef.current.setData(finalData as any)
             console.log('[AdvancedPriceChart] ✅ Candlestick data set successfully!')
           } catch (setDataError) {
             console.error('[AdvancedPriceChart] ❌ Error setting candlestick data:', setDataError)
+            console.error('[AdvancedPriceChart] 📋 Data that failed:', JSON.stringify(finalData.slice(0, 5)))
           }
         }
         
@@ -1581,9 +1641,16 @@ export function AdvancedPriceChart({
           if (!volumeSeriesRef.current) {
             console.error('[AdvancedPriceChart] ❌ volumeSeriesRef.current is null, cannot set volume data')
           } else {
-            console.log('[AdvancedPriceChart] 🚀 Setting volume data with', validVolumeData.length, 'bars')
+            // Create clean copy of volume data with only required fields
+            const cleanVolumeData = validVolumeData.map(vol => ({
+              time: Number(vol.time),
+              value: Number(vol.value),
+              color: typeof vol.color === 'string' ? vol.color : 'rgba(34, 197, 94, 0.5)',
+            })).filter(v => Number.isFinite(v.time) && Number.isFinite(v.value) && v.value >= 0)
+
+            console.log('[AdvancedPriceChart] 🚀 Setting volume data with', cleanVolumeData.length, 'bars')
             try {
-              volumeSeriesRef.current.setData(validVolumeData)
+              volumeSeriesRef.current.setData(cleanVolumeData as any)
               console.log('[AdvancedPriceChart] ✅ Volume data set successfully!')
             } catch (setDataError) {
               console.error('[AdvancedPriceChart] ❌ Error setting volume data:', setDataError)

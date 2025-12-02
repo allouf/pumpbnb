@@ -333,6 +333,30 @@ class CommentsController {
   }
 
   /**
+   * GET /api/v2/users/:address/comments
+   * Get all comments by a specific user
+   */
+  async getUserComments(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { address } = req.params;
+      const { page = '1', limit = '20' } = req.query;
+
+      const result = await commentsService.getUserComments(address, {
+        page: parseInt(page as string),
+        limit: Math.min(parseInt(limit as string), 50),
+      });
+
+      res.json({
+        success: true,
+        ...result,
+      });
+    } catch (error) {
+      logger.error('Error fetching user comments:', error);
+      next(error);
+    }
+  }
+
+  /**
    * POST /api/v2/comments/:commentId/unlike
    * Unlike a comment
    */

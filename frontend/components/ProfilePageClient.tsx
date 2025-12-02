@@ -209,6 +209,140 @@ function TokenHoldings({ userAddress }: { userAddress: string }) {
   )
 }
 
+// Component to show user's replies/comments
+function UserReplies({ userAddress }: { userAddress: string }) {
+  const [comments, setComments] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [total, setTotal] = useState(0)
+  
+  useEffect(() => {
+    fetchComments()
+  }, [userAddress, page])
+  
+  const fetchComments = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${API_URL}/api/users/${userAddress}/comments?page=${page}&limit=20`)
+      const data = await response.json()
+      if (data.success) {
+        if (page === 1) {
+          setComments(data.data)
+        } else {
+          setComments(prev => [...prev, ...data.data])
+        }
+        setHasMore(data.pagination?.hasMore || false)
+        setTotal(data.pagination?.total || 0)
+      }
+    } catch (error) {
+      console.error('[UserReplies] Error fetching:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+    
+    if (diffMins < 1) return 'just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    return date.toLocaleDateString()
+  }
+  
+  if (isLoading && page === 1) {
+    return (
+      <div className="bg-secondary-light rounded-xl p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-20 bg-gray-700 rounded"></div>
+          <div className="h-20 bg-gray-700 rounded"></div>
+          <div className="h-20 bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    )
+  }
+  
+  if (comments.length === 0) {
+    return (
+      <div className="bg-secondary-light rounded-xl p-6 text-center">
+        <p className="text-gray-400">No replies yet</p>
+        <p className="text-sm text-gray-500 mt-2">Comments made on token pages will appear here</p>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="bg-secondary-light rounded-xl p-6">
+      <h2 className="text-xl font-bold mb-4">Replies ({total})</h2>
+      <div className="space-y-4">
+        {comments.map((comment: any) => (
+          <Link
+            key={comment.id}
+            href={`/token/${comment.tokenAddress}`}
+            className="block bg-secondary p-4 rounded-lg hover:bg-gray-700 transition"
+          >
+            {/* Token context */}
+            <div className="flex items-center gap-2 mb-2">
+              {comment.token?.imageUrl ? (
+                <img
+                  src={getImageUrl(comment.token.imageUrl)}
+                  alt={comment.token.symbol}
+                  className="w-5 h-5 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-5 h-5 bg-gray-600 rounded-full flex items-center justify-center">
+                  <span className="text-[8px] font-bold">{comment.token?.symbol?.slice(0, 2)}</span>
+                </div>
+              )}
+              <span className="text-sm text-gray-400">
+                on <span className="text-primary">{comment.token?.name || 'Unknown Token'}</span>
+              </span>
+              <span className="text-xs text-gray-500 ml-auto">
+                {formatTimeAgo(comment.createdAt)}
+              </span>
+            </div>
+            
+            {/* Comment content */}
+            <p className="text-white whitespace-pre-wrap break-words">{comment.content}</p>
+            
+            {/* Likes */}
+            {comment.likes > 0 && (
+              <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+                <span>❤️ {comment.likes}</span>
+              </div>
+            )}
+            
+            {/* Reply indicator */}
+            {comment.replyTo && (
+              <div className="text-xs text-gray-500 mt-2">
+                ↳ Reply to another comment
+              </div>
+            )}
+          </Link>
+        ))}
+      </div>
+      
+      {/* Load more */}
+      {hasMore && (
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={isLoading}
+          className="w-full mt-4 py-2 text-sm text-primary hover:text-primary-dark transition disabled:opacity-50"
+        >
+          {isLoading ? 'Loading...' : 'Load more replies'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function ProfilePageClient({ address }: { address: string }) {
   const { address: connectedAddress } = useAccount()
   const { usdRate } = useUsdPrice()
@@ -731,7 +865,7 @@ export function ProfilePageClient({ address }: { address: string }) {
             </div>
           </div>
 
-          {/* Created Tokens Balance */}
+          {/* Created Tokens - Link to token pages (no creator allocation with 100% bonding curve) */}
           {tokens && tokens.length > 0 && (
             <div className="bg-secondary-light rounded-xl p-6">
               <h2 className="text-xl font-bold mb-4">Created Tokens</h2>
@@ -760,8 +894,7 @@ export function ProfilePageClient({ address }: { address: string }) {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold">200M {token.symbol}</div>
-                      <div className="text-sm text-gray-400">Creator allocation</div>
+                      <div className="text-sm text-primary">View Token →</div>
                     </div>
                   </Link>
                 ))}
@@ -776,9 +909,7 @@ export function ProfilePageClient({ address }: { address: string }) {
 
       {/* Replies Tab */}
       {activeTab === 'replies' && (
-        <div className="bg-secondary-light rounded-xl p-6 text-center">
-          <p className="text-gray-400">Replies feature coming soon</p>
-        </div>
+        <UserReplies userAddress={address} />
       )}
 
 

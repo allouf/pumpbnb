@@ -204,30 +204,54 @@ export default function AdminPage() {
 
         {/* Fee Wallet Section */}
         <div className="mb-8 bg-gradient-to-r from-primary/20 to-blue-500/20 border border-primary/30 rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-            Platform Fee Wallet
-          </h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-gray-400 mb-1">Wallet Address</p>
-              <p className="font-mono text-sm bg-secondary/50 rounded px-3 py-2 break-all">
-                {protocolFeeRecipient as string || 'Loading...'}
-              </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              Platform Fee Wallet
+            </h2>
+            {/* Wallet Address with Copy */}
+            <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2">
+              <span className="font-mono text-sm text-gray-300">
+                {protocolFeeRecipient 
+                  ? `${(protocolFeeRecipient as string).slice(0, 6)}...${(protocolFeeRecipient as string).slice(-4)}`
+                  : 'Loading...'}
+              </span>
+              {protocolFeeRecipient && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(protocolFeeRecipient as string)
+                    alert('Address copied!')
+                  }}
+                  className="p-1.5 hover:bg-gray-600 rounded transition" 
+                  title="Copy address"
+                >
+                  <svg className="w-4 h-4 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              )}
             </div>
-            <div>
-              <p className="text-sm text-gray-400 mb-1">ASTER Balance</p>
-              <p className="text-2xl font-bold text-primary">
-                {feeWalletBalance ? `${Number(formatUnits(feeWalletBalance.value, 18)).toFixed(4)} ASTER` : 'Loading...'}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-secondary/30 rounded-xl p-4">
+              <p className="text-sm text-gray-400 mb-2">ASTER Balance</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary">
+                {feeWalletBalance 
+                  ? Number(formatUnits(feeWalletBalance.value, 18)).toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  : '...'}
               </p>
+              <p className="text-xs text-gray-500 mt-1">ASTER</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-400 mb-1">BNB Balance</p>
-              <p className="text-2xl font-bold text-yellow-500">
-                {feeWalletBnbBalance ? `${Number(formatUnits(feeWalletBnbBalance.value, 18)).toFixed(4)} BNB` : 'Loading...'}
+            <div className="bg-secondary/30 rounded-xl p-4">
+              <p className="text-sm text-gray-400 mb-2">BNB Balance</p>
+              <p className="text-2xl sm:text-3xl font-bold text-yellow-500">
+                {feeWalletBnbBalance 
+                  ? Number(formatUnits(feeWalletBnbBalance.value, 18)).toFixed(4)
+                  : '...'}
               </p>
+              <p className="text-xs text-gray-500 mt-1">BNB</p>
             </div>
           </div>
         </div>
@@ -277,7 +301,8 @@ export default function AdminPage() {
             {/* Overview Stats */}
             <div className="mb-8">
               <h2 className="text-xl font-bold mb-4">Platform Overview</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* First row: 4 cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <StatCard
                   label="Total Tokens"
                   value={stats.overview.totalTokens.toLocaleString()}
@@ -300,6 +325,9 @@ export default function AdminPage() {
                   value={stats.overview.uniqueTraders.toLocaleString()}
                   icon="👥"
                 />
+              </div>
+              {/* Second row: 3 cards centered */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <StatCard
                   label="Registered Users"
                   value={stats.overview.totalUsers.toLocaleString()}

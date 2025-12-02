@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { userController } from '../controllers/user.controller';
+import { commentsController } from '../controllers/comments.controller';
 import { validate, schemas } from '../middleware/validation';
 import { optionalAuth } from '../middleware/auth';
 import Joi from 'joi';
@@ -60,5 +61,7 @@ router.post('/:address/watchlist', validate(watchlistSchema), userController.add
 router.delete('/:address/watchlist/:tokenAddress', validate(removeWatchlistSchema), userController.removeFromWatchlist);
 
 router.post('/:address/sync', validate(addressSchema), userController.syncBalances);
+
+router.get('/:address/comments', validate(addressSchema), commentsController.getUserComments.bind(commentsController));
 
 export default router;

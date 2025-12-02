@@ -309,6 +309,73 @@ class CommentsService {
   }
 
   /**
+   * Get all comments by a specific user (for profile page replies tab)
+   */
+  async getUserComments(
+    userAddress: string,
+    options: {
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<Comment & { token?: { name: string; symbol: string; imageUrl: string | null } }>> {
+    const { page = 1, limit = 20 } = options;
+    const skip = (page - 1) * limit;
+
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where: {
+          userAddress: userAddress.toLowerCase(),
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.comment.count({
+        where: { userAddress: userAddress.toLowerCase() },
+      }),
+    ]);
+
+    // Fetch token data for each comment
+    const tokenAddresses = [...new Set(comments.map(c => c.tokenAddress))];
+    const tokens = await prisma.token.findMany({
+      where: {
+        address: { in: tokenAddresses },
+      },
+      select: {
+        address: true,
+        name: true,
+        symbol: true,
+        imageUrl: true,
+      },
+    });
+
+    // Create a map for quick lookup
+    const tokenMap = new Map(tokens.map(t => [t.address.toLowerCase(), t]));
+
+    // Attach token data to comments
+    const commentsWithTokens = comments.map(comment => {
+      const token = tokenMap.get(comment.tokenAddress.toLowerCase());
+      return {
+        ...comment,
+        token: token ? { name: token.name, symbol: token.symbol, imageUrl: token.imageUrl } : undefined,
+      };
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: commentsWithTokens,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+    };
+  }
+
+  /**
    * Get comment statistics for a token
    */
   async getCommentStats(tokenAddress: string) {

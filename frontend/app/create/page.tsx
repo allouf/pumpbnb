@@ -243,30 +243,6 @@ export default function CreateTokenPage() {
           {/* Main Form - Left Side */}
           <div className="bg-secondary-light p-4 sm:p-6 lg:p-8 rounded-xl border border-gray-800">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Factory Health Banner */}
-              <div className={`rounded-lg p-4 border ${reserveOk && !vrError ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="text-sm">
-                    <div className="font-semibold mb-1">Factory Status</div>
-                    <div className="text-gray-300">
-                      Address: <span className="font-mono break-all">{CONTRACTS.TOKEN_FACTORY}</span>
-                    </div>
-                    <div className="text-gray-300">
-                      virtualAsterReserve: {vrLoading ? 'loading…' : `${formatUnits(vr, 18)} ASTER`} (expected 10,000)
-                    </div>
-                    {vrError && (
-                      <div className="text-red-400 mt-1">Error reading factory: {String((vrError as Error).message || vrError)}</div>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium">
-                    {reserveOk && !vrError ? (
-                      <span className="text-green-500">✓ Ready</span>
-                    ) : (
-                      <span className="text-red-500">✗ Misconfigured — creation disabled</span>
-                    )}
-                  </div>
-                </div>
-              </div>
 
               {/* Warning Banner */}
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
@@ -470,7 +446,7 @@ export default function CreateTokenPage() {
                           type="button"
                           className="bg-primary text-black px-6 py-2 rounded-lg font-semibold hover:bg-primary-dark transition"
                         >
-                          Log in
+                          Choose File
                         </button>
                       </div>
                     )}
@@ -547,11 +523,13 @@ export default function CreateTokenPage() {
                 disabled={!isConnected || isPending || isConfirming || isUploadingImage || !reserveOk || !!vrError}
                 className="w-full bg-primary text-black px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isUploadingImage
+                {!isConnected
+                  ? 'Connect wallet to create coin'
+                  : isUploadingImage
                   ? 'Uploading image...'
                   : isPending || isConfirming
                   ? 'Creating...'
-                  : 'Login to create coin'}
+                  : 'Create Coin'}
               </button>
 
               <p className="text-xs text-gray-500 text-center">
