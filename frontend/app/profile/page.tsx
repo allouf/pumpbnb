@@ -3,12 +3,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
-import { useWeb3Modal } from '@web3modal/wagmi/react'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { address, isConnected, isConnecting } = useAccount()
-  const { open } = useWeb3Modal()
 
   useEffect(() => {
     // If connected, redirect to user's profile page
@@ -51,19 +50,13 @@ export default function ProfilePage() {
           see your trading history, and manage your portfolio.
         </p>
 
-        {/* Connect Button */}
-        <button
-          onClick={() => open()}
-          className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-black font-bold px-8 py-3 rounded-xl transition-all duration-200 hover:scale-105"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-          </svg>
-          Connect Wallet
-        </button>
+        {/* Connect Button - Using RainbowKit */}
+        <div className="flex justify-center mb-8">
+          <ConnectButton />
+        </div>
 
         {/* Additional Info */}
-        <div className="mt-8 pt-6 border-t border-gray-700">
+        <div className="pt-6 border-t border-gray-700">
           <p className="text-sm text-gray-500">
             New to crypto wallets?{' '}
             <a
