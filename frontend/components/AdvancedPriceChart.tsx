@@ -535,29 +535,13 @@ export function AdvancedPriceChart({
     }
   }, [transactions, asterUsdPrice])
 
-  // Filter transactions by timeframe
+  // Timeframe controls CANDLE INTERVAL SIZE, not time range filtering
+  // All transactions are always available - user scrolls/zooms to see different time ranges
   const filteredTransactions = useMemo(() => {
     if (transactions.length === 0) return []
-
-    // If "all" is selected, show all transactions
-    if (timeframe === 'all') {
-      return transactions
-    }
-
-    const now = Math.floor(Date.now() / 1000)
-    const timeframeSeconds: Record<Exclude<Timeframe, 'all'>, number> = {
-      '1m': 60,
-      '5m': 300,
-      '15m': 900,
-      '30m': 1800,
-      '1h': 3600,
-      '4h': 14400,
-      '1d': 86400,
-    }
-
-    const cutoff = now - timeframeSeconds[timeframe]
-    return transactions.filter(tx => tx.timestamp >= cutoff)
-  }, [transactions, timeframe])
+    // Always return all transactions - timeframe only affects candle grouping
+    return transactions
+  }, [transactions])
 
   // Create chart (one-time setup)
   useEffect(() => {
@@ -1867,22 +1851,57 @@ export function AdvancedPriceChart({
     }
   }, [filteredTransactions, priceMode, chartType, asterUsdPrice, displayMetric, timeframe])
 
-  // Separate effect to fit content only when timeframe changes
+  // Separate effect to set visible range when timeframe changes
   useEffect(() => {
     if (!chartRef.current || !priceSeriesRef.current) return
     if (filteredTransactions.length === 0) return
     if (isInitialLoadRef.current) return // Don't interfere with initial load
 
-    // Fit content when timeframe changes to show the selected period properly
-    console.log('[AdvancedPriceChart] Timeframe changed, fitting content to:', timeframe, 'with', filteredTransactions.length, 'transactions')
+    console.log('[AdvancedPriceChart] Timeframe changed to:', timeframe)
 
-    // Add a small delay to ensure data is updated before fitting
+    // Calculate how many candles to show based on timeframe
+    // For shorter timeframes, show more recent data; for longer, show all
+    const now = Math.floor(Date.now() / 1000)
+
+    // Define visible range based on timeframe (how much time to show on screen)
+    const visibleRangeSeconds: Record<Timeframe, number> = {
+      '1m': 60 * 60,        // Show last 1 hour for 1m candles
+      '5m': 4 * 60 * 60,    // Show last 4 hours for 5m candles
+      '15m': 12 * 60 * 60,  // Show last 12 hours for 15m candles
+      '30m': 24 * 60 * 60,  // Show last 24 hours for 30m candles
+      '1h': 48 * 60 * 60,   // Show last 2 days for 1h candles
+      '4h': 7 * 24 * 60 * 60,   // Show last week for 4h candles
+      '1d': 30 * 24 * 60 * 60,  // Show last month for 1d candles
+      'all': 0, // Special: fit all content
+    }
+
     setTimeout(() => {
-      if (chartRef.current) {
+      if (!chartRef.current) return
+
+      if (timeframe === 'all') {
+        // Fit all content for "all" timeframe
         chartRef.current.timeScale().fitContent()
+        console.log('[AdvancedPriceChart] ✅ Fitted all content for "all" timeframe')
+      } else {
+        // Set visible range to show the appropriate time window
+        const rangeSeconds = visibleRangeSeconds[timeframe]
+        const fromTime = now - rangeSeconds
+        const toTime = now + (rangeSeconds * 0.1) // Add 10% padding to the right
+
+        try {
+          chartRef.current.timeScale().setVisibleRange({
+            from: fromTime as any,
+            to: toTime as any,
+          })
+          console.log('[AdvancedPriceChart] ✅ Set visible range for', timeframe, ':', new Date(fromTime * 1000).toLocaleString(), 'to', new Date(toTime * 1000).toLocaleString())
+        } catch (e) {
+          // Fallback to fitContent if setVisibleRange fails
+          console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using fitContent:', e)
+          chartRef.current.timeScale().fitContent()
+        }
       }
-    }, 100)
-  }, [timeframe])
+    }, 150)
+  }, [timeframe, filteredTransactions.length])
 
   // Update price format when displayMetric changes (Price vs MCap)
   useEffect(() => {
