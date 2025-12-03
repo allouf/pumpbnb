@@ -194,7 +194,7 @@ export function AdvancedPriceChart({
   
   // Chart control toggles
   const [showTradeDisplay, setShowTradeDisplay] = useState(true)
-  const [displayMetric, setDisplayMetric] = useState<'Price' | 'MCap'>('Price')
+  const [displayMetric, setDisplayMetric] = useState<'Price' | 'MCap'>('MCap')
   const [showDebugPanel, setShowDebugPanel] = useState(false)
 
   // ASTER USD price state - fetched from API
@@ -1865,7 +1865,7 @@ export function AdvancedPriceChart({
         console.error('[AdvancedPriceChart] Error updating data:', error)
       }
     }
-  }, [filteredTransactions, priceMode, chartType, asterUsdPrice, displayMetric])
+  }, [filteredTransactions, priceMode, chartType, asterUsdPrice, displayMetric, timeframe])
 
   // Separate effect to fit content only when timeframe changes
   useEffect(() => {

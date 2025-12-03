@@ -33,7 +33,6 @@ interface NavigationItem {
 
 const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: HomeIcon, iconSolid: HomeIconSolid },
-  { name: 'Create', href: '/create', icon: PlusIcon, iconSolid: PlusIconSolid },
   {
     name: 'Profile',
     href: (address?: string) => address ? `/profile/${address}` : '/profile',
@@ -297,30 +296,6 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
         document.body
       )}
 
-      {/* Create Coin Button */}
-      <div className="p-2 border-t border-border">
-        <Link href="/create">
-          {isCollapsed ? (
-            <button 
-              className="w-full h-12 bg-primary hover:bg-primary/90 rounded-lg flex items-center justify-center transition-colors group relative"
-              title="Create coin"
-            >
-              <PlusIcon className="w-5 h-5 text-black" />
-              {/* Tooltip for collapsed create button */}
-              <div className="absolute left-full ml-2 px-2 py-1 bg-secondary-light border border-gray-700 rounded text-sm text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                Create coin
-              </div>
-            </button>
-          ) : (
-            <button 
-              className="w-full h-12 bg-primary hover:bg-primary/90 rounded-lg flex items-center justify-center gap-2 text-black font-bold transition-colors"
-            >
-              <PlusIcon className="w-5 h-5" />
-              <span>Create coin</span>
-            </button>
-          )}
-        </Link>
-      </div>
     </div>
   );
 }

@@ -131,91 +131,97 @@ function CommentItem({
   const maxDepth = 3 // Maximum nesting depth
 
   return (
-    <div className={`${depth > 0 ? 'ml-8 border-l-2 border-gray-700 pl-4' : ''}`}>
-      <div className="border-b border-gray-800 pb-4 last:border-b-0">
+    <div className={`${depth > 0 ? 'ml-6 border-l border-gray-700/50 pl-3' : ''}`} style={{ fontFamily: 'sans-serif', WebkitFontSmoothing: 'antialiased' }}>
+      <div className="pb-4 last:border-b-0">
         {/* Comment Header */}
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-start gap-2.5 mb-1.5">
           {/* User Avatar */}
           <div
-            className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden flex-shrink-0"
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center cursor-pointer hover:opacity-80 transition overflow-hidden flex-shrink-0 ring-1 ring-primary/20"
             onClick={() => onProfileClick(comment.userAddress)}
           >
             {userProfile?.profileImage ? (
               <Image
                 src={getImageUrl(userProfile.profileImage)}
                 alt={userProfile.username || 'User'}
-                width={32}
-                height={32}
+                width={28}
+                height={28}
                 className="w-full h-full object-cover"
                 unoptimized
               />
             ) : (
-              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-primary/60" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
               </svg>
             )}
           </div>
 
-          {/* User Info */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className="font-mono text-sm text-gray-300 hover:text-primary cursor-pointer transition"
-              onClick={() => onProfileClick(comment.userAddress)}
-            >
-              {userProfile?.username || formatAddress(comment.userAddress)}
-            </span>
-            <span className="text-xs text-gray-500">
-              {formatTime(comment.createdAt)}
-            </span>
-          </div>
-        </div>
+          {/* User Info & Comment Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+              <span
+                className="text-sm font-medium text-gray-200 hover:text-primary cursor-pointer transition"
+                onClick={() => onProfileClick(comment.userAddress)}
+                style={{ fontSize: '14px' }}
+              >
+                {userProfile?.username || formatAddress(comment.userAddress)}
+              </span>
+              <span className="text-xs text-gray-500" style={{ fontSize: '12px' }}>
+                {formatTime(comment.createdAt)}
+              </span>
+            </div>
 
-        {/* Comment Content */}
-        <p className="text-sm text-gray-200 mb-3 pl-11 break-words">
-          {comment.content}
-        </p>
+            {/* Comment Content - inline with header */}
+            <p className="text-gray-300 break-words leading-relaxed" style={{ fontSize: '14px' }}>
+              {comment.content}
+            </p>
 
-        {/* Comment Actions */}
-        <div className="flex items-center gap-4 pl-11">
-          {depth < maxDepth && (
-            <button
-              onClick={() => setShowReplyForm(!showReplyForm)}
-              disabled={!isConnected}
-              className="text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
-            >
-              Reply
-            </button>
-          )}
-          <button
-            onClick={() => onLike(comment.id)}
-            disabled={!isConnected}
-            className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary transition disabled:opacity-50"
-          >
-            <span>👍</span>
-            <span>{comment.likes || 0}</span>
-          </button>
-          {replyCount > 0 && (
-            <button
-              onClick={handleToggleReplies}
-              className="text-xs text-primary hover:text-primary/80 transition flex items-center gap-1"
-            >
-              {isLoadingReplies ? (
-                <span className="animate-pulse">Loading...</span>
-              ) : (
-                <>
-                  <svg
-                    className={`w-3 h-3 transition-transform ${showReplies ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  <span>{replyCount} {replyCount === 1 ? 'reply' : 'replies'}</span>
-                </>
+            {/* Comment Actions */}
+            <div className="flex items-center gap-3 mt-2">
+              {depth < maxDepth && (
+                <button
+                  onClick={() => setShowReplyForm(!showReplyForm)}
+                  disabled={!isConnected}
+                  className="text-xs text-gray-500 hover:text-primary transition disabled:opacity-50"
+                  style={{ fontSize: '12px' }}
+                >
+                  reply
+                </button>
               )}
-            </button>
-          )}
+              <button
+                onClick={() => onLike(comment.id)}
+                disabled={!isConnected}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-primary transition disabled:opacity-50"
+                style={{ fontSize: '12px' }}
+              >
+                <span>👍</span>
+                <span>{comment.likes || 0}</span>
+              </button>
+              {replyCount > 0 && (
+                <button
+                  onClick={handleToggleReplies}
+                  className="text-xs text-primary/80 hover:text-primary transition flex items-center gap-1"
+                  style={{ fontSize: '12px' }}
+                >
+                  {isLoadingReplies ? (
+                    <span className="animate-pulse">Loading...</span>
+                  ) : (
+                    <>
+                      <svg
+                        className={`w-3 h-3 transition-transform ${showReplies ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      <span>{replyCount} {replyCount === 1 ? 'reply' : 'replies'}</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Reply Form */}
@@ -430,39 +436,41 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Comment Input - Long textbox */}
-      <div className="mb-6">
+    <div className="space-y-3" style={{ fontFamily: 'sans-serif', WebkitFontSmoothing: 'antialiased' }}>
+      {/* Comment Input - Compact pump.fun style */}
+      <div className="mb-4">
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Add a comment..."
-          rows={3}
-          className="w-full px-4 py-3 bg-secondary rounded-lg border border-gray-700 focus:border-primary focus:outline-none resize-none text-sm placeholder-gray-400"
+          rows={2}
+          className="w-full px-3 py-2.5 bg-secondary/50 rounded-lg border border-gray-700/50 focus:border-primary/50 focus:outline-none resize-none placeholder-gray-500 transition"
+          style={{ fontSize: '14px' }}
           maxLength={1000}
           disabled={!isConnected}
         />
         {isConnected ? (
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-500">
+            <span className="text-gray-500" style={{ fontSize: '12px' }}>
               {newComment.length}/1000
             </span>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !newComment.trim()}
-              className="bg-primary text-black px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="bg-primary text-black px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontSize: '13px' }}
             >
               {isSubmitting ? 'Posting...' : 'Post'}
             </button>
           </div>
         ) : (
-          <p className="text-xs text-gray-500 mt-2">Connect wallet to comment</p>
+          <p className="text-gray-500 mt-2" style={{ fontSize: '12px' }}>Connect wallet to comment</p>
         )}
       </div>
 
       {/* Sort Button */}
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-gray-400">
+      <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-700/30">
+        <span className="text-gray-400" style={{ fontSize: '13px' }}>
           {comments.length} comment{comments.length !== 1 ? 's' : ''}
         </span>
         <button
@@ -470,17 +478,18 @@ export function CommentsSection({ tokenAddress }: CommentsSectionProps) {
             setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')
             setCurrentPage(1) // Reset to first page when changing sort
           }}
-          className="text-sm text-gray-400 hover:text-white transition flex items-center gap-1"
+          className="text-gray-400 hover:text-white transition flex items-center gap-1"
+          style={{ fontSize: '13px' }}
         >
-          Sort: {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
         </button>
       </div>
 
       {/* Comments List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {isLoading ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

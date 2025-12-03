@@ -87,13 +87,13 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false, refresh
 
   if (compact) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 w-full overflow-hidden">
         {holders.length === 0 ? (
           <div className="text-center py-4 text-gray-400 text-sm">
             <p>No holders yet</p>
           </div>
         ) : (
-          holders.slice(0, 3).map((holder, index) => {
+          holders.slice(0, 5).map((holder, index) => {
             // Safety check: ensure holder has required fields
             if (!holder || !holder.address || !holder.balance) {
               console.warn('[TopHolders] Skipping invalid holder:', holder)
@@ -101,11 +101,12 @@ export function TopHolders({ tokenAddress, tokenSymbol, compact = false, refresh
             }
 
             return (
-              <div key={holder.address} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ClickableWalletAddress address={holder.address} className="text-xs" />
+              <div key={holder.address} className="flex items-center justify-between gap-2 py-1">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-xs text-gray-500 w-4 flex-shrink-0">#{index + 1}</span>
+                  <ClickableWalletAddress address={holder.address} className="text-xs truncate" />
                 </div>
-                <span className="text-sm font-bold text-white">
+                <span className="text-xs font-bold text-primary flex-shrink-0">
                   {(holder.percentage || 0).toFixed(2)}%
                 </span>
               </div>

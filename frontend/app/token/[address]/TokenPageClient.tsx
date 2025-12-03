@@ -36,7 +36,7 @@ interface TokenPageClientProps {
 
 export function TokenPageClient({ address }: TokenPageClientProps) {
   const { address: userAddress, isConnected } = useAccount()
-  const [activeTab, setActiveTab] = useState<Tab>('trades')
+  const [activeTab, setActiveTab] = useState<Tab>('comments')
   const [showSharePopup, setShowSharePopup] = useState(false)
   const [holdersRefreshTrigger, setHoldersRefreshTrigger] = useState(0)
   const [tradesRefreshTrigger, setTradesRefreshTrigger] = useState(0)
@@ -342,186 +342,163 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           {/* Left Column - Chart + Tabs + Token Info - Independent scroll */}
           <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden lg:pr-2 h-full">
             {/* Token Info Header - Same Width as Chart - Mobile-first Design */}
-            <div className="bg-secondary-light rounded-xl p-3 sm:p-6 mb-4 border border-gray-700">
-              {/* Mobile: Stack layout, Desktop: Side by side */}
-              <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-6">
-                {/* Row 1 on mobile: Image + Name + Actions */}
-                <div className="flex items-start gap-3 sm:gap-6">
-                  {/* Token Image - Smaller on mobile */}
-                  <div className="flex-shrink-0 group relative">
-                    <div className="relative w-14 h-14 sm:w-24 sm:h-24 md:w-28 md:h-28">
-                      {/* Gradient border effect */}
-                      <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-600 via-yellow-400 to-amber-600 p-[2px]">
-                        <div className="h-full w-full rounded-lg bg-secondary-light"></div>
+            <div className="bg-secondary-light rounded-xl p-3 sm:p-4 mb-4 border border-gray-700">
+              {/* Main container: Token info on left, Banner space on right */}
+              <div className="flex items-stretch gap-4">
+                {/* Left side: Token info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    {/* Token Image - Compact */}
+                    <div className="flex-shrink-0 group relative">
+                      <div className="relative w-14 h-14 sm:w-16 sm:h-16">
+                        {/* Gradient border effect */}
+                        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-600 via-yellow-400 to-amber-600 p-[2px]">
+                          <div className="h-full w-full rounded-lg bg-secondary-light"></div>
+                        </div>
+                        {/* Image container */}
+                        <div className="absolute inset-[2px] rounded-lg overflow-hidden">
+                          {imageUrl ? (
+                            <img
+                              src={getIpfsUrl(imageUrl)}
+                              alt={name}
+                              className="h-full w-full object-cover transition-all duration-300 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <TokenAvatar symbol={symbol} size="xl" />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {/* Image container */}
-                      <div className="absolute inset-[2px] rounded-lg overflow-hidden">
-                        {imageUrl ? (
-                          <>
-                            {/* Blurred background */}
-                            <div className="absolute inset-0 z-0">
-                              <img
-                                src={getIpfsUrl(imageUrl)}
-                                alt={name}
-                                className="h-full w-full scale-110 object-cover opacity-30 blur-md transition-transform duration-300 group-hover:scale-125"
-                              />
-                            </div>
-                            {/* Main image */}
-                            <div className="absolute inset-0 z-10 flex items-center justify-center p-1 sm:p-2">
-                              <img
-                                src={getIpfsUrl(imageUrl)}
-                                alt={name}
-                                className="h-full w-full object-contain transition-all duration-300 group-hover:scale-110"
-                              />
-                            </div>
-                          </>
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <TokenAvatar symbol={symbol} size="xl" />
+                    </div>
+
+                    {/* Token Name, Address, Social Links */}
+                    <div className="flex-1 min-w-0">
+                      {/* Row 1: Name + Action Buttons */}
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="min-w-0">
+                          <h1 className="text-base sm:text-lg font-bold leading-tight truncate">{name}</h1>
+                          <div className="flex items-center gap-1 text-xs text-gray-400">
+                            <span className="font-medium">${symbol}</span>
+                            <span className="text-gray-600">•</span>
+                            <span className="truncate">{creationInfo}</span>
                           </div>
+                        </div>
+
+                        {/* Action Buttons - Compact */}
+                        <div className="flex gap-1 flex-shrink-0">
+                          <button
+                            onClick={handleShare}
+                            className="p-1.5 bg-primary text-black hover:bg-primary/90 rounded transition"
+                            title="Share"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                              <path d="M14.5563 7.7518L8.88865 2.6655C8.67404 2.47289 8.33268 2.62521 8.33268 2.91358V5.66655C2.66602 5.66655 1.16602 7.83322 1.16602 13.4999C2.16602 11.4999 2.66602 10.3332 8.33268 10.3332V13.0862C8.33268 13.3746 8.67404 13.5269 8.88865 13.3343L14.5562 8.24796C14.7038 8.11551 14.7038 7.88426 14.5563 7.7518Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!isConnected) {
+                                toast.error('Connect wallet to add to watchlist')
+                                return
+                              }
+                              const success = await toggleWatchlist(address)
+                              if (success) {
+                                toast.success(isFavorite ? 'Removed from watchlist' : 'Added to watchlist!')
+                              } else {
+                                toast.error('Failed to update watchlist')
+                              }
+                            }}
+                            disabled={watchlistLoading}
+                            className={`p-1.5 rounded transition flex items-center justify-center ${
+                              isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
+                            } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+                              <path d="M7.69983 1.35512C7.82047 1.10363 8.17953 1.10363 8.30017 1.35512L10.0126 4.92472C10.0612 5.02597 10.1578 5.09587 10.2694 5.1105L14.2103 5.62721C14.488 5.66363 14.5991 6.00504 14.3957 6.19709L11.5139 8.91815C11.4319 8.99551 11.3949 9.109 11.4155 9.21962L12.1391 13.1067C12.1902 13.381 11.8996 13.5919 11.6535 13.459L8.15842 11.5722C8.05959 11.5188 7.94041 11.5188 7.84158 11.5722L4.34646 13.459C4.10042 13.5919 3.80982 13.381 3.86088 13.1067L4.5845 9.21962C4.6051 9.109 4.56807 8.99551 4.48614 8.91815L1.60434 6.19709C1.40094 6.00504 1.51202 5.66363 1.78975 5.62721L5.7306 5.1105C5.8422 5.09587 5.93882 5.02597 5.98739 4.92472L7.69983 1.35512Z" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Row 2: Address & Creator */}
+                      <div className="flex flex-wrap items-center gap-1 text-[10px] text-gray-400 mb-1.5">
+                        <ClickableWalletAddress address={address} className="text-[10px]" />
+                        {creator && (
+                          <>
+                            <span>•</span>
+                            <span>by </span>
+                            <ClickableWalletAddress address={creator} showUsername={true} className="text-[10px]" />
+                          </>
+                        )}
+                      </div>
+
+                      {/* Row 3: Social Links - Compact icons */}
+                      <div className="flex items-center gap-1">
+                        {apiData?.website && (
+                          <a
+                            href={apiData.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 bg-secondary/50 hover:bg-secondary border border-gray-700/50 rounded transition"
+                            title="Website"
+                          >
+                            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                          </a>
+                        )}
+                        {apiData?.twitter && (
+                          <a
+                            href={`https://twitter.com/${apiData.twitter.replace('@', '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 bg-secondary/50 hover:bg-secondary border border-gray-700/50 rounded transition"
+                            title="Twitter"
+                          >
+                            <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                          </a>
+                        )}
+                        {apiData?.telegram && (
+                          <a
+                            href={apiData.telegram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 bg-secondary/50 hover:bg-secondary border border-gray-700/50 rounded transition"
+                            title="Telegram"
+                          >
+                            <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L9.23 13.615l-2.97-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
+                            </svg>
+                          </a>
+                        )}
+                        {apiData?.discord && (
+                          <a
+                            href={apiData.discord}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 bg-secondary/50 hover:bg-secondary border border-gray-700/50 rounded transition"
+                            title="Discord"
+                          >
+                            <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                            </svg>
+                          </a>
                         )}
                       </div>
                     </div>
                   </div>
-
-                  {/* Token Name & Symbol */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h1 className="text-base sm:text-xl font-bold leading-tight truncate">{name}</h1>
-                        <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
-                          <span className="font-medium">${symbol}</span>
-                          <span className="text-gray-600">•</span>
-                          <span className="truncate">{creationInfo}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Action Buttons - Compact on mobile */}
-                      <div className="flex gap-1.5 flex-shrink-0">
-                        <button
-                          onClick={handleShare}
-                          className="p-2 bg-primary text-black hover:bg-primary/90 rounded-lg transition"
-                          title="Share"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none">
-                            <path d="M14.5563 7.7518L8.88865 2.6655C8.67404 2.47289 8.33268 2.62521 8.33268 2.91358V5.66655C2.66602 5.66655 1.16602 7.83322 1.16602 13.4999C2.16602 11.4999 2.66602 10.3332 8.33268 10.3332V13.0862C8.33268 13.3746 8.67404 13.5269 8.88865 13.3343L14.5562 8.24796C14.7038 8.11551 14.7038 7.88426 14.5563 7.7518Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (!isConnected) {
-                              toast.error('Connect wallet to add to watchlist')
-                              return
-                            }
-                            const success = await toggleWatchlist(address)
-                            if (success) {
-                              toast.success(isFavorite ? 'Removed from watchlist' : 'Added to watchlist!')
-                            } else {
-                              toast.error('Failed to update watchlist')
-                            }
-                          }}
-                          disabled={watchlistLoading}
-                          className={`p-2 rounded-lg transition flex items-center justify-center ${
-                            isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
-                          } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
-                            <path d="M7.69983 1.35512C7.82047 1.10363 8.17953 1.10363 8.30017 1.35512L10.0126 4.92472C10.0612 5.02597 10.1578 5.09587 10.2694 5.1105L14.2103 5.62721C14.488 5.66363 14.5991 6.00504 14.3957 6.19709L11.5139 8.91815C11.4319 8.99551 11.3949 9.109 11.4155 9.21962L12.1391 13.1067C12.1902 13.381 11.8996 13.5919 11.6535 13.459L8.15842 11.5722C8.05959 11.5188 7.94041 11.5188 7.84158 11.5722L4.34646 13.459C4.10042 13.5919 3.80982 13.381 3.86088 13.1067L4.5845 9.21962C4.6051 9.109 4.56807 8.99551 4.48614 8.91815L1.60434 6.19709C1.40094 6.00504 1.51202 5.66363 1.78975 5.62721L5.7306 5.1105C5.8422 5.09587 5.93882 5.02597 5.98739 4.92472L7.69983 1.35512Z" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Address info - shown on larger screens */}
-                    <div className="hidden sm:flex flex-wrap items-center gap-1.5 text-xs text-gray-400 mt-1">
-                      <ClickableWalletAddress address={address} />
-                      {creator && (
-                        <>
-                          <span>•</span>
-                          <span>by </span>
-                          <ClickableWalletAddress address={creator} showUsername={true} />
-                        </>
-                      )}
-                    </div>
-                  </div>
                 </div>
 
-                {/* Row 2: Social Links - Full width on mobile */}
-                <div className="w-full sm:w-auto">
-                  {/* Address on mobile only */}
-                  <div className="flex sm:hidden flex-wrap items-center gap-1.5 text-xs text-gray-400 mb-2">
-                    <ClickableWalletAddress address={address} />
-                    {creator && (
-                      <>
-                        <span>•</span>
-                        <span>by </span>
-                        <ClickableWalletAddress address={creator} showUsername={true} />
-                      </>
-                    )}
-                  </div>
-                  
-                  {/* Social Links - horizontal scroll on mobile */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {/* Website */}
-                    {apiData?.website && (
-                      <a
-                        href={apiData.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 bg-secondary hover:bg-secondary-light border border-gray-700 rounded text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9" />
-                        </svg>
-                        Website
-                      </a>
-                    )}
-                    
-                    {/* Twitter */}
-                    {apiData?.twitter && (
-                      <a
-                        href={`https://twitter.com/${apiData.twitter.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 bg-secondary hover:bg-secondary-light border border-gray-700 rounded text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
-                        Twitter
-                      </a>
-                    )}
-                    
-                    {/* Telegram */}
-                    {apiData?.telegram && (
-                      <a
-                        href={apiData.telegram}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 bg-secondary hover:bg-secondary-light border border-gray-700 rounded text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L9.23 13.615l-2.97-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
-                        </svg>
-                        Telegram
-                      </a>
-                    )}
-
-                    {/* Discord */}
-                    {apiData?.discord && (
-                      <a
-                        href={apiData.discord}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 bg-secondary hover:bg-secondary-light border border-gray-700 rounded text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-                        </svg>
-                        Discord
-                      </a>
-                    )}
+                {/* Right side: Banner space - hidden on mobile */}
+                <div className="hidden md:flex w-40 lg:w-52 flex-shrink-0 bg-secondary/30 rounded-lg border border-gray-700/30 items-center justify-center overflow-hidden">
+                  {/* Placeholder for banner - can be gif/png */}
+                  <div className="text-center p-3">
+                    <div className="text-2xl mb-1">🚀</div>
+                    <p className="text-[10px] text-gray-500">Ad Space</p>
                   </div>
                 </div>
               </div>

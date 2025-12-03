@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 interface ClickableAddressProps {
   address: string
@@ -110,11 +111,12 @@ export function ClickableTransactionHash({ hash, className = "", children }: {
   )
 }
 
-export function ClickableWalletAddress({ address, className = "", children, showUsername = false }: {
+export function ClickableWalletAddress({ address, className = "", children, showUsername = false, linkToProfile = true }: {
   address: string
   className?: string
   children?: React.ReactNode
   showUsername?: boolean
+  linkToProfile?: boolean
 }) {
   const [username, setUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -146,16 +148,61 @@ export function ClickableWalletAddress({ address, className = "", children, show
     ? username
     : children || (address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address)
 
+  // Wrapper for profile navigation
+  const ProfileLink = ({ children: linkChildren }: { children: React.ReactNode }) => {
+    if (linkToProfile) {
+      return (
+        <Link
+          href={`/profile/${address}`}
+          className="hover:text-primary transition-colors cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {linkChildren}
+        </Link>
+      )
+    }
+    return <>{linkChildren}</>
+  }
+
   return (
-    <ClickableAddress
-      address={address}
-      type="address"
-      className={`text-gray-300 hover:text-white ${className}`}
-      children={
-        <span className={loading ? 'animate-pulse' : ''}>
+    <div className={`inline-flex items-center gap-1 ${className}`}>
+      <ProfileLink>
+        <span className={`font-mono text-sm text-gray-300 hover:text-primary cursor-pointer ${loading ? 'animate-pulse' : ''}`}>
           {displayText}
         </span>
-      }
-    />
+      </ProfileLink>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={async (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            try {
+              await navigator.clipboard.writeText(address)
+            } catch (error) {
+              console.error('Failed to copy:', error)
+            }
+          }}
+          className="p-0.5 rounded hover:bg-gray-700 transition"
+          title="Copy to clipboard"
+        >
+          <svg className="w-3 h-3 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            window.open(`https://testnet.bscscan.com/address/${address}`, '_blank')
+          }}
+          className="p-0.5 rounded hover:bg-gray-700 transition"
+          title="View on BSC explorer"
+        >
+          <svg className="w-3 h-3 text-gray-400 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </button>
+      </div>
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
@@ -10,6 +10,44 @@ import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice
 import { getIpfsUrl } from '@/lib/utils/ipfs';
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi;
+
+// Creator display component that fetches username
+function CreatorDisplay({ address }: { address: string }) {
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pumpbnb-backend.onrender.com';
+        const res = await fetch(`${API_URL}/api/profile/${address}`);
+        const data = await res.json();
+        if (data.success && data.data?.user?.username) {
+          setUsername(data.data.user.username);
+        }
+      } catch (error) {
+        console.error('Failed to fetch creator profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [address]);
+
+  const displayName = username || `${address.slice(0, 6)}...${address.slice(-4)}`;
+
+  return (
+    <Link
+      href={`/profile/${address}`}
+      onClick={(e) => e.stopPropagation()}
+      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary transition"
+    >
+      <span className={loading ? 'animate-pulse' : ''}>
+        by <span className="text-gray-300 hover:text-primary">{displayName}</span>
+      </span>
+    </Link>
+  );
+}
 
 interface TokenCardProps {
   token: {
@@ -115,17 +153,17 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
           <span className="text-xs text-gray-500">
-            {isGraduated ? '🎉 Graduated!' : isNearGraduation ? 'Graduating soon! 🚀' : 'Bonding curve progress:'}
+            {isGraduated ? '🎉 Graduated!' : isNearGraduation ? 'Graduating soon! 🚀' : 'Progress'}
           </span>
           <span className="text-xs font-medium text-gray-400">
             {displayPercentage.toFixed(1)}%
           </span>
         </div>
         <div className="w-full bg-secondary rounded-full h-2">
-          <div 
+          <div
             className={`h-2 rounded-full transition-all duration-300 ${
-              isNearGraduation 
-                ? 'bg-gradient-to-r from-primary to-primary-green animate-pulse-green' 
+              isNearGraduation
+                ? 'bg-gradient-to-r from-primary to-primary-green animate-pulse-green'
                 : 'bg-primary'
             }`}
             style={{ width: `${displayPercentage}%` }}
@@ -138,18 +176,8 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
       </div>
 
       {/* Creator Info */}
-      <div className="pt-3 border-t border-gray-700 flex items-center justify-between text-sm">
-        <div>
-          <span className="text-gray-400">Created by: </span>
-          <span className="font-mono text-xs text-gray-300">
-            {token.creator.slice(0, 6)}...{token.creator.slice(-4)}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">
-            Bonding Curve
-          </span>
-        </div>
+      <div className="pt-3 border-t border-gray-700">
+        <CreatorDisplay address={token.creator} />
       </div>
     </Link>
   );
