@@ -8,6 +8,7 @@ import type { Abi } from 'viem';
 import BondingCurveABIImport from '@/lib/abis/BondingCurve.json';
 import { useUsdPrice, asterToUsd, formatUsdPrice } from '@/lib/hooks/useUsdPrice';
 import { getIpfsUrl } from '@/lib/utils/ipfs';
+import { ATHProgressBar } from './ATHProgressBar';
 
 const BondingCurveABI = BondingCurveABIImport.abi as Abi;
 
@@ -49,6 +50,23 @@ function CreatorDisplay({ address }: { address: string }) {
   );
 }
 
+interface TokenStats {
+  price?: string;
+  priceUsd?: string;
+  marketCap?: string;
+  marketCapUsd?: string;
+  volume24h?: string;
+  volume24hUsd?: string;
+  trades24h?: number;
+  holders?: number;
+  liquidity?: string;
+  liquidityUsd?: string;
+  priceChange1h?: string;
+  priceChange6h?: string;
+  priceChange24h?: string;
+  athMarketCapUsd?: string;
+}
+
 interface TokenCardProps {
   token: {
     address: string;
@@ -59,6 +77,7 @@ interface TokenCardProps {
     imageUrl?: string;
     description?: string;
     timestamp?: number;
+    stats?: TokenStats;
   };
   compact?: boolean;
   showAnimations?: boolean;
@@ -80,10 +99,21 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
   // Graduation threshold is 10,000 ASTER
   const progressPercentage = (asterAmount / 10000) * 100;
 
-  // Calculate market cap in USD
-  const marketCapUsd = asterToUsd(asterAmount, usdRate);
-  const marketCapDisplay = formatUsdPrice(marketCapUsd);
-  
+  // Calculate market cap in USD - use stats if available, otherwise calculate from reserves
+  const marketCapUsd = token.stats?.marketCapUsd
+    ? parseFloat(token.stats.marketCapUsd)
+    : asterToUsd(asterAmount, usdRate);
+
+  // ATH Market Cap in USD from backend
+  const athMarketCapUsd = token.stats?.athMarketCapUsd
+    ? parseFloat(token.stats.athMarketCapUsd)
+    : marketCapUsd; // Use current as ATH if not set
+
+  // Market cap change (24h) - use priceChange24h as proxy for MC change
+  const marketCapChange24h = token.stats?.priceChange24h
+    ? parseFloat(token.stats.priceChange24h)
+    : 0;
+
   const isNearGraduation = progressPercentage >= 80 && progressPercentage < 100;
   const isGraduated = progressPercentage >= 100;
   const displayPercentage = Math.min(progressPercentage, 100);
@@ -99,7 +129,7 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
   };
 
   return (
-    <Link 
+    <Link
       href={`/token/${token.address}`}
       className="block bg-secondary-light p-4 rounded-xl hover:bg-secondary-light/80 transition border border-gray-800 hover:border-primary/50"
     >
@@ -132,52 +162,48 @@ export function TokenCard({ token, compact = false, showAnimations = true }: Tok
                 ${token.symbol}
               </p>
             </div>
-            <div className="text-right flex-shrink-0 ml-2">
-              <p className="text-sm font-semibold text-white whitespace-nowrap">
-                {marketCapDisplay}
-              </p>
-              <p className="text-xs text-gray-400 whitespace-nowrap">
-                Market Cap
-              </p>
-            </div>
           </div>
-          
-          {/* Time */}
+
+          {/* Creator and Time */}
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+            <CreatorDisplay address={token.creator} />
+            <span className="text-gray-600">|</span>
             <span className="whitespace-nowrap">{formatTimeAgo(token.timestamp)}</span>
           </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* ATH Progress Bar - Like pump.fun */}
+      <div className="mb-3">
+        <ATHProgressBar
+          currentMarketCap={marketCapUsd}
+          athMarketCap={athMarketCapUsd}
+          marketCapChange={marketCapChange24h}
+        />
+      </div>
+
+      {/* Bonding Curve Progress Bar */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
           <span className="text-xs text-gray-500">
-            {isGraduated ? '🎉 Graduated!' : isNearGraduation ? 'Graduating soon! 🚀' : 'Progress'}
+            {isGraduated ? 'Graduated!' : isNearGraduation ? 'Graduating soon!' : 'Bonding Curve'}
           </span>
           <span className="text-xs font-medium text-gray-400">
             {displayPercentage.toFixed(1)}%
           </span>
         </div>
-        <div className="w-full bg-secondary rounded-full h-2">
+        <div className="w-full bg-secondary rounded-full h-1.5">
           <div
-            className={`h-2 rounded-full transition-all duration-300 ${
-              isNearGraduation
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              isGraduated
+                ? 'bg-green-500'
+                : isNearGraduation
                 ? 'bg-gradient-to-r from-primary to-primary-green animate-pulse-green'
                 : 'bg-primary'
             }`}
             style={{ width: `${displayPercentage}%` }}
           />
         </div>
-        <div className="flex justify-between text-xs text-gray-600 mt-1">
-          <span>0 ASTER</span>
-          <span>10K ASTER</span>
-        </div>
-      </div>
-
-      {/* Creator Info */}
-      <div className="pt-3 border-t border-gray-700">
-        <CreatorDisplay address={token.creator} />
       </div>
     </Link>
   );

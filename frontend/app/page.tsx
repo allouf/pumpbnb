@@ -15,6 +15,7 @@ import { formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/
 import { getPercentChangeColor } from '@/lib/utils/formatters';
 import { useWatchlist } from '@/lib/hooks/useWatchlist';
 import { getIpfsUrl } from '@/lib/utils/ipfs';
+import { MiniATHProgress } from '@/components/ATHProgressBar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -242,7 +243,7 @@ export default function Home() {
                     <th className="text-left py-2 px-1 sm:px-2 text-xs">#</th>
                     <th className="text-left py-2 px-1 sm:px-2 text-xs">COIN</th>
                     <th className="text-left py-2 px-1 sm:px-2 text-xs hidden sm:table-cell">GRAPH</th>
-                    <th className="text-left py-2 px-1 sm:px-2 text-xs">MCAP</th>
+                    <th className="text-left py-2 px-1 sm:px-2 text-xs">MC/ATH</th>
                     <th className="text-left py-2 px-1 sm:px-2 text-xs hidden md:table-cell">PRICE</th>
                     <th className="text-left py-2 px-1 sm:px-2 text-xs hidden lg:table-cell">AGE</th>
                     <th className="text-left py-2 px-1 sm:px-2 text-xs hidden lg:table-cell">24H VOL</th>
@@ -299,9 +300,12 @@ export default function Home() {
                             tokenAddress={token.address}
                           />
                         </td>
-                        <td className="py-2 px-1 sm:px-2 text-white font-medium text-xs" title={`${formatMarketCap(stats?.marketCap || 0, 'ASTER')}`}>
-                          {stats?.marketCapUsd && stats.marketCapUsd !== '0' ? formatMarketCap(stats.marketCapUsd, 'USD') :
-                           stats?.marketCap ? formatMarketCap(stats.marketCap, 'ASTER') : '$0'}
+                        <td className="py-2 px-1 sm:px-2 text-white font-medium text-xs">
+                          <MiniATHProgress
+                            currentMarketCap={parseFloat(stats?.marketCapUsd || '0')}
+                            athMarketCap={parseFloat(stats?.athMarketCapUsd || stats?.marketCapUsd || '0')}
+                            marketCapChange={parseFloat(stats?.priceChange24h || '0')}
+                          />
                         </td>
                         <td className="py-2 px-1 sm:px-2 text-white text-xs hidden md:table-cell" title={`${formatPrice(stats?.price || 0, { currency: 'ASTER' })}`}>
                           {stats?.priceUsd && stats.priceUsd !== '0' ? formatPrice(stats.priceUsd, { currency: 'USD' }) :

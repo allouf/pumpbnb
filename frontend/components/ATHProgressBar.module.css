@@ -1,0 +1,234 @@
+/* ATH Progress Bar Animations - Inspired by pump.fun */
+
+/* Sparkle particle animation */
+.spark {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  animation: sparkle calc(var(--speed, 0.5) * 1s) ease-out infinite;
+  animation-delay: calc(var(--delay, 0) * 1s);
+  opacity: 0;
+  background-color: hsl(var(--h, 45), var(--s, 90%), var(--l, 70%));
+  box-shadow: 0 0 4px hsl(var(--h, 45), var(--s, 90%), var(--l, 70%)),
+              0 0 8px hsl(var(--h, 45), var(--s, 90%), var(--l, 70%));
+}
+
+@keyframes sparkle {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--rotation, 0deg)) translateY(0px) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: rotate(var(--rotation, 0deg)) translateY(calc(var(--travel, 20) * -0.3px)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--rotation, 0deg)) translateY(calc(var(--travel, 20) * -1px)) scale(0.3);
+  }
+}
+
+/* Border pulse animation for near ATH */
+.animateBorderPulse {
+  animation: borderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes borderPulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.4),
+                0 0 8px rgba(250, 204, 21, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.8),
+                0 0 16px rgba(250, 204, 21, 0.4);
+  }
+}
+
+/* Gold border styling */
+.borderGold {
+  border: 1px solid rgba(250, 204, 21, 0.5);
+}
+
+/* Animated gradient for progress fill */
+.animatedGradient {
+  background-size: 200% 200%;
+  animation: gradientShift 2s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Gold gradient for near/at ATH */
+.gradientGold {
+  background: linear-gradient(
+    90deg,
+    #f59e0b,
+    #fbbf24,
+    #fcd34d,
+    #fbbf24,
+    #f59e0b
+  );
+}
+
+/* Normal gradient for regular progress */
+.gradientNormal {
+  background: linear-gradient(
+    90deg,
+    #4b5563,
+    #6b7280
+  );
+}
+
+/* Fire glow effect for the progress bar */
+.fireGlow {
+  position: relative;
+}
+
+.fireGlow::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 100, 0, 0.5),
+    rgba(255, 200, 0, 0.5),
+    rgba(255, 100, 0, 0.5)
+  );
+  border-radius: 9999px;
+  z-index: -1;
+  filter: blur(4px);
+  animation: fireFlicker 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes fireFlicker {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Shimmer overlay effect */
+.shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmerMove 2s linear infinite;
+}
+
+@keyframes shimmerMove {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Celebration burst for new ATH */
+.celebrationBurst {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.celebrationBurst::before,
+.celebrationBurst::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fcd34d;
+  animation: burst 0.8s ease-out forwards;
+}
+
+.celebrationBurst::before {
+  left: 50%;
+  top: 50%;
+}
+
+.celebrationBurst::after {
+  left: 50%;
+  top: 50%;
+  animation-delay: 0.1s;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: scale(0) translate(-50%, -50%);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(2) translate(-50%, -100%);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3) translate(-50%, -150%);
+  }
+}
+
+/* Crown icon animation for new ATH */
+.crownBounce {
+  animation: crownBounce 0.5s ease infinite alternate;
+}
+
+@keyframes crownBounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Pulse effect for value changes */
+.valueChange {
+  animation: valueFlash 0.3s ease;
+}
+
+@keyframes valueFlash {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(250, 204, 21, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .spark {
+    width: 1.5px;
+    height: 1.5px;
+  }
+}
