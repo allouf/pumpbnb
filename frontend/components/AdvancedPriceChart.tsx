@@ -43,6 +43,8 @@ interface AdvancedPriceChartProps {
   backendMarketCapUsd?: number
   // Full backend stats - use these directly, no frontend calculations!
   backendStats?: BackendTokenStats
+  // Creator address for dev trade markers (like pump.fun)
+  creatorAddress?: string
 }
 
 type Timeframe = 'all' | '1m' | '5m' | '15m' | '30m' | '1h' | '4h' | '1d'
@@ -147,6 +149,7 @@ export function AdvancedPriceChart({
   backendPriceUsd = 0,
   backendMarketCapUsd = 0,
   backendStats,
+  creatorAddress,
 }: AdvancedPriceChartProps) {
   // Log when backend stats change
   useEffect(() => {
@@ -404,43 +407,31 @@ export function AdvancedPriceChart({
       console.log('║   24h Change:', backendStats?.priceChange24h || 'N/A')
 
       console.log('╠═══════════════════════════════════════════════════════════════╣')
-      console.log('║ 🔧 FORCING fitContent() to fix visibility...')
+      console.log('║ 🔧 Scrolling to latest data (Pump.fun style)...')
       console.log('╚═══════════════════════════════════════════════════════════════╝')
 
-      // Get current series data to understand the actual time range
+      // Pump.fun style: Scroll to show latest data at the right
       try {
-        // Force a complete re-fit by first scrolling to the earliest point
-        chartRef.current.timeScale().scrollToPosition(-1000, false)
+        chartRef.current.timeScale().scrollToRealTime()
+        console.log('✅ Scrolled to latest data (Pump.fun style)')
 
-        // Then fit all content
+        // Log the new visible range
         setTimeout(() => {
           if (chartRef.current) {
-            chartRef.current.timeScale().fitContent()
-            console.log('✅ Scrolled to start and fitContent() executed')
-
-            // Log the new visible range
             const newRange = chartRef.current.timeScale().getVisibleRange()
             if (newRange) {
-              console.log('New visible range after fix:', {
+              console.log('New visible range after scroll:', {
                 from: new Date((newRange as any).from * 1000).toLocaleString(),
                 to: new Date((newRange as any).to * 1000).toLocaleString()
               })
             }
           }
         }, 50)
-
-        // Double-check with another fitContent
-        setTimeout(() => {
-          if (chartRef.current) {
-            chartRef.current.timeScale().fitContent()
-            console.log('✅ fitContent() executed again for safety')
-          }
-        }, 200)
       } catch (e) {
-        console.error('Error during fitContent:', e)
+        console.error('Error during scrollToRealTime:', e)
       }
 
-      alert(`Debug info logged!\n\nSettings: ${displayMetric}/${priceMode}\nTransactions: ${filteredTransactions.length}\nChart forced to fitContent()\n\nCheck console for details!`)
+      alert(`Debug info logged!\n\nSettings: ${displayMetric}/${priceMode}\nTransactions: ${filteredTransactions.length}\nChart scrolled to latest (Pump.fun style)\n\nCheck console for details!`)
     } catch (error) {
       console.error('Error logging chart state:', error)
       alert('Error logging state: ' + error)
@@ -577,6 +568,42 @@ export function AdvancedPriceChart({
         fontSize: 11,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", sans-serif',
       },
+      localization: {
+        // Custom price formatter for Y-axis - shows K, M, B suffixes
+        priceFormatter: (price: number) => {
+          if (price === 0) return '$0'
+
+          // Handle very small numbers (like token prices)
+          if (Math.abs(price) < 0.0001) {
+            const priceStr = price.toFixed(12)
+            const match = priceStr.match(/^0\.0+/)
+            if (match) {
+              const leadingZeros = match[0].length - 2
+              const significantDigits = priceStr.slice(match[0].length, match[0].length + 2)
+              const subscriptDigits = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']
+              const subscriptCount = leadingZeros.toString().split('').map(d => subscriptDigits[parseInt(d)]).join('')
+              return `$0.0${subscriptCount}${significantDigits}`
+            }
+          }
+
+          // Format large numbers with K, M, B suffixes
+          const absPrice = Math.abs(price)
+          if (absPrice >= 1_000_000_000) {
+            return `$${(price / 1_000_000_000).toFixed(2)}B`
+          }
+          if (absPrice >= 1_000_000) {
+            return `$${(price / 1_000_000).toFixed(2)}M`
+          }
+          if (absPrice >= 1_000) {
+            return `$${(price / 1_000).toFixed(2)}K`
+          }
+          if (absPrice >= 1) {
+            return `$${price.toFixed(2)}`
+          }
+          // Small numbers between 0.0001 and 1
+          return `$${price.toFixed(4)}`
+        },
+      },
       grid: {
         vertLines: {
           color: 'rgba(75, 85, 99, 0.4)',  // Much more visible grid lines (darker gray)
@@ -613,9 +640,9 @@ export function AdvancedPriceChart({
         secondsVisible: false,
         borderColor: 'rgba(75, 85, 99, 0.3)',
         borderVisible: true,
-        rightOffset: 12,
-        barSpacing: 8, // Tighter spacing like Pump.fun
-        minBarSpacing: 2,
+        rightOffset: 5, // Small space after latest candle like Pump.fun
+        barSpacing: 4, // Skinny candles like Pump.fun
+        minBarSpacing: 1,
         fixLeftEdge: false,
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
@@ -1004,21 +1031,14 @@ export function AdvancedPriceChart({
       // which will repopulate the series with data and fit content
       setChartType(newType)
 
-      // Force fit content after a delay to ensure data is loaded
+      // Pump.fun style: Scroll to show latest data at the right
       setTimeout(() => {
         if (chartRef.current) {
           try {
-            // Scroll to start first
-            chartRef.current.timeScale().scrollToPosition(-1000, false)
-            // Then fit all content
-            setTimeout(() => {
-              if (chartRef.current) {
-                chartRef.current.timeScale().fitContent()
-                console.log('[AdvancedPriceChart] ✅ Chart type switch - fitContent executed')
-              }
-            }, 100)
+            chartRef.current.timeScale().scrollToRealTime()
+            console.log('[AdvancedPriceChart] ✅ Chart type switch - scrolled to latest data (Pump.fun style)')
           } catch (e) {
-            console.log('[AdvancedPriceChart] ⚠️ Error fitting content after type switch:', e)
+            console.log('[AdvancedPriceChart] ⚠️ Error scrolling after type switch:', e)
           }
         }
       }, 200)
@@ -1425,6 +1445,39 @@ export function AdvancedPriceChart({
           try {
             priceSeriesRef.current.setData(lineData)
             console.log('[AdvancedPriceChart] ✅ Line/area data set successfully!')
+
+            // Add dev trade markers for line/area charts
+            if (creatorAddress && filteredTransactions.length > 0) {
+              const devTrades = filteredTransactions.filter(tx =>
+                tx.user.toLowerCase() === creatorAddress.toLowerCase()
+              )
+
+              if (devTrades.length > 0) {
+                const markers = devTrades.map(tx => {
+                  const asterAmount = parseFloat(tx.asterAmountFormatted || '0')
+                  const tradeValueUsd = asterAmount * asterUsdPrice
+                  const tradeTime = Math.floor(tx.timestamp) as UTCTimestamp
+                  const formattedValue = tradeValueUsd >= 1000
+                    ? `$${(tradeValueUsd / 1000).toFixed(1)}K`
+                    : `$${tradeValueUsd.toFixed(0)}`
+
+                  return {
+                    time: tradeTime,
+                    position: tx.type === 'buy' ? 'belowBar' : 'aboveBar',
+                    color: tx.type === 'buy' ? '#22c55e' : '#ef4444',
+                    shape: 'circle' as const,
+                    text: `Dev ${tx.type === 'buy' ? 'bought' : 'sold'} ${formattedValue}`,
+                  }
+                }).sort((a, b) => (a.time as number) - (b.time as number))
+
+                try {
+                  priceSeriesRef.current.setMarkers(markers)
+                  console.log('[AdvancedPriceChart] ✅ Dev trade markers set for line/area:', markers.length)
+                } catch (markerError) {
+                  console.error('[AdvancedPriceChart] ❌ Error setting dev markers:', markerError)
+                }
+              }
+            }
           } catch (setDataError) {
             console.error('[AdvancedPriceChart] ❌ Error setting line/area data:', setDataError)
           }
@@ -1488,6 +1541,39 @@ export function AdvancedPriceChart({
           try {
             priceSeriesRef.current.setData(histogramData)
             console.log('[AdvancedPriceChart] ✅ Histogram data set successfully!')
+
+            // Add dev trade markers for histogram charts
+            if (creatorAddress && filteredTransactions.length > 0) {
+              const devTrades = filteredTransactions.filter(tx =>
+                tx.user.toLowerCase() === creatorAddress.toLowerCase()
+              )
+
+              if (devTrades.length > 0) {
+                const markers = devTrades.map(tx => {
+                  const asterAmount = parseFloat(tx.asterAmountFormatted || '0')
+                  const tradeValueUsd = asterAmount * asterUsdPrice
+                  const tradeTime = Math.floor(tx.timestamp) as UTCTimestamp
+                  const formattedValue = tradeValueUsd >= 1000
+                    ? `$${(tradeValueUsd / 1000).toFixed(1)}K`
+                    : `$${tradeValueUsd.toFixed(0)}`
+
+                  return {
+                    time: tradeTime,
+                    position: tx.type === 'buy' ? 'belowBar' : 'aboveBar',
+                    color: tx.type === 'buy' ? '#22c55e' : '#ef4444',
+                    shape: 'circle' as const,
+                    text: `Dev ${tx.type === 'buy' ? 'bought' : 'sold'} ${formattedValue}`,
+                  }
+                }).sort((a, b) => (a.time as number) - (b.time as number))
+
+                try {
+                  priceSeriesRef.current.setMarkers(markers)
+                  console.log('[AdvancedPriceChart] ✅ Dev trade markers set for histogram:', markers.length)
+                } catch (markerError) {
+                  console.error('[AdvancedPriceChart] ❌ Error setting dev markers:', markerError)
+                }
+              }
+            }
           } catch (setDataError) {
             console.error('[AdvancedPriceChart] ❌ Error setting histogram data:', setDataError)
           }
@@ -1586,6 +1672,47 @@ export function AdvancedPriceChart({
           try {
             priceSeriesRef.current.setData(finalData as any)
             console.log('[AdvancedPriceChart] ✅ Candlestick data set successfully!')
+
+            // Add dev trade markers (like pump.fun) - circles showing when creator bought/sold
+            if (creatorAddress && filteredTransactions.length > 0) {
+              const devTrades = filteredTransactions.filter(tx =>
+                tx.user.toLowerCase() === creatorAddress.toLowerCase()
+              )
+
+              if (devTrades.length > 0) {
+                console.log('[AdvancedPriceChart] 👨‍💻 Found', devTrades.length, 'dev trades to mark')
+
+                // Create markers for dev trades
+                const markers = devTrades.map(tx => {
+                  // Calculate USD value of the trade
+                  const asterAmount = parseFloat(tx.asterAmountFormatted || '0')
+                  const tradeValueUsd = asterAmount * asterUsdPrice
+
+                  // Find the candle time that this trade belongs to
+                  const tradeTime = Math.floor(tx.timestamp) as UTCTimestamp
+
+                  // Format the marker text
+                  const formattedValue = tradeValueUsd >= 1000
+                    ? `$${(tradeValueUsd / 1000).toFixed(1)}K`
+                    : `$${tradeValueUsd.toFixed(0)}`
+
+                  return {
+                    time: tradeTime,
+                    position: tx.type === 'buy' ? 'belowBar' : 'aboveBar',
+                    color: tx.type === 'buy' ? '#22c55e' : '#ef4444', // green for buy, red for sell
+                    shape: 'circle' as const,
+                    text: `Dev ${tx.type === 'buy' ? 'bought' : 'sold'} ${formattedValue}`,
+                  }
+                }).sort((a, b) => (a.time as number) - (b.time as number))
+
+                try {
+                  priceSeriesRef.current.setMarkers(markers)
+                  console.log('[AdvancedPriceChart] ✅ Dev trade markers set:', markers.length)
+                } catch (markerError) {
+                  console.error('[AdvancedPriceChart] ❌ Error setting dev markers:', markerError)
+                }
+              }
+            }
           } catch (setDataError) {
             console.error('[AdvancedPriceChart] ❌ Error setting candlestick data:', setDataError)
             console.error('[AdvancedPriceChart] 📋 Data that failed:', JSON.stringify(finalData.slice(0, 5)))
@@ -1653,39 +1780,32 @@ export function AdvancedPriceChart({
           const timePadding = Math.max(totalTimeRange * 0.1, 300) // 10% padding, min 5 minutes
 
           if (isSettingsChange) {
-            // MODE CHANGE: Reset view to show all data properly scaled
-            console.log('[AdvancedPriceChart] 🔄 Mode change detected - resetting view to show all data')
+            // MODE CHANGE: Pump.fun style - show latest data at right
+            console.log('[AdvancedPriceChart] 🔄 Mode change detected - scrolling to latest data (Pump.fun style)')
 
-            // Step 1: Scroll to the far left to reset view position
-            try {
-              chartRef.current.timeScale().scrollToPosition(-1000, false)
-            } catch (e) {
-              console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed:', e)
-            }
+            // Calculate visible range for ~60 candles at the right
+            const visibleCandleCount = 60
+            const candleTimeSpan = totalTimeRange / candleData.length || 300
+            const visibleTimeSpan = candleTimeSpan * visibleCandleCount
 
-            // Step 2: Set visible range explicitly after a small delay
             setTimeout(() => {
               if (chartRef.current) {
                 try {
+                  const visibleFrom = Math.max(firstTime, lastTime - visibleTimeSpan) as UTCTimestamp
+                  const visibleTo = (lastTime + candleTimeSpan * 5) as UTCTimestamp
+
                   chartRef.current.timeScale().setVisibleRange({
-                    from: (firstTime - timePadding) as UTCTimestamp,
-                    to: (lastTime + timePadding * 0.5) as UTCTimestamp,
+                    from: visibleFrom,
+                    to: visibleTo,
                   })
-                  console.log('[AdvancedPriceChart] ✅ Chart visible range set after mode change')
+                  chartRef.current.timeScale().scrollToRealTime()
+                  console.log('[AdvancedPriceChart] ✅ Mode change - scrolled to latest data (Pump.fun style)')
                 } catch (e) {
-                  console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using fitContent:', e)
-                  chartRef.current.timeScale().fitContent()
+                  console.log('[AdvancedPriceChart] ⚠️ setVisibleRange failed, using scrollToRealTime:', e)
+                  chartRef.current.timeScale().scrollToRealTime()
                 }
               }
             }, 100)
-
-            // Step 3: Backup fitContent after a longer delay
-            setTimeout(() => {
-              if (chartRef.current) {
-                chartRef.current.timeScale().fitContent()
-                console.log('[AdvancedPriceChart] ✅ Chart fitContent executed as backup')
-              }
-            }, 300)
           } else if (savedVisibleRange) {
             // DATA REFRESH: Restore the user's previous scroll position
             console.log('[AdvancedPriceChart] 📌 Data refresh - restoring previous scroll position')
@@ -1774,18 +1894,23 @@ export function AdvancedPriceChart({
                   paddedMaxPrice = maxPrice + pricePaddingTop
                 }
                 
-                // Step 1: Scroll to the far left first to reset view position
-                try {
-                  chartRef.current.timeScale().scrollToPosition(-1000, false)
-                } catch (e) {
-                  console.log('[AdvancedPriceChart] ⚠️ scrollToPosition failed on initial load:', e)
-                }
+                // Pump.fun style: Show latest data at the right edge
+                // Display approximately 60 candles worth of data, scrolled to the right
+                const visibleCandleCount = 60
+                const candleTimeSpan = totalTimeRange / candleData.length || 300 // seconds per candle
+                const visibleTimeSpan = candleTimeSpan * visibleCandleCount
 
-                // Step 2: Set the visible time range to show all data
+                // Calculate visible range showing latest data at the right
+                const visibleFrom = Math.max(firstTime, lastTime - visibleTimeSpan) as UTCTimestamp
+                const visibleTo = (lastTime + candleTimeSpan * 5) as UTCTimestamp // Small padding for rightOffset
+
                 chartRef.current.timeScale().setVisibleRange({
-                  from: paddedStartTime,
-                  to: paddedEndTime,
+                  from: visibleFrom,
+                  to: visibleTo,
                 })
+
+                // Scroll to real time to ensure latest candle is at the right
+                chartRef.current.timeScale().scrollToRealTime()
                 
                 // Apply price range scaling for optimal view
                 priceSeriesRef.current?.applyOptions({
@@ -1797,41 +1922,20 @@ export function AdvancedPriceChart({
                   }),
                 })
                 
-                // Log the improved chart state (inside try block to access variables)
+                // Log the Pump.fun style chart state
                 setTimeout(() => {
                   if (chartRef.current) {
                     const timeScale = chartRef.current.timeScale()
-                    const visibleRange = timeScale.getVisibleRange()
-                    
+                    const actualVisibleRange = timeScale.getVisibleRange()
+
                     console.log('═══════════════════════════════════════════════════')
-                    console.log('📊 IMPROVED INITIAL CHART STATE:')
+                    console.log('📊 PUMP.FUN STYLE CHART - Latest data at right:')
                     console.log('═══════════════════════════════════════════════════')
-                    console.log('Visible Time Range:', visibleRange)
-                    console.log('From:', visibleRange ? new Date((visibleRange as any).from * 1000).toISOString() : 'N/A')
-                    console.log('To:', visibleRange ? new Date((visibleRange as any).to * 1000).toISOString() : 'N/A')
-                    console.log('Scale Margins (current):', {
-                      top: 0.20,
-                      bottom: 0.35
-                    })
-                    console.log('Chart Type:', chartType)
-                    console.log('Timeframe:', timeframe)
-                    console.log('Price Mode:', priceMode)
-                    console.log('Transactions Count:', candleData.length)
-                    console.log('Price Range:', {
-                      minPrice: minPrice.toFixed(8),
-                      maxPrice: maxPrice.toFixed(8),
-                      paddedMinPrice: paddedMinPrice.toFixed(8),
-                      paddedMaxPrice: paddedMaxPrice.toFixed(8),
-                      paddingTop: '40%',
-                      paddingBottom: '30%'
-                    })
-                    console.log('Time Range:', {
-                      firstCandle: new Date(firstTime * 1000).toISOString(),
-                      lastCandle: new Date(lastTime * 1000).toISOString(),
-                      totalDuration: `${(totalTimeRange / 3600).toFixed(1)} hours`,
-                      paddingAdded: `${(timePadding / 3600).toFixed(1)} hours`
-                    })
-                    console.log('✅ Chart now shows complete token trading history!')
+                    console.log('Visible candles:', visibleCandleCount)
+                    console.log('Latest candle at:', new Date(lastTime * 1000).toISOString())
+                    console.log('Chart style: Skinny candles, data at right')
+                    console.log('Total candles available:', candleData.length)
+                    console.log('✅ Pump.fun style chart loaded!')
                     console.log('═══════════════════════════════════════════════════')
                   }
                 }, 300)
@@ -2228,13 +2332,13 @@ export function AdvancedPriceChart({
           </div>
         </div>
         
-        {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB - Responsive with wrap */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+        {/* Row 2: Controls - Duration + Chart Type + Price/MCap + USD/BNB - Single line scrollable on mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 overflow-x-auto scrollbar-hide pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 sm:overflow-visible sm:pb-0">
           {/* Duration Selector */}
           <select
             value={timeframe}
             onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-            className="bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
+            className="flex-shrink-0 bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
           >
             <option value="1m">1m</option>
             <option value="5m">5m</option>
@@ -2249,7 +2353,7 @@ export function AdvancedPriceChart({
           <select
             value={chartType}
             onChange={(e) => switchChartType(e.target.value as ChartType)}
-            className="bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
+            className="flex-shrink-0 bg-secondary text-white px-2 py-1 rounded text-xs border border-gray-700 hover:border-primary transition cursor-pointer"
           >
             <option value="line">Line</option>
             <option value="candlestick">Candles</option>
@@ -2258,7 +2362,7 @@ export function AdvancedPriceChart({
           </select>
 
           {/* Price/MCap Toggle */}
-          <div className="flex bg-secondary rounded border border-gray-700">
+          <div className="flex-shrink-0 flex bg-secondary rounded border border-gray-700">
             <button
               onClick={() => {
                 console.log('🔘 [BUTTON] Price clicked - switching from', displayMetric, 'to Price')
@@ -2300,7 +2404,7 @@ export function AdvancedPriceChart({
           </div>
 
           {/* USD/ASTER Toggle */}
-          <div className="flex bg-secondary rounded border border-gray-700">
+          <div className="flex-shrink-0 flex bg-secondary rounded border border-gray-700">
             <button
               onClick={() => {
                 console.log('🔘 [BUTTON] ASTER clicked - switching from', priceMode, 'to ASTER')
@@ -2335,34 +2439,31 @@ export function AdvancedPriceChart({
           </div>
         </div>
 
-        {/* Row 3: OHLC Values - Mobile Responsive - Stack on very small screens */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2">
-          {/* OHLC Values - Wrap on mobile */}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            {(hoveredData || currentOHLC) ? (
-              <>
-                <span className="text-gray-400">
-                  O:{formatCompactPrice(hoveredData?.open ?? currentOHLC?.open ?? 0, priceMode)}
-                </span>
-                <span className="text-gray-400">
-                  H:{formatCompactPrice(hoveredData?.high ?? currentOHLC?.high ?? 0, priceMode)}
-                </span>
-                <span className="text-gray-400">
-                  L:{formatCompactPrice(hoveredData?.low ?? currentOHLC?.low ?? 0, priceMode)}
-                </span>
-                <span className="text-gray-400">
-                  C:{formatCompactPrice(hoveredData?.close ?? currentOHLC?.close ?? 0, priceMode)}
-                </span>
-                <span className={`font-medium ${
-                  stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
-                </span>
-              </>
-            ) : (
-              <span className="text-gray-500">Hover for OHLC</span>
-            )}
-          </div>
+        {/* Row 3: OHLC Values - Single line scrollable on mobile */}
+        <div className="flex items-center gap-2 text-xs overflow-x-auto scrollbar-hide pb-1 -mx-2 px-2 sm:mx-0 sm:px-0 sm:overflow-visible sm:pb-0">
+          {(hoveredData || currentOHLC) ? (
+            <>
+              <span className="flex-shrink-0 text-gray-400">
+                O:{formatCompactPrice(hoveredData?.open ?? currentOHLC?.open ?? 0, priceMode)}
+              </span>
+              <span className="flex-shrink-0 text-gray-400">
+                H:{formatCompactPrice(hoveredData?.high ?? currentOHLC?.high ?? 0, priceMode)}
+              </span>
+              <span className="flex-shrink-0 text-gray-400">
+                L:{formatCompactPrice(hoveredData?.low ?? currentOHLC?.low ?? 0, priceMode)}
+              </span>
+              <span className="flex-shrink-0 text-gray-400">
+                C:{formatCompactPrice(hoveredData?.close ?? currentOHLC?.close ?? 0, priceMode)}
+              </span>
+              <span className={`flex-shrink-0 font-medium ${
+                stats.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {stats.change24h >= 0 ? '+' : ''}{stats.change24h.toFixed(1)}%
+              </span>
+            </>
+          ) : (
+            <span className="text-gray-500">Hover for OHLC</span>
+          )}
         </div>
       </div>
 

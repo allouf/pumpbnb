@@ -89,9 +89,9 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
   }, [isMoreExpanded]);
 
   return (
-    <div className={`h-screen bg-background-sidebar border-r border-border flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-64'} overflow-hidden`}>
+    <div className={`h-screen bg-background flex flex-col transition-all duration-300 sticky top-0 ${isCollapsed ? 'w-16' : 'w-56'} overflow-hidden`}>
       {/* Logo Section with Collapse Button */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4">
         <div className="flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center justify-center flex-1 min-w-0">
             <div className={`rounded-lg flex items-center justify-center overflow-hidden transition-all duration-300 ${
@@ -203,7 +203,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
           <div
             style={{
               position: 'fixed',
-              left: isCollapsed ? '80px' : '272px', // Position to the right of sidebar
+              left: isCollapsed ? '80px' : '240px', // Position to the right of sidebar (w-56 = 224px + 16px gap)
               top: moreButtonRef.current ? `${moreButtonRef.current.getBoundingClientRect().top}px` : '300px',
               pointerEvents: 'auto',
             }}
@@ -211,7 +211,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps)
           >
             <div className="bg-secondary-light border border-gray-700 rounded-xl p-4 w-64 shadow-2xl animate-in fade-in slide-in-from-left-2 duration-200">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-semibold text-white">More Options</h3>
+                <h3 className="text-sm font-bold text-white">More Options</h3>
                 <button
                   onClick={() => setIsMoreExpanded(false)}
                   className="text-gray-400 hover:text-white text-lg hover:bg-gray-700 rounded-full w-7 h-7 flex items-center justify-center transition"

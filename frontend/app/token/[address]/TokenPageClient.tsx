@@ -515,6 +515,7 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                 backendPriceUsd={priceUsd}
                 backendMarketCapUsd={marketCapUsd}
                 backendStats={apiData?.stats}
+                creatorAddress={creator}
               />
             </div>
 
