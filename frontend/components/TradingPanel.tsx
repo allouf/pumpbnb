@@ -610,12 +610,6 @@ export function TradingPanel({ bondingCurveAddress, tokenSymbol, tokenAddress, o
           </div>
         )}
 
-        {priceImpact > 10 && amount && (
-          <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-            <p className="text-red-500 text-sm">⚠️ High price impact! Consider reducing trade size.</p>
-          </div>
-        )}
-
         {needsApproval ? (
           <button
             type="button"

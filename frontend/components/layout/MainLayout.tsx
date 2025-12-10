@@ -16,7 +16,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="h-screen bg-background overflow-hidden">
       <div className="flex h-full max-w-full">
         {/* Desktop Sidebar - Fixed, never scrolls */}
-        <div className={`hidden md:block ${isSidebarCollapsed ? 'w-16' : 'w-64'} flex-shrink-0 transition-all duration-300 overflow-hidden`}>
+        <div className={`hidden md:block ${isSidebarCollapsed ? 'w-16' : 'w-64'} flex-shrink-0 transition-all duration-300 overflow-hidden border-r border-gray-800`}>
           <Sidebar
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

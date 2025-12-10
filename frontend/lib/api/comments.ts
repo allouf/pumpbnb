@@ -216,7 +216,7 @@ export async function getCommentReplies(
   parentCommentId: string
 ): Promise<Comment[]> {
   const response = await fetch(
-    `${API_URL}/api/v2/tokens/${tokenAddress}/comments?replyTo=${parentCommentId}&sortBy=oldest`
+    `${API_URL}/api/v2/comments/${parentCommentId}/replies`
   )
 
   if (!response.ok) {

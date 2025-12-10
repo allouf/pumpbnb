@@ -305,16 +305,6 @@ export function TradingModal({ token, isOpen, onClose, defaultTab = 'buy' }: Tra
                 )}
               </Button>
 
-              {/* Warning for high price impact */}
-              {parseFloat(amount) > 0 &&
-                ((activeTab === 'buy' && buyDetails?.priceImpact > 5) ||
-                  (activeTab === 'sell' && sellDetails?.priceImpact > 5)) && (
-                  <div className="bg-accent-yellow/10 border border-accent-yellow/30 rounded-lg p-3">
-                    <p className="text-xs text-accent-yellow">
-                      ⚠️ High price impact! Consider splitting your trade into smaller amounts.
-                    </p>
-                  </div>
-                )}
             </>
           )}
         </div>

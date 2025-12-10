@@ -224,30 +224,46 @@ class TokenStatsUpdaterService extends EventEmitter {
       // Helper function to calculate price change for a given period
       const calculatePriceChange = async (periodSeconds: number, currentPrice: number): Promise<string> => {
         if (currentPrice <= 0) return '0';
-        
+
         const cutoffTime = new Date(Date.now() - periodSeconds * 1000);
-        const oldTrade = await prisma.trade.findFirst({
+
+        // First check if there were ANY trades within the period
+        // If no trades in the period, price change should be 0%
+        const tradesInPeriod = await prisma.trade.count({
           where: {
             tokenAddress: tokenAddress.toLowerCase(),
-            timestamp: { lte: cutoffTime },
+            timestamp: { gte: cutoffTime },
+          },
+        });
+
+        // No trades in period = no price change
+        if (tradesInPeriod === 0) {
+          return '0';
+        }
+
+        // Find the oldest trade in the period to compare with current price
+        const oldestTradeInPeriod = await prisma.trade.findFirst({
+          where: {
+            tokenAddress: tokenAddress.toLowerCase(),
+            timestamp: { gte: cutoffTime },
           },
           select: {
             asterAmount: true,
             tokenAmount: true,
           },
           orderBy: {
-            timestamp: 'desc',
+            timestamp: 'asc',
           },
         });
-        
-        if (oldTrade) {
-          let asterAmount = parseFloat(oldTrade.asterAmount || '0');
-          let tokenAmount = parseFloat(oldTrade.tokenAmount || '0');
-          
+
+        if (oldestTradeInPeriod) {
+          let asterAmount = parseFloat(oldestTradeInPeriod.asterAmount || '0');
+          let tokenAmount = parseFloat(oldestTradeInPeriod.tokenAmount || '0');
+
           // Handle Wei conversion
           if (asterAmount > 1e15) asterAmount = asterAmount / 1e18;
           if (tokenAmount > 1e15) tokenAmount = tokenAmount / 1e18;
-          
+
           if (tokenAmount > 0) {
             const oldPrice = asterAmount / tokenAmount;
             if (oldPrice > 0) {

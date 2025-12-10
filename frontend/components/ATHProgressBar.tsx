@@ -125,7 +125,7 @@ export function ATHProgressBar({
               aria-valuenow={athPercentage}
               className={`
                 relative overflow-hidden rounded-full bg-gray-700
-                ${compact ? 'h-1.5 w-12' : 'h-2 w-[68px]'}
+                ${compact ? 'h-2 w-16' : 'h-3 w-[140px]'}
                 shrink-0
                 ${showSparkles ? styles.animateBorderPulse : ''}
                 ${showSparkles ? styles.borderGold : ''}
@@ -150,7 +150,7 @@ export function ATHProgressBar({
                 className="pointer-events-none absolute z-10 -translate-x-1/2 transform"
                 style={{
                   left: `${athPercentage}%`,
-                  top: compact ? '-2px' : '-4px',
+                  top: compact ? '-2px' : '-6px',
                 }}
               >
                 <div className="pointer-events-none absolute">

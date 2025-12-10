@@ -343,14 +343,14 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
           <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden lg:pr-2 h-full">
             {/* Token Info Header - Same Width as Chart - Mobile-first Design */}
             <div className="bg-secondary-light rounded-xl p-3 sm:p-4 mb-4 border border-gray-700">
-              {/* Main container: Token info on left, Banner space on right */}
+              {/* Main container: Token info (left) | Ad space (middle) | Action buttons (right) */}
               <div className="flex items-stretch gap-4">
                 {/* Left side: Token info */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-shrink-0">
                   <div className="flex items-start gap-3 sm:gap-4">
-                    {/* Token Image - Compact */}
+                    {/* Token Image - Larger on desktop */}
                     <div className="flex-shrink-0 group relative">
-                      <div className="relative w-14 h-14 sm:w-16 sm:h-16">
+                      <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-28 md:h-28 lg:w-32 lg:h-32">
                         {/* Gradient border effect */}
                         <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-600 via-yellow-400 to-amber-600 p-[2px]">
                           <div className="h-full w-full rounded-lg bg-secondary-light"></div>
@@ -373,68 +373,31 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                     </div>
 
                     {/* Token Name, Address, Social Links */}
-                    <div className="flex-1 min-w-0">
-                      {/* Row 1: Name + Action Buttons */}
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <div className="min-w-0">
-                          <h1 className="text-base sm:text-lg font-bold leading-tight truncate">{name}</h1>
-                          <div className="flex items-center gap-1 text-xs text-gray-400">
-                            <span className="font-medium">${symbol}</span>
-                            <span className="text-gray-600">•</span>
-                            <span className="truncate">{creationInfo}</span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons - Compact */}
-                        <div className="flex gap-1 flex-shrink-0">
-                          <button
-                            onClick={handleShare}
-                            className="p-1.5 bg-primary text-black hover:bg-primary/90 rounded transition"
-                            title="Share"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
-                              <path d="M14.5563 7.7518L8.88865 2.6655C8.67404 2.47289 8.33268 2.62521 8.33268 2.91358V5.66655C2.66602 5.66655 1.16602 7.83322 1.16602 13.4999C2.16602 11.4999 2.66602 10.3332 8.33268 10.3332V13.0862C8.33268 13.3746 8.67404 13.5269 8.88865 13.3343L14.5562 8.24796C14.7038 8.11551 14.7038 7.88426 14.5563 7.7518Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={async () => {
-                              if (!isConnected) {
-                                toast.error('Connect wallet to add to watchlist')
-                                return
-                              }
-                              const success = await toggleWatchlist(address)
-                              if (success) {
-                                toast.success(isFavorite ? 'Removed from watchlist' : 'Added to watchlist!')
-                              } else {
-                                toast.error('Failed to update watchlist')
-                              }
-                            }}
-                            disabled={watchlistLoading}
-                            className={`p-1.5 rounded transition flex items-center justify-center ${
-                              isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
-                            } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
-                              <path d="M7.69983 1.35512C7.82047 1.10363 8.17953 1.10363 8.30017 1.35512L10.0126 4.92472C10.0612 5.02597 10.1578 5.09587 10.2694 5.1105L14.2103 5.62721C14.488 5.66363 14.5991 6.00504 14.3957 6.19709L11.5139 8.91815C11.4319 8.99551 11.3949 9.109 11.4155 9.21962L12.1391 13.1067C12.1902 13.381 11.8996 13.5919 11.6535 13.459L8.15842 11.5722C8.05959 11.5188 7.94041 11.5188 7.84158 11.5722L4.34646 13.459C4.10042 13.5919 3.80982 13.381 3.86088 13.1067L4.5845 9.21962C4.6051 9.109 4.56807 8.99551 4.48614 8.91815L1.60434 6.19709C1.40094 6.00504 1.51202 5.66363 1.78975 5.62721L5.7306 5.1105C5.8422 5.09587 5.93882 5.02597 5.98739 4.92472L7.69983 1.35512Z" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
+                    <div className="min-w-0">
+                      {/* Row 1: Name */}
+                      <div className="mb-1">
+                        <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight truncate">{name}</h1>
+                        <div className="flex items-center gap-1 text-xs text-gray-400">
+                          <span className="font-medium">${symbol}</span>
+                          <span className="text-gray-600">•</span>
+                          <span className="truncate">{creationInfo}</span>
                         </div>
                       </div>
 
-                      {/* Row 2: Address & Creator */}
-                      <div className="flex flex-wrap items-center gap-1 text-[10px] text-gray-400 mb-1.5">
+                      {/* Row 2: Contract Address */}
+                      <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
                         <ClickableWalletAddress address={address} className="text-[10px]" />
-                        {creator && (
-                          <>
-                            <span>•</span>
-                            <span>by </span>
-                            <ClickableWalletAddress address={creator} showUsername={true} className="text-[10px]" />
-                          </>
-                        )}
                       </div>
 
-                      {/* Row 3: Social Links - Compact icons */}
+                      {/* Row 3: Creator */}
+                      {creator && (
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-1.5">
+                          <span>by </span>
+                          <ClickableWalletAddress address={creator} showUsername={true} className="text-[10px]" />
+                        </div>
+                      )}
+
+                      {/* Row 4: Social Links - Compact icons */}
                       <div className="flex items-center gap-1">
                         {apiData?.website && (
                           <a
@@ -493,13 +456,49 @@ export function TokenPageClient({ address }: TokenPageClientProps) {
                   </div>
                 </div>
 
-                {/* Right side: Banner space - hidden on mobile */}
-                <div className="hidden md:flex w-40 lg:w-52 flex-shrink-0 bg-secondary/30 rounded-lg border border-gray-700/30 items-center justify-center overflow-hidden">
+                {/* Middle: Ad space - takes remaining space, hidden on mobile */}
+                <div className="hidden md:flex flex-1 min-w-0 bg-secondary/30 rounded-lg border border-gray-700/30 items-center justify-center overflow-hidden">
                   {/* Placeholder for banner - can be gif/png */}
                   <div className="text-center p-3">
                     <div className="text-2xl mb-1">🚀</div>
                     <p className="text-[10px] text-gray-500">Ad Space</p>
                   </div>
+                </div>
+
+                {/* Right side: Action Buttons */}
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button
+                    onClick={handleShare}
+                    className="p-2 md:p-2.5 bg-primary text-black hover:bg-primary/90 rounded transition"
+                    title="Share"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path d="M14.5563 7.7518L8.88865 2.6655C8.67404 2.47289 8.33268 2.62521 8.33268 2.91358V5.66655C2.66602 5.66655 1.16602 7.83322 1.16602 13.4999C2.16602 11.4999 2.66602 10.3332 8.33268 10.3332V13.0862C8.33268 13.3746 8.67404 13.5269 8.88865 13.3343L14.5562 8.24796C14.7038 8.11551 14.7038 7.88426 14.5563 7.7518Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!isConnected) {
+                        toast.error('Connect wallet to add to watchlist')
+                        return
+                      }
+                      const success = await toggleWatchlist(address)
+                      if (success) {
+                        toast.success(isFavorite ? 'Removed from watchlist' : 'Added to watchlist!')
+                      } else {
+                        toast.error('Failed to update watchlist')
+                      }
+                    }}
+                    disabled={watchlistLoading}
+                    className={`p-2 md:p-2.5 rounded transition flex items-center justify-center ${
+                      isFavorite ? 'bg-primary text-black' : 'bg-[#2B313B] hover:bg-[#2B313B]/80 text-white'
+                    } ${watchlistLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={isFavorite ? 'Remove from watchlist' : 'Add to watchlist'}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+                      <path d="M7.69983 1.35512C7.82047 1.10363 8.17953 1.10363 8.30017 1.35512L10.0126 4.92472C10.0612 5.02597 10.1578 5.09587 10.2694 5.1105L14.2103 5.62721C14.488 5.66363 14.5991 6.00504 14.3957 6.19709L11.5139 8.91815C11.4319 8.99551 11.3949 9.109 11.4155 9.21962L12.1391 13.1067C12.1902 13.381 11.8996 13.5919 11.6535 13.459L8.15842 11.5722C8.05959 11.5188 7.94041 11.5188 7.84158 11.5722L4.34646 13.459C4.10042 13.5919 3.80982 13.381 3.86088 13.1067L4.5845 9.21962C4.6051 9.109 4.56807 8.99551 4.48614 8.91815L1.60434 6.19709C1.40094 6.00504 1.51202 5.66363 1.78975 5.62721L5.7306 5.1105C5.8422 5.09587 5.93882 5.02597 5.98739 4.92472L7.69983 1.35512Z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
