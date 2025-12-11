@@ -39,7 +39,7 @@ export function HomeHeader({ onSearch }: HomeHeaderProps = {}) {
   return (
     <div className="mb-8">
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
+      <form onSubmit={handleSearch} className="w-full max-w-2xl ml-0">
         <div className="relative">
           <input
             type="text"
