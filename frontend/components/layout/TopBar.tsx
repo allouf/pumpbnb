@@ -164,8 +164,8 @@ export function TopBar() {
 
       {/* Desktop Layout - Original style */}
       <div className="hidden md:flex justify-between items-center px-6 py-3 gap-4">
-        {/* Left side - Search Bar */}
-        <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md">
+        {/* Left side - Search Bar - aligned with content panels below */}
+        <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md ml-4">
           <div className="relative flex items-center gap-2">
             <div className="relative flex-1 min-w-0">
               <input
