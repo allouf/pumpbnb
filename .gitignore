@@ -114,3 +114,4 @@ deployments/hardhat/
 .claude/state/
 .claude/cache/
 mythril-env/
+nul
